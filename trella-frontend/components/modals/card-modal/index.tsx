@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { CardWithList } from "@/types";
 import { fetcher } from "@/lib/fetcher";
-import { AuditLog } from "@prisma/client";
+import { AuditLog } from "@/types";
 import { useCardModal } from "@/hooks/use-card-modal";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { List } from "@prisma/client";
+import { List } from "@/types";
 
 import { ActionState } from "@/lib/create-safe-action";
 

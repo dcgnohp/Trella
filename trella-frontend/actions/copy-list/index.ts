@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
-import { ACTION, ENTITY_TYPE } from "@prisma/client";
+import { ACTION, ENTITY_TYPE } from "@/types";
 
 import { db } from "@/lib/db";
 import { createAuditLog } from "@/lib/create-audit-log";
@@ -35,7 +35,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       include: {
         cards: true,
       },
-    });
+    }) as any;
 
     if (!listToCopy) {
       return { error: "List not found" };
@@ -56,7 +56,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         order: newOrder,
         cards: {
           createMany: {
-            data: listToCopy.cards.map((card) => ({
+            data: listToCopy.cards.map((card: { title: any; description: any; order: any; }) => ({
               title: card.title,
               description: card.description,
               order: card.order,

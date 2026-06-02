@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { List } from "@prisma/client";
+import { List } from "@/types";
 import { ElementRef, useRef } from "react";
 import { MoreHorizontal, X } from "lucide-react";
 

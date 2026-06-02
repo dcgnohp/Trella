@@ -1,6 +1,6 @@
 "use client";
 
-import { AuditLog } from "@prisma/client";
+import { AuditLog } from "@/types";
 import { ActivityIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
