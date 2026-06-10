@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
+import { ListWithCards } from "@/types";
 
 import { ListContainer } from "./_components/list-container";
 
@@ -37,7 +38,7 @@ const BoardIdPage = async ({
     orderBy: {
       order: "asc",
     },
-  });
+  }) as ListWithCards[];
 
   return (
     <div className="p-4 h-full overflow-x-auto">

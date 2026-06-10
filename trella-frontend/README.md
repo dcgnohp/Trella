@@ -87,3 +87,41 @@ Running commands with npm `npm run [command]`
 | command         | description                              |
 | :-------------- | :--------------------------------------- |
 | `dev`           | Starts a development instance of the app |
+
+## Generate Client
+
+The typed API client under `lib/client/` is auto-generated from the FastAPI OpenAPI schema exposed by `trella-backend` via [`@hey-api/openapi-ts`](https://heyapi.dev/). Do not edit those files by hand — they are overwritten on every regen.
+
+### Invocation paths
+
+There are two ways to regenerate the client. Pick the one that matches your setup.
+
+**1. Full pipeline (recommended).** From the **repository root**, with the backend Python venv active so `app.main` is importable:
+
+```shell
+bash ./scripts/generate-client.sh
+```
+
+This exports `trella-backend`'s OpenAPI schema to `trella-frontend/openapi.json`, then runs the codegen step against it. Set `SKIP_CODEGEN=1` to refresh `openapi.json` only and skip the codegen step.
+
+**2. Manual codegen only.** From inside `trella-frontend/`, when an up-to-date `openapi.json` is already present at the repo root of this package:
+
+```shell
+npm run generate-client
+```
+
+This skips the schema export and only runs `@hey-api/openapi-ts` against the existing `trella-frontend/openapi.json`. It will fail with a non-zero exit code if `openapi.json` is missing.
+
+### Environment variables
+
+The generated client reads its base URL from `NEXT_PUBLIC_API_URL`. If unset, it falls back to `http://localhost:8000` and emits a one-time `console.warn` in development and production builds.
+
+| Variable | Default | Notes |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Base URL for the generated SDK; see `.env.example` for the canonical value. |
+
+Copy `.env.example` to `.env.local` and adjust as needed for staging/production deployments.
+
+### Regenerate before commit
+
+> ⚠️ **Whenever the backend OpenAPI schema changes, regenerate the client before committing.** The pre-commit hook `generate-frontend-sdk` declared in `trella-backend/.pre-commit-config.yaml` runs `bash ./scripts/generate-client.sh` automatically when staged changes touch `backend/` or the script itself, but you should still run it manually whenever you pull backend changes or modify a route, schema, or response model. Forgetting to regenerate leaves `lib/client/` out of sync with the backend and will surface as type errors at build time.

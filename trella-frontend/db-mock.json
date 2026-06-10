@@ -1,0 +1,164 @@
+{
+  "boards": [
+    {
+      "id": "board-demo-1",
+      "orgId": "org_demo",
+      "title": "📍 Dự án Trella Master",
+      "imageId": "unsplash_demo_1",
+      "imageThumbUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1MDcxMzJ8MHwxfHNlYXJjaHwxfHxiZWFjaHxlbnwwfHx8fDE3MDAwMDAwMDA&ixlib=rb-4.0.3&q=80&w=400",
+      "imageFullUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1MDcxMzJ8MHwxfHNlYXJjaHwxfHxiZWFjaHxlbnwwfHx8fDE3MDAwMDAwMDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageUserName": "Sean Oulashin",
+      "imageLinkHTML": "<a href=\"https://unsplash.com/@sean_oulashin\">Sean Oulashin</a>",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:44.965Z"
+    },
+    {
+      "id": "zwy3zfc-ggetlls",
+      "title": "kkkkkk",
+      "orgId": "org_demo",
+      "imageId": "C5mrwhFTEvY",
+      "imageThumbUrl": "https://images.unsplash.com/photo-1500384066616-8a8d547abfc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1MjY4NzN8MHwxfHJhbmRvbXx8fHx8fHx8fDE2OTk2OTcyNDN8&ixlib=rb-4.0.3&q=80&w=200",
+      "imageFullUrl": "https://images.unsplash.com/photo-1500384066616-8a8d547abfc9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w1MjY4NzN8MHwxfHJhbmRvbXx8fHx8fHx8fDE2OTk2OTcyNDN8&ixlib=rb-4.0.3&q=85",
+      "imageUserName": "Florian Biedermann",
+      "imageLinkHTML": "https://unsplash.com/photos/black-bird-on-person-left-hand-C5mrwhFTEvY",
+      "createdAt": "2026-06-02T20:54:12.008Z",
+      "updatedAt": "2026-06-02T20:54:12.008Z"
+    }
+  ],
+  "lists": [
+    {
+      "id": "list-demo-1",
+      "title": "📋 Cần làm (To Do)",
+      "order": 1,
+      "boardId": "board-demo-1",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:00.814Z"
+    },
+    {
+      "id": "list-demo-2",
+      "title": "⚡ Đang xử lý (In Progress)",
+      "order": 2,
+      "boardId": "board-demo-1",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:00.814Z"
+    },
+    {
+      "id": "list-demo-3",
+      "title": "✅ Đã xong (Done)",
+      "order": 3,
+      "boardId": "board-demo-1",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:00.814Z"
+    },
+    {
+      "id": "r6r25mi-9qaeixk",
+      "title": "kkkk",
+      "boardId": "zwy3zfc-ggetlls",
+      "order": 1,
+      "createdAt": "2026-06-02T20:54:19.664Z",
+      "updatedAt": "2026-06-02T20:54:19.664Z"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-demo-1",
+      "title": "Dọn dẹp code FE & Gỡ Prisma",
+      "order": 1,
+      "description": "Thực hiện xóa toàn bộ Prisma, cài đặt Mock DB JSON để FE chạy độc lập mượt mà.",
+      "listId": "list-demo-2",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:35.729Z"
+    },
+    {
+      "id": "card-demo-2",
+      "title": "Thiết lập mock API cho Backend",
+      "order": 2,
+      "description": "Chuẩn bị sẵn kiến trúc API client để chuẩn bị nối FastAPI vào sau.",
+      "listId": "list-demo-1",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:00.814Z"
+    },
+    {
+      "id": "card-demo-3",
+      "title": "Phát triển FastAPI & PostgreSQL",
+      "order": 0,
+      "description": "Xây dựng database PostgreSQL mới và backend FastAPI hoàn chỉnh thay thế Server Actions.",
+      "listId": "list-demo-3",
+      "createdAt": "2026-06-02T20:53:00.814Z",
+      "updatedAt": "2026-06-02T20:53:38.594Z"
+    },
+    {
+      "id": "clrzenm-pe9wyww",
+      "description": null,
+      "title": "1111",
+      "listId": "r6r25mi-9qaeixk",
+      "order": 1,
+      "createdAt": "2026-06-02T20:54:24.720Z",
+      "updatedAt": "2026-06-02T20:54:24.720Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "3hdaght-xbb6kcn",
+      "orgId": "org_demo",
+      "entityId": "board-demo-1",
+      "entityType": "BOARD",
+      "entityTitle": "📍 Dự án Trella Master",
+      "action": "UPDATE",
+      "userId": "user_demo",
+      "userImage": "https://github.com/shadcn.png",
+      "userName": "Trella User",
+      "createdAt": "2026-06-02T20:53:44.966Z",
+      "updatedAt": "2026-06-02T20:53:44.966Z"
+    },
+    {
+      "id": "bvu66px-z71dfgl",
+      "orgId": "org_demo",
+      "entityId": "zwy3zfc-ggetlls",
+      "entityType": "BOARD",
+      "entityTitle": "kkkkkk",
+      "action": "CREATE",
+      "userId": "user_demo",
+      "userImage": "https://github.com/shadcn.png",
+      "userName": "Trella User",
+      "createdAt": "2026-06-02T20:54:12.012Z",
+      "updatedAt": "2026-06-02T20:54:12.012Z"
+    },
+    {
+      "id": "iclz1cu-bj0xz1g",
+      "orgId": "org_demo",
+      "entityId": "r6r25mi-9qaeixk",
+      "entityType": "LIST",
+      "entityTitle": "kkkk",
+      "action": "CREATE",
+      "userId": "user_demo",
+      "userImage": "https://github.com/shadcn.png",
+      "userName": "Trella User",
+      "createdAt": "2026-06-02T20:54:19.666Z",
+      "updatedAt": "2026-06-02T20:54:19.666Z"
+    },
+    {
+      "id": "n4grp28-c61q5u6",
+      "orgId": "org_demo",
+      "entityId": "clrzenm-pe9wyww",
+      "entityType": "CARD",
+      "entityTitle": "1111",
+      "action": "CREATE",
+      "userId": "user_demo",
+      "userImage": "https://github.com/shadcn.png",
+      "userName": "Trella User",
+      "createdAt": "2026-06-02T20:54:24.722Z",
+      "updatedAt": "2026-06-02T20:54:24.722Z"
+    }
+  ],
+  "orgLimits": [
+    {
+      "id": "6nwq7la-hx81dbq",
+      "orgId": "org_demo",
+      "count": 1,
+      "createdAt": "2026-06-02T20:54:12.010Z",
+      "updatedAt": "2026-06-02T20:54:12.010Z"
+    }
+  ],
+  "orgSubscriptions": []
+}
