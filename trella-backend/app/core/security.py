@@ -26,6 +26,16 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     return encoded_jwt
 
 
+def decode_token(token: str) -> dict[str, Any]:
+    """Decode and verify a JWT, returning its payload.
+
+    Raises jwt.InvalidTokenError (or a subclass such as ExpiredSignatureError)
+    when the token is missing, malformed, expired, or has an invalid signature.
+    """
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+    return payload
+
+
 def verify_password(
     plain_password: str, hashed_password: str
 ) -> tuple[bool, str | None]:
@@ -34,3 +44,8 @@ def verify_password(
 
 def get_password_hash(password: str) -> str:
     return password_hash.hash(password)
+
+
+def hash_password(password: str) -> str:
+    """Alias for get_password_hash (Argon2 via pwdlib)."""
+    return get_password_hash(password)
