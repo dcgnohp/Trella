@@ -1,20 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { ListsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { UpdateList } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -24,29 +23,18 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    list = await db.list.update({
-      where: {
-        id,
-        boardId,
-        board: {
-          orgId,
-        },
-      },
-      data: {
+    // Org scope is resolved server-side via list -> board -> org_id; the UPDATE
+    // audit log is written in the same transaction (Req 4.4, 8.1).
+    list = await ListsService.Lists_listsUpdateList({
+      listId: id,
+      requestBody: {
         title,
       },
     });
-
-    await createAuditLog({
-      entityTitle: list.title,
-      entityId: list.id,
-      entityType: ENTITY_TYPE.CARD,
-      action: ACTION.UPDATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to update."
-    }
+      error: getApiErrorMessage(error, "Failed to update."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

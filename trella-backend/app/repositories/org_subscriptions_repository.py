@@ -37,6 +37,10 @@ class OrgSubscriptionsRepository:
         session.flush()
         return sub
 
+    def get(self, session: Session, sub_id: uuid.UUID) -> OrgSubscription | None:
+        """Return the subscription with the given id, or ``None`` if absent."""
+        return session.get(OrgSubscription, sub_id)
+
     def get_by_org(
         self, session: Session, org_id: uuid.UUID
     ) -> OrgSubscription | None:

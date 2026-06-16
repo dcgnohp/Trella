@@ -1,6 +1,6 @@
 import { defineConfig } from "@hey-api/openapi-ts"
 
-import { methodNameBuilder } from "./lib/codegen/method-name-builder"
+import { methodNameBuilder as buildMethodName } from "./lib/codegen/method-name-builder"
 
 export default defineConfig({
   input: "./openapi.json",
@@ -14,16 +14,13 @@ export default defineConfig({
       asClass: true,
       operationId: true,
       classNameBuilder: "{{name}}Service",
-      methodNameBuilder: (operation) => {
-        // @hey-api types do not surface name/service publicly; the runtime
-        // shape is `{ name: string; service: string; ... }`. Cast through the
-        // shared builder so the logic is unit-testable.
-        const op = operation as unknown as {
-          name: string
-          service: string
-        }
-        return methodNameBuilder({ name: op.name, service: op.service })
-      },
+      // Wrap so the argument is inferred from openapi-ts's signature, then
+      // narrow to the fields the legacy client actually provides.
+      methodNameBuilder: (operation) =>
+        buildMethodName({
+          name: (operation as { name?: string }).name,
+          service: (operation as { service?: string }).service,
+        }),
     },
     {
       name: "@hey-api/schemas",

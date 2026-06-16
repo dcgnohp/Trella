@@ -1,49 +1,44 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { CardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { UpdateCardOrder } from "./schema";
 import { InputType, ReturnType } from "./types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const { items, boardId, } = data;
+  const { items, boardId } = data;
   let updatedCards;
 
   try {
-    const transaction = items.map((card) => 
-      db.card.update({
-        where: {
+    // The backend validates that every card (and its target list) belongs to
+    // the same Board and applies all order/listId updates atomically, writing
+    // audit logs in the same transaction (Req 7.4, 7.5, 11.1-11.4).
+    updatedCards = await CardsService.Cards_cardsReorderCards({
+      requestBody: {
+        items: items.map((card) => ({
           id: card.id,
-          list: {
-            board: {
-              orgId,
-            },
-          },
-        },
-        data: {
           order: card.order,
           listId: card.listId,
-        },
-      }),
-    );
-
-    updatedCards = await db.$transaction(transaction);
+        })),
+      },
+    });
   } catch (error) {
     return {
-      error: "Failed to reorder."
-    }
+      error: getApiErrorMessage(error, "Failed to reorder."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

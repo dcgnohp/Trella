@@ -1,84 +1,73 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/current-org";
+import { BoardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { InputType, ReturnType } from "./types";
 import { CreateBoard } from "./schema";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
-import { 
-  incrementAvailableCount, 
-  hasAvailableCount
-} from "@/lib/org-limit";
-import { checkSubscription } from "@/lib/subscription";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const canCreate = await hasAvailableCount();
-  const isPro = await checkSubscription();
-
-  if (!canCreate && !isPro) {
-    return {
-      error: "You have reached your limit of free boards. Please upgrade to create more."
-    }
-  }
-
   const { title, image } = data;
 
-  const [
-    imageId,
-    imageThumbUrl,
-    imageFullUrl,
-    imageLinkHTML,
-    imageUserName
-  ] = image.split("|");
+  // Resolve the active organization with the documented priority (task 22.1):
+  // an explicit `orgId` from the form/route param, otherwise the `org_id`
+  // cookie set by the org picker.
+  const orgId = data.orgId ?? getCurrentOrgId();
 
-  if (!imageId || !imageThumbUrl || !imageFullUrl || !imageUserName || !imageLinkHTML) {
+  if (!orgId) {
     return {
-      error: "Missing fields. Failed to create board."
+      error: "Organization is required.",
+    };
+  }
+
+  const [imageId, imageThumbUrl, imageFullUrl, imageLinkHTML, imageUserName] =
+    image.split("|");
+
+  if (
+    !imageId ||
+    !imageThumbUrl ||
+    !imageFullUrl ||
+    !imageUserName ||
+    !imageLinkHTML
+  ) {
+    return {
+      error: "Missing fields. Failed to create board.",
     };
   }
 
   let board;
 
   try {
-    board = await db.board.create({
-      data: {
-        title,
+    // The backend enforces the free-tier board limit, increments OrgLimit and
+    // writes the CREATE audit log inside the same transaction (Req 5.5, 8.1, 9.4).
+    board = await BoardsService.Boards_boardsCreateBoard({
+      requestBody: {
         orgId,
+        title,
         imageId,
         imageThumbUrl,
         imageFullUrl,
         imageUserName,
         imageLinkHTML,
-      }
+      },
     });
-
-    if (!isPro) {
-     await incrementAvailableCount();
-    }
-
-    await createAuditLog({
-      entityTitle: board.title,
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      action: ACTION.CREATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to create."
-    }
+      error: getApiErrorMessage(error, "Failed to create."),
+    };
   }
 
   revalidatePath(`/board/${board.id}`);

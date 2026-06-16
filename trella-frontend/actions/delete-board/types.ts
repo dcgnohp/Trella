@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { Board } from "@/types";
 
 import { ActionState } from "@/lib/create-safe-action";
 
 import { DeleteBoard } from "./schema";
 
 export type InputType = z.infer<typeof DeleteBoard>;
-export type ReturnType = ActionState<InputType, Board>;
+// On success the action redirects, so no payload is returned.
+export type ReturnType = ActionState<InputType, void>;

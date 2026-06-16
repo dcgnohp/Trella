@@ -18,12 +18,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Organization shape used by the sidebar nav.
+ *
+ * The API `OrganizationPublic` only provides `id` + `name` (no `slug` /
+ * `imageUrl`), so those are optional. When `imageUrl` is absent we render an
+ * initial-letter placeholder instead of a broken <Image />.
+ */
 export type Organization = {
   id: string;
-  slug: string;
-  imageUrl: string;
   name: string;
+  slug?: string;
+  imageUrl?: string;
 };
+
+function orgInitial(name: string): string {
+  const trimmed = name.trim();
+  return trimmed ? trimmed[0].toUpperCase() : "?";
+}
 
 interface NavItemProps {
   isExpanded: boolean;
@@ -82,12 +94,18 @@ export const NavItem = ({
       >
         <div className="flex items-center gap-x-2">
           <div className="w-7 h-7 relative">
-            <Image
-              fill
-              src={organization.imageUrl}
-              alt="Organization"
-              className="rounded-sm object-cover"
-            />
+            {organization.imageUrl ? (
+              <Image
+                fill
+                src={organization.imageUrl}
+                alt="Organization"
+                className="rounded-sm object-cover"
+              />
+            ) : (
+              <div className="w-7 h-7 flex items-center justify-center rounded-sm bg-sky-100 text-sky-700 text-xs font-semibold">
+                {orgInitial(organization.name)}
+              </div>
+            )}
           </div>
           <span className="font-medium text-sm">
             {organization.name}

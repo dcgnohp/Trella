@@ -1,35 +1,31 @@
 import Link from "next/link";
-import { auth } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
 import { HelpCircle, User2 } from "lucide-react";
 
-import { db } from "@/lib/db";
+import type { BoardPublic } from "@/lib/client";
 import { Hint } from "@/components/hint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormPopover } from "@/components/form/form-popover";
-import { MAX_FREE_BOARDS } from "@/constants/boards";
-import { getAvailableCount } from "@/lib/org-limit";
-import { checkSubscription } from "@/lib/subscription";
 
-export const BoardList = async () => {
-  const { orgId } = auth();
+/**
+ * Presentational board list (Req 5.1, 5.2 — listing). PART 1 boundary
+ * adaptation only: the parent page now resolves the active organization and
+ * fetches `BoardsService.Boards_boardsListBoards({ orgId })`, then passes the
+ * result here as a prop. Earlier this file did its own Prisma `db.board`
+ * query + `getAvailableCount` / `checkSubscription` calls; those helpers were
+ * removed when Prisma + Stripe were dropped (`@/lib/db`, `@/lib/org-limit`,
+ * `@/lib/subscription` no longer exist).
+ *
+ * The free-tier "boards remaining" hint is omitted in Phase 1 (Req 9.x): the
+ * backend enforces the limit on `POST /boards` and surfaces the error
+ * directly; PART 2 will add a richer "X / 5 remaining" indicator backed by a
+ * dedicated org-limit endpoint.
+ */
+interface BoardListProps {
+  boards: BoardPublic[];
+  isPro?: boolean;
+}
 
-  if (!orgId) {
-    return redirect("/select-org");
-  }
-
-  const boards = await db.board.findMany({
-    where: {
-      orgId,
-    },
-    orderBy: {
-      createdAt: "desc"
-    }
-  });
-
-  const availableCount = await getAvailableCount();
-  const isPro = await checkSubscription();
-
+export const BoardList = ({ boards, isPro = false }: BoardListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center font-semibold text-lg text-neutral-700">
@@ -42,7 +38,11 @@ export const BoardList = async () => {
             key={board.id}
             href={`/board/${board.id}`}
             className="group relative aspect-video bg-no-repeat bg-center bg-cover bg-sky-700 rounded-sm h-full w-full p-2 overflow-hidden"
-            style={{ backgroundImage: `url(${board.imageThumbUrl})` }}
+            style={
+              board.imageThumbUrl
+                ? { backgroundImage: `url(${board.imageThumbUrl})` }
+                : undefined
+            }
           >
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition" />
             <p className="relative font-semibold text-white">
@@ -57,7 +57,7 @@ export const BoardList = async () => {
           >
             <p className="text-sm">Create new board</p>
             <span className="text-xs">
-              {isPro ? "Unlimited" : `${MAX_FREE_BOARDS - availableCount} remaining`}
+              {isPro ? "Unlimited" : "Free workspace"}
             </span>
             <Hint
               sideOffset={40}

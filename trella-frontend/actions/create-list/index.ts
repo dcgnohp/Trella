@@ -1,20 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { ListsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { CreateList } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -24,45 +23,18 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    const board = await db.board.findUnique({
-      where: {
-        id: boardId,
-        orgId,
-      },
-    });
-
-    if (!board) {
-      return {
-        error: "Board not found",
-      };
-    }
-
-    const lastList = await db.list.findFirst({
-      where: { boardId: boardId },
-      orderBy: { order: "desc" },
-      select: { order: true },
-    });
-
-    const newOrder = lastList ? lastList.order + 1 : 1;
-
-    list = await db.list.create({
-      data: {
+    // The backend derives `order` as max(order)+1, scopes the board via org
+    // membership and writes the CREATE audit log (Req 6.1, 4.4, 8.1).
+    list = await ListsService.Lists_listsCreateList({
+      requestBody: {
         title,
         boardId,
-        order: newOrder,
       },
     });
-
-    await createAuditLog({
-      entityTitle: list.title,
-      entityId: list.id,
-      entityType: ENTITY_TYPE.LIST,
-      action: ACTION.CREATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to create."
-    }
+      error: getApiErrorMessage(error, "Failed to create."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

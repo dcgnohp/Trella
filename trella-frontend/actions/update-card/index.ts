@@ -1,53 +1,42 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { CardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { UpdateCard } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const { id, boardId, ...values } = data;
+  const { id, boardId, title, description } = data;
   let card;
 
   try {
-    card = await db.card.update({
-      where: {
-        id,
-        list: {
-          board: {
-            orgId,
-          },
-        },
-      },
-      data: {
-        ...values,
+    // Org scope is resolved server-side via card -> list -> board -> org_id;
+    // only the provided fields are applied and an UPDATE audit log is written
+    // in the same transaction (Req 7.2, 4.4, 8.1).
+    card = await CardsService.Cards_cardsUpdateCard({
+      cardId: id,
+      requestBody: {
+        title,
+        description,
       },
     });
-
-    await createAuditLog({
-      entityTitle: card.title,
-      entityId: card.id,
-      entityType: ENTITY_TYPE.CARD,
-      action: ACTION.UPDATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to update."
-    }
+      error: getApiErrorMessage(error, "Failed to update."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

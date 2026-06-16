@@ -1,54 +1,40 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { CardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { DeleteCard } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
   const { id, boardId } = data;
-  let card;
 
   try {
-    card = await db.card.delete({
-      where: {
-        id,
-        list: {
-          board: {
-            orgId,
-          },
-        },
-      },
+    // Org scope resolved server-side; DELETE audit log written in the same
+    // transaction (Req 7.3, 8.1).
+    await CardsService.Cards_cardsDeleteCard({
+      cardId: id,
     });
-
-    await createAuditLog({
-      entityTitle: card.title,
-      entityId: card.id,
-      entityType: ENTITY_TYPE.CARD,
-      action: ACTION.DELETE,
-    })
   } catch (error) {
     return {
-      error: "Failed to delete."
-    }
+      error: getApiErrorMessage(error, "Failed to delete."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);
-  return { data: card };
+  return { data: undefined };
 };
 
 export const deleteCard = createSafeAction(DeleteCard, handler);

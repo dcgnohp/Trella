@@ -1,19 +1,55 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { CreditCard } from "lucide-react";
-import { useOrganization } from "@clerk/nextjs";
 
+import type { OrganizationPublic } from "@/lib/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface InfoProps {
   isPro: boolean;
 };
 
+function orgInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
 export const Info = ({
   isPro,
 }: InfoProps) => {
-  const { organization, isLoaded } = useOrganization();
+  const params = useParams();
+  const organizationId = params.organizationId as string | undefined;
+
+  // API-backed organization state (Requirement 15.4): resolve the active org's
+  // details from `GET /api/org` using the route param.
+  const [organization, setOrganization] = useState<OrganizationPublic | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/org", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { organizations: [] }))
+      .then((data: { organizations?: OrganizationPublic[] }) => {
+        if (!active) return;
+        const found =
+          data.organizations?.find((org) => org.id === organizationId) ?? null;
+        setOrganization(found);
+      })
+      .catch(() => {
+        if (active) setOrganization(null);
+      })
+      .finally(() => {
+        if (active) setIsLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [organizationId]);
 
   if (!isLoaded) {
     return (
@@ -23,17 +59,14 @@ export const Info = ({
 
   return (
     <div className="flex items-center gap-x-4">
-      <div className="w-[60px] h-[60px] relative">
-        <Image
-          fill
-          src={organization?.imageUrl!}
-          alt="Organization"
-          className="rounded-md object-cover"
-        />
-      </div>
+      <Avatar className="w-[60px] h-[60px] rounded-md">
+        <AvatarFallback className="rounded-md bg-sky-100 text-sky-700 text-lg font-semibold">
+          {organization ? orgInitials(organization.name) : "?"}
+        </AvatarFallback>
+      </Avatar>
       <div className="space-y-1">
         <p className="font-semibold text-xl">
-          {organization?.name}
+          {organization?.name ?? "Organization"}
         </p>
         <div className="flex items-center text-xs text-muted-foreground">
           <CreditCard className="h-3 w-3 mr-1" />

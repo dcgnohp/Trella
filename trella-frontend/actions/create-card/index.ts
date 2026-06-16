@@ -1,20 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
-import { db } from "@/lib/db";
-import { createAuditLog } from "@/lib/create-audit-log";
+import { getCurrentUser } from "@/lib/auth";
+import { CardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { CreateCard } from "./schema";
 import { InputType, ReturnType } from "./types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -24,47 +23,18 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let card;
 
   try {
-    const list = await db.list.findUnique({
-      where: {
-        id: listId,
-        board: {
-          orgId,
-        },
-      },
-    });
-
-    if (!list) {
-      return {
-        error: "List not found",
-      };
-    }
-
-    const lastCard = await db.card.findFirst({
-      where: { listId },
-      orderBy: { order: "desc" },
-      select: { order: true },
-    });
-
-    const newOrder = lastCard ? lastCard.order + 1 : 1;
-
-    card = await db.card.create({
-      data: {
+    // The backend derives `order` as max(order)+1, scopes via list -> board ->
+    // org_id and writes the CREATE audit log (Req 7.1, 4.4, 8.1).
+    card = await CardsService.Cards_cardsCreateCard({
+      requestBody: {
         title,
         listId,
-        order: newOrder,
       },
-    });
-
-    await createAuditLog({
-      entityId: card.id,
-      entityTitle: card.title,
-      entityType: ENTITY_TYPE.CARD,
-      action: ACTION.CREATE,
     });
   } catch (error) {
     return {
-      error: "Failed to create."
-    }
+      error: getApiErrorMessage(error, "Failed to create."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

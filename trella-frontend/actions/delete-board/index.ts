@@ -1,55 +1,49 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/current-org";
+import { BoardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { DeleteBoard } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
-import { decreaseAvailableCount } from "@/lib/org-limit";
-import { checkSubscription } from "@/lib/subscription";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const isPro = await checkSubscription();
-
   const { id } = data;
-  let board;
+
+  // Resolve the active organization with the documented priority (task 22.1):
+  // explicit `orgId` from the form/route param, else the `org_id` cookie. Used
+  // to redirect back to the organization dashboard after deletion.
+  const orgId = data.orgId ?? getCurrentOrgId();
+
+  if (!orgId) {
+    return {
+      error: "Organization is required.",
+    };
+  }
 
   try {
-    board = await db.board.delete({
-      where: {
-        id,
-        orgId,
-      },
+    // Cascade delete + OrgLimit decrement + DELETE audit log are handled by the
+    // backend in a single transaction (Req 5.4, 8.1, 9.5).
+    await BoardsService.Boards_boardsDeleteBoard({
+      boardId: id,
     });
-
-    if (!isPro) {
-      await decreaseAvailableCount();
-    }
-
-    await createAuditLog({
-      entityTitle: board.title,
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      action: ACTION.DELETE,
-    })
   } catch (error) {
     return {
-      error: "Failed to delete."
-    }
+      error: getApiErrorMessage(error, "Failed to delete."),
+    };
   }
 
   revalidatePath(`/organization/${orgId}`);

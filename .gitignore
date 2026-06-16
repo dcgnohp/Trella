@@ -14,8 +14,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -219,5 +217,6 @@ __marimo__/
 
 #Gemini
 GEMINI.md
-.agent
+.agents
 .kiro
+skills-lock.json

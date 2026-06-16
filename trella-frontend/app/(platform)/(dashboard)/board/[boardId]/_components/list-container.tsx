@@ -77,7 +77,19 @@ export const ListContainer = ({
       ).map((item, index) => ({ ...item, order: index }));
 
       setOrderedData(items);
-      executeUpdateListOrder({ items, boardId });
+      // The reorder action's zod schema models `createdAt` / `updatedAt` as
+      // `z.date()` (PART 2 leftover; not in scope here). The board-detail API
+      // serialises them as ISO strings, so coerce at the action boundary so
+      // safeParse accepts the payload — the backend itself only consumes
+      // `id` + `order` (Req 6.4).
+      executeUpdateListOrder({
+        items: items.map((item) => ({
+          ...item,
+          createdAt: new Date(item.createdAt),
+          updatedAt: new Date(item.updatedAt),
+        })),
+        boardId,
+      });
     }
 
     // User moves a card
@@ -117,9 +129,15 @@ export const ListContainer = ({
         sourceList.cards = reorderedCards;
 
         setOrderedData(newOrderedData);
+        // Same `z.date()` coercion as the list reorder above; the backend
+        // only consumes `id` / `order` / `listId` (Req 7.4).
         executeUpdateCardOrder({
           boardId: boardId,
-          items: reorderedCards,
+          items: reorderedCards.map((card) => ({
+            ...card,
+            createdAt: new Date(card.createdAt),
+            updatedAt: new Date(card.updatedAt),
+          })),
         });
         // User moves the card to another list
       } else {
@@ -144,7 +162,11 @@ export const ListContainer = ({
         setOrderedData(newOrderedData);
         executeUpdateCardOrder({
           boardId: boardId,
-          items: destList.cards,
+          items: destList.cards.map((card) => ({
+            ...card,
+            createdAt: new Date(card.createdAt),
+            updatedAt: new Date(card.updatedAt),
+          })),
         });
       }
     }

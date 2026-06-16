@@ -4,40 +4,44 @@ import { toast } from "sonner";
 import { ElementRef, useRef, useState } from "react";
 import { Layout } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { CardWithList } from "@/types";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
+import { useCardModal } from "@/hooks/use-card-modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormInput } from "@/components/form/form-input";
 
 interface HeaderProps {
   data: CardWithList;
+  /**
+   * Invoked after a successful update so the parent modal can refresh
+   * activity (the backend writes an UPDATE audit row in the same
+   * transaction).
+   */
+  onUpdated?: () => void;
 }
 
 export const Header = ({
   data,
+  onUpdated,
 }: HeaderProps) => {
-  const queryClient = useQueryClient();
   const params = useParams();
+  const setCard = useCardModal((state) => state.setCard);
 
   const { execute } = useAction(updateCard, {
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["card", data.id]
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["card-logs", data.id]
-      });
-
-      toast.success(`Renamed to "${data.title}"`);
-      setTitle(data.title);
+    onSuccess: (updated) => {
+      // Keep the modal store in sync without a refetch: the action handler
+      // already revalidates the board page so the underlying `BoardsService`
+      // payload will be fresh on the next render of `CardItem`.
+      setCard({ ...data, ...updated });
+      toast.success(`Renamed to "${updated.title}"`);
+      setTitle(updated.title);
+      onUpdated?.();
     },
     onError: (error) => {
       toast.error(error);
-    }
+    },
   });
 
   const inputRef = useRef<ElementRef<"input">>(null);
@@ -61,7 +65,7 @@ export const Header = ({
       boardId,
       id: data.id,
     });
-  }
+  };
 
   return (
     <div className="flex items-start gap-x-3 mb-6 w-full">

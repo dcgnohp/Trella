@@ -4,12 +4,12 @@ import { toast } from "sonner";
 import { AlignLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState, useRef, ElementRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { CardWithList } from "@/types";
+import { useCardModal } from "@/hooks/use-card-modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormTextarea } from "@/components/form/form-textarea";
 import { FormSubmit } from "@/components/form/form-submit";
@@ -17,13 +17,20 @@ import { Button } from "@/components/ui/button";
 
 interface DescriptionProps {
   data: CardWithList;
-};
+  /**
+   * Called after a successful update so the parent modal can refresh the
+   * activity feed (the backend writes an UPDATE audit row in the same
+   * transaction).
+   */
+  onUpdated?: () => void;
+}
 
 export const Description = ({
-  data
+  data,
+  onUpdated,
 }: DescriptionProps) => {
   const params = useParams();
-  const queryClient = useQueryClient();
+  const setCard = useCardModal((state) => state.setCard);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -35,7 +42,7 @@ export const Description = ({
     setTimeout(() => {
       textareaRef.current?.focus();
     });
-  }
+  };
 
   const disableEditing = () => {
     setIsEditing(false);
@@ -51,14 +58,12 @@ export const Description = ({
   useOnClickOutside(formRef, disableEditing);
 
   const { execute, fieldErrors } = useAction(updateCard, {
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["card", data.id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["card-logs", data.id]
-      });
-      toast.success(`Card "${data.title}" updated`);
+    onSuccess: (updated) => {
+      // Update the modal store so the description text reflects the new
+      // value on the next render without re-fetching the card.
+      setCard({ ...data, ...updated });
+      toast.success(`Card "${updated.title}" updated`);
+      onUpdated?.();
       disableEditing();
     },
     onError: (error) => {
@@ -74,22 +79,16 @@ export const Description = ({
       id: data.id,
       description,
       boardId,
-    })
-  }
+    });
+  };
 
   return (
     <div className="flex items-start gap-x-3 w-full">
       <AlignLeft className="h-5 w-5 mt-0.5 text-neutral-700" />
       <div className="w-full">
-        <p className="font-semibold text-neutral-700 mb-2">
-          Description
-        </p>
+        <p className="font-semibold text-neutral-700 mb-2">Description</p>
         {isEditing ? (
-          <form
-            action={onSubmit}
-            ref={formRef}
-            className="space-y-2"
-          >
+          <form action={onSubmit} ref={formRef} className="space-y-2">
             <FormTextarea
               id="description"
               className="w-full mt-2"
@@ -99,9 +98,7 @@ export const Description = ({
               ref={textareaRef}
             />
             <div className="flex items-center gap-x-2">
-              <FormSubmit>
-                Save
-              </FormSubmit>
+              <FormSubmit>Save</FormSubmit>
               <Button
                 type="button"
                 onClick={disableEditing}

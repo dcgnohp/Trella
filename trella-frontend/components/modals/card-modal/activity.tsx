@@ -1,13 +1,13 @@
 "use client";
 
-import { AuditLog } from "@/types";
+import type { AuditLogPublic } from "@/lib/client";
 import { ActivityIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityItem } from "@/components/activity-item";
 
 interface ActivityProps {
-  items: AuditLog[];
+  items: AuditLogPublic[];
 };
 
 export const Activity = ({

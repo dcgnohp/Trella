@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useLocalStorage } from "usehooks-ts";
-import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 
+import type { OrganizationPublic } from "@/lib/client";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
 
@@ -24,18 +24,35 @@ export const Sidebar = ({
     {}
   );
 
-  const {
-    organization: activeOrganization,
-    isLoaded: isLoadedOrg
-  } = useOrganization();
-  const { 
-    userMemberships,
-    isLoaded: isLoadedOrgList
-  } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-    },
-  });
+  // API-backed organization state (Requirement 15.3, 15.4): the org list +
+  // active org come from `GET /api/org`, which reads the httpOnly auth cookie
+  // server-side and proxies `GET /organizations`.
+  const [organizations, setOrganizations] = useState<OrganizationPublic[]>([]);
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/org", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { organizations: [], currentOrgId: null }))
+      .then((data: { organizations?: OrganizationPublic[]; currentOrgId?: string | null }) => {
+        if (!active) return;
+        setOrganizations(data.organizations ?? []);
+        setActiveOrgId(data.currentOrgId ?? null);
+      })
+      .catch(() => {
+        if (active) {
+          setOrganizations([]);
+          setActiveOrgId(null);
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const defaultAccordionValue: string[] = Object.keys(expanded)
     .reduce((acc: string[], key: string) => {
@@ -53,7 +70,7 @@ export const Sidebar = ({
     }));
   };
 
-  if (!isLoadedOrg || !isLoadedOrgList || userMemberships.isLoading) {
+  if (!isLoaded) {
     return (
       <>
         <div className="flex items-center justify-between mb-2">
@@ -94,10 +111,10 @@ export const Sidebar = ({
         defaultValue={defaultAccordionValue}
         className="space-y-2"
       >
-        {userMemberships.data.map(({ organization }) => (
+        {organizations.map((organization) => (
           <NavItem
             key={organization.id}
-            isActive={activeOrganization?.id === organization.id}
+            isActive={activeOrgId === organization.id}
             isExpanded={expanded[organization.id]}
             organization={organization as Organization}
             onExpand={onExpand}

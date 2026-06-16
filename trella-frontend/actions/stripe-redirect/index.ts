@@ -1,86 +1,30 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs";
-import { revalidatePath } from "next/cache";
-import { ACTION, ENTITY_TYPE } from "@/types";
-
-import { db } from "@/lib/db";
-import { createAuditLog } from "@/lib/create-audit-log";
+import { getCurrentUser } from "@/lib/auth";
 import { createSafeAction } from "@/lib/create-safe-action";
 
 import { StripeRedirect } from "./schema";
 import { InputType, ReturnType } from "./types";
 
-import { absoluteUrl } from "@/lib/utils";
-import { stripe } from "@/lib/stripe";
+/**
+ * Billing / Stripe is intentionally NOT part of Phase 1 (Requirement 10.3 — no
+ * `/api/v1/billing/*` endpoints, `is_pro` always returns false). There is no
+ * backend billing endpoint to call, so this action is a no-op that returns a
+ * clear "not available" error instead of performing any Stripe work. The schema
+ * and return contract are preserved so Phase 2 can wire in real billing.
+ */
+const handler = async (_data: InputType): Promise<ReturnType> => {
+  const user = await getCurrentUser();
 
-const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
-  const user = await currentUser();
-
-  if (!userId || !orgId || !user) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const settingsUrl = absoluteUrl(`/organization/${orgId}`);
-
-  let url = "";
-
-  try {
-    const orgSubscription = await db.orgSubscription.findUnique({
-      where: {
-        orgId,
-      }
-    });
-
-    if (orgSubscription && orgSubscription.stripeCustomerId) {
-      const stripeSession = await stripe.billingPortal.sessions.create({
-        customer: orgSubscription.stripeCustomerId,
-        return_url: settingsUrl,
-      });
-
-      url = stripeSession.url;
-    } else {
-      const stripeSession = await stripe.checkout.sessions.create({
-        success_url: settingsUrl,
-        cancel_url: settingsUrl,
-        payment_method_types: ["card"],
-        mode: "subscription",
-        billing_address_collection: "auto",
-        customer_email: user.emailAddresses[0].emailAddress,
-        line_items: [
-          {
-            price_data: {
-              currency: "USD",
-              product_data: {
-                name: "Taskify Pro",
-                description: "Unlimited boards for your organization"
-              },
-              unit_amount: 2000,
-              recurring: {
-                interval: "month"
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        metadata: {
-          orgId,
-        },
-      });
-
-      url = stripeSession.url || "";
-    }
-  } catch {
-    return {
-      error: "Something went wrong!"
-    }
+  return {
+    error: "Billing is not available in Phase 1.",
   };
-
-  revalidatePath(`/organization/${orgId}`);
-  return { data: url };
 };
 
 export const stripeRedirect = createSafeAction(StripeRedirect, handler);

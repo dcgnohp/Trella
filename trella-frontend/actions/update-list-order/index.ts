@@ -1,18 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { ListsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { UpdateListOrder } from "./schema";
 import { InputType, ReturnType } from "./types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -22,25 +23,22 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let lists;
 
   try {
-    const transaction = items.map((list) => 
-      db.list.update({
-        where: {
+    // The backend validates that every id belongs to `boardId` and applies all
+    // order updates atomically (all-or-nothing), writing audit logs in the same
+    // transaction (Req 6.4, 6.5, 11.1-11.4).
+    lists = await ListsService.Lists_listsReorderLists({
+      requestBody: {
+        boardId,
+        items: items.map((list) => ({
           id: list.id,
-          board: {
-            orgId,
-          },
-        },
-        data: {
           order: list.order,
-        },
-      })
-    );
-
-    lists = await db.$transaction(transaction);
+        })),
+      },
+    });
   } catch (error) {
     return {
-      error: "Failed to reorder."
-    }
+      error: getApiErrorMessage(error, "Failed to reorder."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);

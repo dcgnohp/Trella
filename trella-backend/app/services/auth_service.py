@@ -88,4 +88,4 @@ class AuthService:
         bad-signature tokens.
         """
         payload = security.decode_token(token)
-        return payload["sub"]
+        return str(payload["sub"])

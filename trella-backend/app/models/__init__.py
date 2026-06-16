@@ -16,10 +16,14 @@ their ``*_model`` module here. Only modules that currently exist are imported.
 
 from sqlmodel import SQLModel
 
+from app.models.audit_logs_model import AuditAction, AuditLog, EntityType
+from app.models.board_lists_model import List
+from app.models.boards_model import Board
 from app.models.org_limits_model import OrgLimit
 from app.models.org_subscriptions_model import OrgSubscription
 from app.models.organization_members_model import OrganizationMember
 from app.models.organizations_model import Organization
+from app.models.task_cards_model import Card
 from app.models.users_model import User
 
 __all__ = [
@@ -29,4 +33,10 @@ __all__ = [
     "OrganizationMember",
     "OrgSubscription",
     "OrgLimit",
+    "Board",
+    "List",
+    "Card",
+    "AuditLog",
+    "AuditAction",
+    "EntityType",
 ]

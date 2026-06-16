@@ -1,20 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { BoardsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { UpdateBoard } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -24,26 +23,18 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let board;
 
   try {
-    board = await db.board.update({
-      where: {
-        id,
-        orgId,
-      },
-      data: {
+    // Org membership is enforced server-side; the UPDATE audit log is written
+    // by the backend in the same transaction (Req 4.1, 8.1).
+    board = await BoardsService.Boards_boardsUpdateBoard({
+      boardId: id,
+      requestBody: {
         title,
       },
     });
-
-    await createAuditLog({
-      entityTitle: board.title,
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      action: ACTION.UPDATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to update."
-    }
+      error: getApiErrorMessage(error, "Failed to update."),
+    };
   }
 
   revalidatePath(`/board/${id}`);

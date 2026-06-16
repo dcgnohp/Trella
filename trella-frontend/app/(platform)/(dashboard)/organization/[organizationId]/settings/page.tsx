@@ -1,23 +1,9 @@
-import { OrganizationProfile } from "@clerk/nextjs";
-
+// TODO(22.x): replace with organization settings UI backed by the FastAPI
+// organizations API. Clerk <OrganizationProfile /> removed.
 const SettingsPage = () => {
   return (
     <div className="w-full">
-     <OrganizationProfile
-      appearance={{
-        elements: {
-          rootBox: {
-            boxShadow: "none",
-            width: "100%"
-          },
-          card: {
-            border: "1px solid #e5e5e5",
-            boxShadow: "none",
-            width: "100%"
-          }
-        }
-      }}
-     />
+      Organization settings
     </div>
   );
 };

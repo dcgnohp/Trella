@@ -1,13 +1,38 @@
 import { Plus } from "lucide-react";
-import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { FormPopover } from "@/components/form/form-popover";
+import { OrganizationsService, type OrganizationPublic } from "@/lib/client";
+import { getCurrentUser } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/current-org";
 
 import { MobileSidebar } from "./mobile-sidebar";
+import { OrgSwitcher } from "./org-switcher";
 
-export const Navbar = () => {
+/**
+ * Dashboard navbar (Requirements 15.3, 15.4).
+ *
+ * Server component: resolves the current user and their organizations
+ * (`GET /organizations`) plus the active org id (cookie) on the server, then
+ * renders the shadcn-based <OrgSwitcher /> (replacing the Clerk
+ * `<OrganizationSwitcher />`).
+ */
+export const Navbar = async () => {
+  const user = await getCurrentUser();
+
+  let organizations: OrganizationPublic[] = [];
+  if (user) {
+    try {
+      organizations =
+        await OrganizationsService.Organizations_organizationsListOrganizations();
+    } catch {
+      organizations = [];
+    }
+  }
+
+  const activeOrgId = getCurrentOrgId() ?? null;
+
   return (
     <nav className="fixed z-50 top-0 px-4 w-full h-14 border-b shadow-sm bg-white flex items-center">
       <MobileSidebar />
@@ -27,32 +52,8 @@ export const Navbar = () => {
         </FormPopover>
       </div>
       <div className="ml-auto flex items-center gap-x-2">
-        <OrganizationSwitcher
-          hidePersonal
-          afterCreateOrganizationUrl="/organization/:id"
-          afterLeaveOrganizationUrl="/select-org"
-          afterSelectOrganizationUrl="/organization/:id"
-          appearance={{
-            elements: {
-              rootBox: {
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              },
-            },
-          }}
-        />
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: {
-              avatarBox: {
-                height: 30,
-                width: 30,
-              }
-            }
-          }}
-        />
+        <OrgSwitcher organizations={organizations} activeOrgId={activeOrgId} />
+        {/* TODO(21.x): replace Clerk <UserButton /> with user menu backed by useAuth(). */}
       </div>
     </nav>
   );

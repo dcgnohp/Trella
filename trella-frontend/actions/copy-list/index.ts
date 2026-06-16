@@ -1,20 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
-import { ACTION, ENTITY_TYPE } from "@/types";
 
-import { db } from "@/lib/db";
-import { createAuditLog } from "@/lib/create-audit-log";
+import { getCurrentUser } from "@/lib/auth";
+import { ListsService } from "@/lib/client";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { getApiErrorMessage } from "@/lib/action-error";
 
 import { CopyList } from "./schema";
 import { InputType, ReturnType } from "./types";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId || !orgId) {
+  if (!user) {
     return {
       error: "Unauthorized",
     };
@@ -24,61 +23,15 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    const listToCopy = await db.list.findUnique({
-      where: {
-        id,
-        boardId,
-        board: {
-          orgId,
-        },
-      },
-      include: {
-        cards: true,
-      },
-    }) as any;
-
-    if (!listToCopy) {
-      return { error: "List not found" };
-    }
-
-    const lastList = await db.list.findFirst({
-      where: { boardId },
-      orderBy: { order: "desc" },
-      select: { order: true },
+    // The backend creates "{title} - Copy" at order max+1, copies the cards in
+    // order and writes the CREATE audit log in one transaction (Req 6.6, 8.1).
+    list = await ListsService.Lists_listsCopyList({
+      listId: id,
     });
-
-    const newOrder = lastList ? lastList.order + 1 : 1;
-
-    list = await db.list.create({
-      data: {
-        boardId: listToCopy.boardId,
-        title: `${listToCopy.title} - Copy`,
-        order: newOrder,
-        cards: {
-          createMany: {
-            data: listToCopy.cards.map((card: { title: any; description: any; order: any; }) => ({
-              title: card.title,
-              description: card.description,
-              order: card.order,
-            })),
-          },
-        },
-      },
-      include: {
-        cards: true,
-      },
-    });
-
-    await createAuditLog({
-      entityTitle: list.title,
-      entityId: list.id,
-      entityType: ENTITY_TYPE.LIST,
-      action: ACTION.CREATE,
-    })
   } catch (error) {
     return {
-      error: "Failed to copy."
-    }
+      error: getApiErrorMessage(error, "Failed to copy."),
+    };
   }
 
   revalidatePath(`/board/${boardId}`);
