@@ -1,12 +1,5 @@
 import { z } from "zod"
 
-/**
- * Validation schema for creating an organization (Requirement 15.2).
- *
- * Mirrors the backend `OrganizationCreate` contract (`{ name: string }`). Used
- * for both client-side validation (shadcn `Form` + `react-hook-form`) and as a
- * server-side guard inside the `createOrganization` action.
- */
 export const CreateOrganizationSchema = z.object({
   name: z
     .string({

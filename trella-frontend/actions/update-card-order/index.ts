@@ -23,9 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let updatedCards;
 
   try {
-    // The backend validates that every card (and its target list) belongs to
-    // the same Board and applies all order/listId updates atomically, writing
-    // audit logs in the same transaction (Req 7.4, 7.5, 11.1-11.4).
     updatedCards = await CardsService.Cards_cardsReorderCards({
       requestBody: {
         items: items.map((card) => ({

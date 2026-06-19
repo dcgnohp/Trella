@@ -137,9 +137,7 @@ def _make_handler(*, status: int, body: bytes | None) -> type[BaseHTTPRequestHan
 
 
 @contextlib.contextmanager
-def _http_stub_backend(
-    *, status: int, body: bytes | None
-) -> Iterator[str]:
+def _http_stub_backend(*, status: int, body: bytes | None) -> Iterator[str]:
     """Run an HTTP stub backend on an ephemeral port for the duration of
     the ``with`` block. Yields the base URL (without trailing slash). The
     server is shut down cleanly even if the body of the ``with`` raises.
@@ -263,16 +261,16 @@ def test_schema_export_failure_halts_before_codegen(tmp_path: Path) -> None:
     # inside lib/client/. Its absence after the run proves codegen was
     # not invoked.
     package_json = (
-        '{\n'
+        "{\n"
         '  "name": "trella-frontend-stub",\n'
         '  "private": true,\n'
         '  "scripts": {\n'
         '    "generate-client": "node -e \\"const fs=require(\'fs\');'
-        ' fs.mkdirSync(\'lib/client\',{recursive:true});'
-        ' fs.writeFileSync(\'lib/client/CANARY.txt\',\'reached\');'
+        " fs.mkdirSync('lib/client',{recursive:true});"
+        " fs.writeFileSync('lib/client/CANARY.txt','reached');"
         ' process.exit(0)\\""\n'
-        '  }\n'
-        '}\n'
+        "  }\n"
+        "}\n"
     )
     _write_frontend(repo_root, package_json=package_json)
 
@@ -324,14 +322,14 @@ def test_codegen_failure_exits_nonzero_and_propagates_stderr(
 
     marker = "CODEGEN_FAILURE_MARKER_a17c5"
     package_json = (
-        '{\n'
+        "{\n"
         '  "name": "trella-frontend-stub",\n'
         '  "private": true,\n'
         '  "scripts": {\n'
         f'    "generate-client": "node -e \\"console.error(\'{marker}\');'
         ' process.exit(17)\\""\n'
-        '  }\n'
-        '}\n'
+        "  }\n"
+        "}\n"
     )
     _write_frontend(repo_root, package_json=package_json)
 
@@ -370,14 +368,14 @@ def test_skip_codegen_writes_schema_and_leaves_client_untouched(
     # If reached (bug), generate-client would error loudly; its absence
     # in the output combined with exit 0 confirms it was skipped.
     package_json = (
-        '{\n'
+        "{\n"
         '  "name": "trella-frontend-stub",\n'
         '  "private": true,\n'
         '  "scripts": {\n'
         '    "generate-client": "node -e \\"console.error(\'SHOULD_NOT_RUN\');'
         ' process.exit(99)\\""\n'
-        '  }\n'
-        '}\n'
+        "  }\n"
+        "}\n"
     )
     _write_frontend(repo_root, package_json=package_json)
 
@@ -404,8 +402,7 @@ def test_skip_codegen_writes_schema_and_leaves_client_untouched(
     )
     written = json.loads(openapi_path.read_text(encoding="utf-8"))
     assert written == STUB_OPENAPI_DOC, (
-        f"openapi.json content drifted from stub: {written!r}\n"
-        f"stderr={result.stderr!r}"
+        f"openapi.json content drifted from stub: {written!r}\nstderr={result.stderr!r}"
     )
 
     assert "SHOULD_NOT_RUN" not in result.stderr, (

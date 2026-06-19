@@ -1,11 +1,3 @@
-/**
- * Builds the SDK method name for a generated operation.
- *
- * The legacy (`legacy/axios`) client used here invokes `methodNameBuilder` with
- * the legacy `Operation`, which carries `name` (operationId-derived) and
- * `service` (tag-derived). `@hey-api/openapi-ts` types the argument as a wider
- * union, so the config wraps this helper and narrows the argument there.
- */
 export type MethodNameBuilderOperation = {
   name?: string
   service?: string

@@ -14,11 +14,6 @@ import { FormInput } from "@/components/form/form-input";
 
 interface HeaderProps {
   data: CardWithList;
-  /**
-   * Invoked after a successful update so the parent modal can refresh
-   * activity (the backend writes an UPDATE audit row in the same
-   * transaction).
-   */
   onUpdated?: () => void;
 }
 
@@ -31,9 +26,6 @@ export const Header = ({
 
   const { execute } = useAction(updateCard, {
     onSuccess: (updated) => {
-      // Keep the modal store in sync without a refetch: the action handler
-      // already revalidates the board page so the underlying `BoardsService`
-      // payload will be fresh on the next render of `CardItem`.
       setCard({ ...data, ...updated });
       toast.success(`Renamed to "${updated.title}"`);
       setTitle(updated.title);

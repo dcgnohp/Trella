@@ -23,8 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    // The backend derives `order` as max(order)+1, scopes the board via org
-    // membership and writes the CREATE audit log (Req 6.1, 4.4, 8.1).
     list = await ListsService.Lists_listsCreateList({
       requestBody: {
         title,

@@ -4,16 +4,6 @@ import { OrganizationsService, type OrganizationPublic } from "@/lib/client";
 import { getCurrentUser } from "@/lib/auth";
 import { getCurrentOrgId } from "@/lib/current-org";
 
-/**
- * Organization entry point (Requirement 15.1).
- *
- * Reached right after sign-in (`/sign-in` redirects here). Resolves the user's
- * organizations server-side and routes accordingly:
- *  - not authenticated      → `/sign-in`
- *  - no organizations        → `/select-org` (create-org flow, Req 15.1)
- *  - has organizations       → the active org from the `org_id` cookie when it
- *                              is still a member, otherwise the first org.
- */
 const OrganizationEntryPage = async () => {
   const user = await getCurrentUser();
   if (!user) {

@@ -23,8 +23,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    // Org scope is resolved server-side via list -> board -> org_id; the UPDATE
-    // audit log is written in the same transaction (Req 4.4, 8.1).
+    // Org scope is resolved server-side via list -> board -> org_id.
     list = await ListsService.Lists_listsUpdateList({
       listId: id,
       requestBody: {

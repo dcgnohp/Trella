@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
@@ -29,18 +29,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
-/**
- * `/sign-up` page (Requirements 13.4, 14.5).
- *
- * Client component built with shadcn `Form` + `react-hook-form` + `zod`.
- * On submit it calls `useAuth().signUp(email, password, fullName)`, which posts
- * to the `/api/auth/signup` Route Handler (`POST /api/v1/users/signup` on the
- * backend). The provider auto-signs-in after a successful registration (which
- * sets the httpOnly cookie via the login handler), so on success we redirect to
- * the post-signup destination. A 409 surfaces "Email already registered".
- */
-
-/** Destination after a successful sign-up + auto sign-in. The org picker (task 22.1) takes over. */
 const POST_SIGNUP_REDIRECT = "/organization"
 
 const signUpSchema = z.object({
@@ -53,8 +41,14 @@ type SignUpValues = z.infer<typeof signUpSchema>
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { signUp } = useAuth()
+  const { signUp, isAuthenticated, isLoading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push(POST_SIGNUP_REDIRECT)
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -64,7 +58,6 @@ export default function SignUpPage() {
   const onSubmit = async (values: SignUpValues) => {
     setIsSubmitting(true)
     try {
-      // `signUp` auto-signs-in by default, which sets the httpOnly cookie.
       await signUp(values.email, values.password, values.fullName)
       toast.success("Account created")
       router.push(POST_SIGNUP_REDIRECT)
@@ -73,7 +66,6 @@ export default function SignUpPage() {
       const message =
         error instanceof Error ? error.message : "Signup failed"
       toast.error(message)
-      // 409 maps to an email conflict; show it on the email field, else password.
       if (message.toLowerCase().includes("email")) {
         form.setError("email", { type: "manual", message })
       } else {

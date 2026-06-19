@@ -1,16 +1,3 @@
-"""Shared base classes and mixins for SQLModel schemas and table models.
-
-This module centralizes patterns reused across every domain:
-
-- ``CamelModel``: base for request/response schemas that serialize snake_case
-  fields to camelCase aliases (e.g. ``org_id`` -> ``orgId``) while still
-  accepting snake_case input thanks to ``populate_by_name=True``.
-- ``UUIDMixin``: reusable ``uuid4`` primary key.
-- ``TimestampMixin``: timezone-aware ``created_at`` / ``updated_at`` columns.
-
-See design.md sections "2. Serialization camelCase" and "Data Models".
-"""
-
 import uuid
 from datetime import datetime, timezone
 
@@ -26,12 +13,7 @@ def utcnow() -> datetime:
 
 
 class CamelModel(SQLModel):
-    """Base for request/response schemas using camelCase aliases.
-
-    Fields are declared in snake_case (matching DB columns) and serialized to
-    camelCase via ``alias_generator=to_camel``. ``populate_by_name=True`` keeps
-    snake_case input valid too, so request bodies accept either casing.
-    """
+    """Base schema with camelCase serialization and snake_case input support."""
 
     model_config = ConfigDict(  # type: ignore[assignment]
         alias_generator=to_camel,
@@ -46,17 +28,15 @@ class UUIDMixin(SQLModel):
 
 
 class TimestampMixin(SQLModel):
-    """Mixin providing timezone-aware ``created_at`` / ``updated_at`` columns.
+    """Mixin providing timezone-aware ``created_at`` / ``updated_at`` columns."""
 
-    Both default to the current UTC time on insert. ``updated_at`` also refreshes
-    automatically on update via SQLAlchemy's ``onupdate`` hook.
-    """
-
+    # pyrefly: ignore [no-matching-overload]
     created_at: datetime = Field(
         default_factory=utcnow,
         sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
         nullable=False,
     )
+    # pyrefly: ignore [no-matching-overload]
     updated_at: datetime = Field(
         default_factory=utcnow,
         sa_type=DateTime(timezone=True),  # type: ignore[call-overload]

@@ -23,8 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let card;
 
   try {
-    // The backend derives `order` as max(order)+1, scopes via list -> board ->
-    // org_id and writes the CREATE audit log (Req 7.1, 4.4, 8.1).
     card = await CardsService.Cards_cardsCreateCard({
       requestBody: {
         title,

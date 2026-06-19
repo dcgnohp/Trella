@@ -8,12 +8,6 @@ import { useCardModal } from "@/hooks/use-card-modal";
 interface CardItemProps {
   data: Card;
   index: number;
-  /**
-   * Title of the parent list — passed in by `ListItem` so the card modal can
-   * display "in list <name>" without an extra fetch (Req 16.3). The board
-   * page already has this string from `BoardsService.Boards_boardsGetBoard`,
-   * so threading it through avoids re-querying the backend.
-   */
   listTitle: string;
 };
 

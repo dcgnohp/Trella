@@ -19,9 +19,7 @@ import yaml
 
 # The pre-commit config lives at the root of `trella-backend/`, two levels
 # above this test file (`tests/scripts/test_pre_commit_config.py`).
-PRE_COMMIT_CONFIG_PATH = (
-    Path(__file__).resolve().parents[2] / ".pre-commit-config.yaml"
-)
+PRE_COMMIT_CONFIG_PATH = Path(__file__).resolve().parents[2] / ".pre-commit-config.yaml"
 
 
 def _load_config() -> dict[str, Any]:

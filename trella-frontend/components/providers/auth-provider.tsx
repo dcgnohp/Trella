@@ -11,59 +11,23 @@ import {
 
 import type { UserPublic } from "@/lib/client"
 
-/**
- * Client-side auth context + `useAuth()` hook (Requirement 13.6).
- *
- * The backend JWT is stored in an **httpOnly cookie** which client JavaScript
- * cannot read. So this provider never touches the token directly. Instead it
- * talks to the Next.js Route Handlers added in task 21.1 / 21.2:
- *
- *  - `GET  /api/auth/me`     → resolve the current user (cookie read server-side)
- *  - `POST /api/auth/login`  → exchange credentials for a cookie
- *  - `POST /api/auth/signup` → register a new user
- *  - `POST /api/auth/logout` → clear the cookie
- *
- * IMPORTANT: this file must NOT import the server-only `lib/auth.ts` (it uses
- * `next/headers` + `server-only`). Only the Route Handlers do that.
- */
-
-/** Shape returned by `useAuth()`. */
 export interface AuthContextValue {
-  /** The current user, or `null` when not authenticated / still loading. */
   user: UserPublic | null
-  /** `true` while the initial session lookup is in flight. */
   isLoading: boolean
-  /** Derived convenience flag: `true` when a user is resolved. */
   isAuthenticated: boolean
-  /**
-   * Sign in with email + password. On success the auth cookie is set and the
-   * user state is refreshed. Throws an `Error` with a user-facing message
-   * (e.g. "Incorrect email or password") on failure so callers can display it.
-   */
   signIn: (email: string, password: string) => Promise<UserPublic>
-  /**
-   * Register a new account. When `autoSignIn` is `true` (default) the user is
-   * signed in immediately afterwards. Throws an `Error` with a user-facing
-   * message (e.g. "Email already registered") on failure.
-   */
   signUp: (
     email: string,
     password: string,
     fullName?: string,
     options?: { autoSignIn?: boolean },
   ) => Promise<void>
-  /** Sign out: clears the cookie and resets local user state. */
   signOut: () => Promise<void>
-  /** Re-fetch the current user from the server (e.g. after external changes). */
   refresh: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-/**
- * Read a JSON error message from a failed Route Handler response, falling back
- * to a sensible default when the body is missing or malformed.
- */
 async function readError(res: Response, fallback: string): Promise<string> {
   try {
     const data = await res.json()
@@ -129,8 +93,7 @@ export const AuthProvider = ({
       }
 
       await refresh()
-      // `refresh` updates the context state asynchronously; also resolve the
-      // user directly so callers get it without waiting for a re-render.
+      // Fetch user directly so callers get it without waiting for a re-render.
       const meRes = await fetch("/api/auth/me", {
         method: "GET",
         cache: "no-store",
@@ -195,11 +158,6 @@ export const AuthProvider = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-/**
- * Access the auth state and actions. Must be used within an `<AuthProvider>`.
- *
- * @returns `{ user, isLoading, isAuthenticated, signIn, signUp, signOut, refresh }`
- */
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
   if (ctx === undefined) {

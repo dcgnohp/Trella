@@ -23,9 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let lists;
 
   try {
-    // The backend validates that every id belongs to `boardId` and applies all
-    // order updates atomically (all-or-nothing), writing audit logs in the same
-    // transaction (Req 6.4, 6.5, 11.1-11.4).
     lists = await ListsService.Lists_listsReorderLists({
       requestBody: {
         boardId,

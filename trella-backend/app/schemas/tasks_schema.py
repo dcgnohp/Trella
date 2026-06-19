@@ -1,0 +1,47 @@
+import uuid
+from datetime import datetime
+
+from app.core.base import CamelModel
+
+
+class CustomStatusEmbed(CamelModel):
+    id: uuid.UUID
+    name: str
+    color: str | None = None
+    canonical_status: str | None = None
+
+
+class TaskUpdate(CamelModel):
+    """Partial update payload; only explicitly provided fields are applied."""
+
+    title: str | None = None
+    description: str | None = None
+    priority: str | None = None
+    due_date: datetime | None = None
+    custom_status_id: uuid.UUID | None = None
+    column_id: uuid.UUID | None = None
+
+
+class TaskCreate(CamelModel):
+    title: str
+
+
+class AssigneeUpdate(CamelModel):
+    assignee_id: uuid.UUID
+
+
+class TaskPublic(CamelModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    board_id: uuid.UUID
+    column_id: uuid.UUID
+    title: str
+    description: str | None
+    priority: str
+    due_date: datetime | None
+    assignee_id: uuid.UUID | None
+    custom_status_id: uuid.UUID | None
+    custom_status: CustomStatusEmbed | None = None
+    position: int
+    created_at: datetime
+    updated_at: datetime

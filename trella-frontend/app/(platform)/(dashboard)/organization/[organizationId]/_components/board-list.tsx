@@ -6,20 +6,6 @@ import { Hint } from "@/components/hint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormPopover } from "@/components/form/form-popover";
 
-/**
- * Presentational board list (Req 5.1, 5.2 — listing). PART 1 boundary
- * adaptation only: the parent page now resolves the active organization and
- * fetches `BoardsService.Boards_boardsListBoards({ orgId })`, then passes the
- * result here as a prop. Earlier this file did its own Prisma `db.board`
- * query + `getAvailableCount` / `checkSubscription` calls; those helpers were
- * removed when Prisma + Stripe were dropped (`@/lib/db`, `@/lib/org-limit`,
- * `@/lib/subscription` no longer exist).
- *
- * The free-tier "boards remaining" hint is omitted in Phase 1 (Req 9.x): the
- * backend enforces the limit on `POST /boards` and surfaces the error
- * directly; PART 2 will add a richer "X / 5 remaining" indicator backed by a
- * dedicated org-limit endpoint.
- */
 interface BoardListProps {
   boards: BoardPublic[];
   isPro?: boolean;
@@ -36,7 +22,7 @@ export const BoardList = ({ boards, isPro = false }: BoardListProps) => {
         {boards.map((board) => (
           <Link
             key={board.id}
-            href={`/board/${board.id}`}
+            href={`/workspaces/${board.orgId}/boards/${board.id}`}
             className="group relative aspect-video bg-no-repeat bg-center bg-cover bg-sky-700 rounded-sm h-full w-full p-2 overflow-hidden"
             style={
               board.imageThumbUrl

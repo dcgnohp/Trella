@@ -62,9 +62,7 @@ def _load_hook(hook_id: str) -> dict[str, Any]:
         for hook in repo.get("hooks", []):
             if isinstance(hook, dict) and hook.get("id") == hook_id:
                 return hook
-    raise AssertionError(
-        f"hook id={hook_id!r} not found in {PRE_COMMIT_CONFIG_PATH}"
-    )
+    raise AssertionError(f"hook id={hook_id!r} not found in {PRE_COMMIT_CONFIG_PATH}")
 
 
 def _resolve_bash() -> str:
@@ -217,9 +215,7 @@ def test_pre_commit_run_blocks_when_hook_script_exits_non_zero(
     """
     runner = _resolve_pre_commit_runner()
     if runner is None:
-        pytest.skip(
-            "neither pre-commit nor prek is available in this environment"
-        )
+        pytest.skip("neither pre-commit nor prek is available in this environment")
     bash = _resolve_bash()
 
     repo = tmp_path / "repo"
@@ -229,9 +225,7 @@ def test_pre_commit_run_blocks_when_hook_script_exits_non_zero(
     # Forced-failure stub that mimics `scripts/generate-client.sh`.
     fail_script = repo / "fail.sh"
     fail_script.write_text(
-        "#!/usr/bin/env bash\n"
-        'echo "stub: forced failure" 1>&2\n'
-        "exit 1\n",
+        '#!/usr/bin/env bash\necho "stub: forced failure" 1>&2\nexit 1\n',
         encoding="utf-8",
     )
     if os.name != "nt":

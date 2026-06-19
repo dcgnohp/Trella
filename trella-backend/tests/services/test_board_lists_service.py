@@ -26,6 +26,7 @@ from app.models.board_lists_model import List
 from app.models.boards_model import Board
 from app.models.organization_members_model import OrganizationMember
 from app.models.organizations_model import Organization
+from app.models.projects_model import Project
 from app.models.task_cards_model import Card
 from app.models.users_model import User
 from app.repositories.board_lists_repository import BoardListsRepository
@@ -55,16 +56,44 @@ def _seed_org(session: Session) -> Organization:
 
 
 def _add_member(session: Session, org_id: uuid.UUID, user_id: uuid.UUID) -> None:
-    session.add(OrganizationMember(org_id=org_id, user_id=user_id, role="OWNER"))
+    session.add(
+        OrganizationMember(
+            workspace_id=org_id, user_id=user_id, role="OWNER", status="ACTIVE"
+        )
+    )
     session.commit()
 
 
-def _seed_board(session: Session, org_id: uuid.UUID) -> Board:
-    board = Board(org_id=org_id, title="Sprint 1")
+def _seed_board(session: Session, workspace_id: uuid.UUID) -> Board:
+    """Seed a board under a fresh project of ``workspace_id``.
+
+    A board no longer carries ``org_id``; it belongs to a ``Project`` whose
+    ``workspace_id`` is the owning workspace. Each call provisions its own
+    project (unique ``key`` per workspace) so multiple boards can coexist in the
+    same workspace.
+    """
+    creator = _seed_user(session)
+    project = Project(
+        workspace_id=workspace_id,
+        name="Project",
+        key=uuid.uuid4().hex[:8].upper(),
+        created_by=creator.id,
+    )
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    board = Board(project_id=project.id, title="Sprint 1")
     session.add(board)
     session.commit()
     session.refresh(board)
     return board
+
+
+def _workspace_of(session: Session, board: Board) -> uuid.UUID:
+    """Resolve a board's owning workspace id via ``board.project_id``."""
+    project = session.get(Project, board.project_id)
+    assert project is not None
+    return project.workspace_id
 
 
 def _setup(session: Session) -> tuple[User, Board]:
@@ -256,8 +285,8 @@ def test_reorder_lists_invalid_payload_leaves_db_unchanged(
     session: Session,
 ) -> None:
     user, board = _setup(session)
-    # A second board (same org) whose list does NOT belong to ``board``.
-    other_board = _seed_board(session, board.org_id)
+    # A second board (same workspace) whose list does NOT belong to ``board``.
+    other_board = _seed_board(session, _workspace_of(session, board))
     service = BoardListsService()
     a = service.create_list(session, ListCreate(title="A", board_id=board.id), user)
     b = service.create_list(session, ListCreate(title="B", board_id=board.id), user)
@@ -353,9 +382,7 @@ def test_reorder_lists_non_member_forbidden(session: Session) -> None:
     assert exc.value.status_code == 403
 
 
-def _add_card(
-    session: Session, list_id: uuid.UUID, title: str, order: int
-) -> Card:
+def _add_card(session: Session, list_id: uuid.UUID, title: str, order: int) -> Card:
     card = Card(list_id=list_id, title=title, description=f"{title}-desc", order=order)
     session.add(card)
     session.commit()

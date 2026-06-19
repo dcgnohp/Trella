@@ -9,16 +9,6 @@ import {
   login,
 } from "@/lib/auth"
 
-/**
- * Login Route Handler (Requirements 13.5, 13.6).
- *
- * httpOnly cookies cannot be written from client JS, so the browser posts the
- * credentials here. We exchange them for a JWT against the backend
- * (`POST /api/v1/login/access-token`) and store the token in an httpOnly cookie
- * with `SameSite=Lax` and `Secure` in production.
- *
- * Request body (JSON): `{ "email": string, "password": string }`.
- */
 export async function POST(req: Request) {
   let email: unknown
   let password: unknown

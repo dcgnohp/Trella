@@ -1,28 +1,3 @@
-﻿"""organizations service layer.
-
-Service (business logic) for the ``organizations`` domain.
-
-Responsibilities:
-
-- ``create_org``: create an ``Organization`` and bootstrap its companion rows —
-  an ``OWNER`` ``OrganizationMember`` for the creator, an ``OrgLimit`` with
-  ``count = 0`` and an empty ``OrgSubscription`` — all inside ONE transaction
-  (all-or-nothing). Organizations are NEVER auto-created at signup; they are
-  created only through this explicit flow (Req 3.1, 3.2, 3.6).
-- ``list_for_user``: resolve the organizations a user belongs to via their
-  membership rows (Req 3.3).
-- ``get_for_member``: fetch a single organization, enforcing org-scoping — a
-  non-member gets HTTP 403, a missing org gets HTTP 404 (Req 3.4, 3.5).
-
-The service owns the transaction: repositories receive the ``Session`` and only
-stage/flush (never commit) so the create flow can commit atomically. When data
-domains from other services are needed (membership), the service delegates to
-``OrganizationMemberService`` rather than querying the DB directly.
-
-See requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6 and design.md sections
-"Components and Interfaces" + "8. OrgLimit & OrgSubscription".
-"""
-
 import uuid
 
 from fastapi import HTTPException, status
@@ -59,23 +34,65 @@ class OrganizationsService:
     def create_org(
         self, session: Session, data: OrganizationCreate, user: User
     ) -> Organization:
-        """Create an organization and bootstrap its companion rows atomically.
-
-        Within a single transaction this creates the ``Organization``, an
-        ``OWNER`` ``OrganizationMember`` for ``user``, an ``OrgLimit`` with
-        ``count = 0`` and an empty ``OrgSubscription``. Commits once at the end
-        so the whole bootstrap is all-or-nothing; on any error the transaction
-        is rolled back and the error re-raised (Req 3.2, 3.6).
-        """
+        """Create an organization and bootstrap companion rows atomically."""
         try:
-            org = self.organizations_repo.create(
-                session, Organization(name=data.name)
-            )
+            org = self.organizations_repo.create(session, Organization(name=data.name))
             self.member_service.add_owner(session, org.id, user.id)
             self.org_limits_repo.create(session, OrgLimit(org_id=org.id, count=0))
-            self.org_subscriptions_repo.create(
-                session, OrgSubscription(org_id=org.id)
+            self.org_subscriptions_repo.create(session, OrgSubscription(org_id=org.id))
+
+            # Create Default Custom Statuses
+            from app.models.custom_statuses_model import CustomStatus
+            from app.models.enums import CanonicalStatus
+
+            default_statuses = [
+                ("To Do", "#6b7280", CanonicalStatus.TODO.value),
+                ("In Progress", "#3b82f6", CanonicalStatus.IN_PROGRESS.value),
+                ("Pending", "#f59e0b", CanonicalStatus.PENDING.value),
+                ("Done", "#10b981", CanonicalStatus.DONE.value),
+            ]
+            for name, color, canonical in default_statuses:
+                session.add(
+                    CustomStatus(
+                        workspace_id=org.id,
+                        name=name,
+                        color=color,
+                        canonical_status=canonical,
+                    )
+                )
+
+            # Create Default Project and bootstrap creator as PROJECT_ADMIN
+            from app.models.enums import MemberStatus, ProjectRole
+            from app.models.project_members_model import ProjectMember
+            from app.models.projects_model import Project
+            from app.repositories.project_members_repository import (
+                ProjectMembersRepository,
             )
+            from app.repositories.projects_repository import ProjectsRepository
+
+            projects_repo = ProjectsRepository()
+            project_members_repo = ProjectMembersRepository()
+
+            project = projects_repo.create(
+                session,
+                Project(
+                    workspace_id=org.id,
+                    name="Default Project",
+                    key="DEFAULT",
+                    description=None,
+                    created_by=user.id,
+                ),
+            )
+            project_members_repo.create(
+                session,
+                ProjectMember(
+                    project_id=project.id,
+                    user_id=user.id,
+                    project_role=ProjectRole.PROJECT_ADMIN.value,
+                    status=MemberStatus.ACTIVE.value,
+                ),
+            )
+
             session.commit()
         except Exception:
             session.rollback()
@@ -83,28 +100,16 @@ class OrganizationsService:
         session.refresh(org)
         return org
 
-    def list_for_user(
-        self, session: Session, user_id: uuid.UUID
-    ) -> list[Organization]:
-        """Return every organization the given user is a member of (Req 3.3).
-
-        Resolves the user's membership rows, collects their ``org_id`` values and
-        fetches the matching organizations. Returns an empty list when the user
-        has no memberships.
-        """
+    def list_for_user(self, session: Session, user_id: uuid.UUID) -> list[Organization]:
+        """Return every organization the given user is a member of."""
         memberships = self.member_service.repo.list_by_user(session, user_id)
-        org_ids = [m.org_id for m in memberships]
+        org_ids = [m.workspace_id for m in memberships]
         return self.organizations_repo.list_by_ids(session, org_ids)
 
     def get_for_member(
         self, session: Session, org_id: uuid.UUID, user_id: uuid.UUID
     ) -> Organization:
-        """Return a single organization, enforcing org-scoping.
-
-        Asserts the user is a member first — a non-member gets HTTP 403
-        ``"Not a member of this organization"`` (Req 3.4). Then fetches the org;
-        a missing org yields HTTP 404 ``"Organization not found"`` (Req 3.5).
-        """
+        """Raise HTTP 403 if user is not a member; raise HTTP 404 if org is missing."""
         self.member_service.assert_member(session, org_id, user_id)
         org = self.organizations_repo.get(session, org_id)
         if org is None:
@@ -113,3 +118,24 @@ class OrganizationsService:
                 detail="Organization not found",
             )
         return org
+
+    def delete_org(self, session: Session, org_id: uuid.UUID, user: User) -> None:
+        """Delete an organization. Only allowed for OWNER role."""
+        member = self.member_service.assert_member(session, org_id, user.id)
+        if member.role != "OWNER":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the workspace owner can delete the workspace",
+            )
+        org = self.organizations_repo.get(session, org_id)
+        if org is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organization not found",
+            )
+        try:
+            self.organizations_repo.delete(session, org)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise

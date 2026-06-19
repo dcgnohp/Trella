@@ -25,6 +25,7 @@ from app.models.boards_model import Board
 from app.models.org_limits_model import OrgLimit
 from app.models.organization_members_model import OrganizationMember
 from app.models.organizations_model import Organization
+from app.models.projects_model import Project
 from app.models.task_cards_model import Card
 from app.models.users_model import User
 from app.schemas.boards_schema import BoardCreate, BoardUpdate
@@ -44,26 +45,48 @@ def _seed_user(session: Session) -> User:
 
 
 def _seed_org(session: Session, count: int = 0) -> Organization:
+    """Seed a workspace, its ``OrgLimit`` and a "Default Project".
+
+    ``BoardsService.create_board`` creates boards under the workspace's default
+    project (boards no longer carry ``org_id``; they belong to a ``Project``
+    whose ``workspace_id`` is the owning workspace), so a project must exist.
+    """
     org = Organization(name="Acme")
     session.add(org)
     session.commit()
     session.refresh(org)
     session.add(OrgLimit(org_id=org.id, count=count))
     session.commit()
+    creator = _seed_user(session)
+    project = Project(
+        workspace_id=org.id,
+        name="Default Project",
+        key="DEFAULT",
+        created_by=creator.id,
+    )
+    session.add(project)
+    session.commit()
     return org
+
+
+def _workspace_of(session: Session, board: Board) -> uuid.UUID:
+    """Resolve a board's owning workspace id via ``board.project_id``."""
+    project = session.get(Project, board.project_id)
+    assert project is not None
+    return project.workspace_id
 
 
 def _add_member(session: Session, org_id: uuid.UUID, user_id: uuid.UUID) -> None:
     session.add(
-        OrganizationMember(org_id=org_id, user_id=user_id, role="OWNER")
+        OrganizationMember(
+            workspace_id=org_id, user_id=user_id, role="OWNER", status="ACTIVE"
+        )
     )
     session.commit()
 
 
 def _count(session: Session, org_id: uuid.UUID) -> int:
-    limit = session.exec(
-        select(OrgLimit).where(OrgLimit.org_id == org_id)
-    ).one()
+    limit = session.exec(select(OrgLimit).where(OrgLimit.org_id == org_id)).one()
     return limit.count
 
 
@@ -77,7 +100,7 @@ def test_create_board_success(session: Session) -> None:
     board = service.create_board(session, data, user)
 
     assert board.id is not None
-    assert board.org_id == org.id
+    assert _workspace_of(session, board) == org.id
     assert board.title == "Sprint 1"
     # OrgLimit incremented (Req 5.6, 9.4)
     assert _count(session, org.id) == 1
@@ -127,9 +150,7 @@ def test_update_board_applies_partial_update_and_audits(session: Session) -> Non
     org = _seed_org(session, count=0)
     _add_member(session, org.id, user.id)
     service = BoardsService()
-    board = service.create_board(
-        session, BoardCreate(org_id=org.id, title="Old"), user
-    )
+    board = service.create_board(session, BoardCreate(org_id=org.id, title="Old"), user)
 
     updated = service.update_board(
         session, board.id, BoardUpdate(title="New title"), user
@@ -149,9 +170,7 @@ def test_update_board_missing_not_found(session: Session) -> None:
     user = _seed_user(session)
     service = BoardsService()
     with pytest.raises(HTTPException) as exc:
-        service.update_board(
-            session, uuid.uuid4(), BoardUpdate(title="x"), user
-        )
+        service.update_board(session, uuid.uuid4(), BoardUpdate(title="x"), user)
     assert exc.value.status_code == 404
 
 
@@ -166,9 +185,7 @@ def test_update_board_non_member_forbidden(session: Session) -> None:
     )
 
     with pytest.raises(HTTPException) as exc:
-        service.update_board(
-            session, board.id, BoardUpdate(title="hijack"), outsider
-        )
+        service.update_board(session, board.id, BoardUpdate(title="hijack"), outsider)
     assert exc.value.status_code == 403
 
 
@@ -216,12 +233,8 @@ def test_list_boards_returns_org_boards(session: Session) -> None:
     org = _seed_org(session, count=0)
     _add_member(session, org.id, user.id)
     service = BoardsService()
-    b1 = service.create_board(
-        session, BoardCreate(org_id=org.id, title="One"), user
-    )
-    b2 = service.create_board(
-        session, BoardCreate(org_id=org.id, title="Two"), user
-    )
+    b1 = service.create_board(session, BoardCreate(org_id=org.id, title="One"), user)
+    b2 = service.create_board(session, BoardCreate(org_id=org.id, title="Two"), user)
 
     boards = service.list_boards(session, org.id, user)
     assert {b.id for b in boards} == {b1.id, b2.id}
@@ -234,9 +247,7 @@ def test_list_boards_is_org_scoped(session: Session) -> None:
     _add_member(session, org_a.id, user.id)
     _add_member(session, org_b.id, user.id)
     service = BoardsService()
-    service.create_board(
-        session, BoardCreate(org_id=org_a.id, title="A board"), user
-    )
+    service.create_board(session, BoardCreate(org_id=org_a.id, title="A board"), user)
     b_in_b = service.create_board(
         session, BoardCreate(org_id=org_b.id, title="B board"), user
     )
@@ -251,9 +262,7 @@ def test_list_boards_non_member_forbidden(session: Session) -> None:
     org = _seed_org(session, count=0)
     _add_member(session, org.id, owner.id)
     service = BoardsService()
-    service.create_board(
-        session, BoardCreate(org_id=org.id, title="Owned"), owner
-    )
+    service.create_board(session, BoardCreate(org_id=org.id, title="Owned"), owner)
 
     with pytest.raises(HTTPException) as exc:
         service.list_boards(session, org.id, outsider)
@@ -263,9 +272,7 @@ def test_list_boards_non_member_forbidden(session: Session) -> None:
 # --- get_board_detail (task 13.3, Req 5.2) -------------------------------
 
 
-def _seed_list(
-    session: Session, board_id: uuid.UUID, title: str, order: int
-) -> List:
+def _seed_list(session: Session, board_id: uuid.UUID, title: str, order: int) -> List:
     board_list = List(board_id=board_id, title=title, order=order)
     session.add(board_list)
     session.commit()
@@ -273,9 +280,7 @@ def _seed_list(
     return board_list
 
 
-def _seed_card(
-    session: Session, list_id: uuid.UUID, title: str, order: int
-) -> Card:
+def _seed_card(session: Session, list_id: uuid.UUID, title: str, order: int) -> Card:
     card = Card(list_id=list_id, title=title, order=order)
     session.add(card)
     session.commit()
@@ -290,9 +295,16 @@ def test_get_board_detail_nests_lists_and_cards_in_ascending_order(
     org = _seed_org(session, count=0)
     _add_member(session, org.id, user.id)
     service = BoardsService()
-    board = service.create_board(
-        session, BoardCreate(org_id=org.id, title="Board"), user
+    project_id = service._resolve_default_project_id(session, org.id)
+    board = service.repo.create(
+        session,
+        Board(
+            project_id=project_id,
+            title="Board",
+        ),
     )
+    session.commit()
+    session.refresh(board)
     # Insert lists out of order; service must return them ascending by ``order``.
     _seed_list(session, board.id, "second", order=1)
     list_a = _seed_list(session, board.id, "first", order=0)
@@ -318,9 +330,16 @@ def test_get_board_detail_empty_board_has_no_lists(session: Session) -> None:
     org = _seed_org(session, count=0)
     _add_member(session, org.id, user.id)
     service = BoardsService()
-    board = service.create_board(
-        session, BoardCreate(org_id=org.id, title="Empty"), user
+    project_id = service._resolve_default_project_id(session, org.id)
+    board = service.repo.create(
+        session,
+        Board(
+            project_id=project_id,
+            title="Empty",
+        ),
     )
+    session.commit()
+    session.refresh(board)
 
     detail = service.get_board_detail(session, board.id, user)
     assert detail.lists == []

@@ -23,8 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let card;
 
   try {
-    // The backend creates "{title} - Copy" in the same list at order max+1 and
-    // writes the CREATE audit log in one transaction (Req 7.6, 8.1).
     card = await CardsService.Cards_cardsCopyCard({
       cardId: id,
     });

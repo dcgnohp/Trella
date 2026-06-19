@@ -19,14 +19,6 @@ import { Separator } from "@/components/ui/separator"
 
 import { CreateOrganizationForm } from "./_components/create-organization-form"
 
-/**
- * Organization picker + create-org flow (Requirements 15.1, 15.2, 15.3).
- *
- * Replaces the Clerk `<OrganizationList />`. Lists the orgs the user already
- * belongs to (select to switch + navigate) and always exposes the create-org
- * form. The `/organization` entry page redirects empty-org users here.
- */
-
 function orgInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return "?"

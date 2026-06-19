@@ -3,15 +3,157 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse } from './types.gen';
+import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse } from './types.gen';
+
+export class ActivityLogsService {
+    /**
+     * List Task Activity
+     * List a single task's activity timeline, newest first. Raises HTTP 404 if task not found.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.limit
+     * @param data.cursor
+     * @returns ActivityLogPublic Successful Response
+     * @throws ApiError
+     */
+    public static ActivityLogs_activityLogsListTaskActivity(data: ActivityLogsListTaskActivityData): CancelablePromise<ActivityLogsListTaskActivityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/{task_id}/activity',
+            path: {
+                task_id: data.taskId
+            },
+            query: {
+                limit: data.limit,
+                cursor: data.cursor
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Project Activity
+     * List a whole project's activity timeline, newest first. Raises HTTP 403 if not a member.
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.limit
+     * @param data.cursor
+     * @returns ActivityLogPublic Successful Response
+     * @throws ApiError
+     */
+    public static ActivityLogs_activityLogsListProjectActivity(data: ActivityLogsListProjectActivityData): CancelablePromise<ActivityLogsListProjectActivityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/activity',
+            path: {
+                project_id: data.projectId
+            },
+            query: {
+                limit: data.limit,
+                cursor: data.cursor
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class AttachmentsService {
+    /**
+     * Upload Attachment
+     * Upload a file against a Task, returning HTTP 201.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.formData
+     * @returns AttachmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static Attachments_attachmentsUploadAttachment(data: AttachmentsUploadAttachmentData): CancelablePromise<AttachmentsUploadAttachmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/tasks/{task_id}/attachments',
+            path: {
+                task_id: data.taskId
+            },
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Attachments
+     * List a Task's attachments newest-first.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @returns AttachmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static Attachments_attachmentsListAttachments(data: AttachmentsListAttachmentsData): CancelablePromise<AttachmentsListAttachmentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/{task_id}/attachments',
+            path: {
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Attachment Download Url
+     * Return a short-lived signed download URL for an attachment.
+     * @param data The data for the request.
+     * @param data.attachmentId
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static Attachments_attachmentsGetAttachmentDownloadUrl(data: AttachmentsGetAttachmentDownloadUrlData): CancelablePromise<AttachmentsGetAttachmentDownloadUrlResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/attachments/{attachment_id}/download-url',
+            path: {
+                attachment_id: data.attachmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Attachment
+     * Delete an attachment, returning HTTP 204.
+     * @param data The data for the request.
+     * @param data.attachmentId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Attachments_attachmentsDeleteAttachment(data: AttachmentsDeleteAttachmentData): CancelablePromise<AttachmentsDeleteAttachmentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/attachments/{attachment_id}',
+            path: {
+                attachment_id: data.attachmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class AuditLogsService {
     /**
      * List Org Audit Logs
-     * List an organization's audit log, newest first, paginated (Req 8.3).
-     *
-     * Requires ``orgId``; enforces org-scoping (HTTP 403 "Not a member of this
-     * organization" for non-members). Pages via ``skip`` / ``limit``.
+     * Raise HTTP 403 if the current user is not a member of the organization.
      * @param data The data for the request.
      * @param data.orgId
      * @param data.skip
@@ -36,10 +178,7 @@ export class AuditLogsService {
     
     /**
      * List Board Audit Logs
-     * List a board's audit log, newest first (Req 8.4).
-     *
-     * Returns HTTP 404 when the board does not exist and HTTP 403 when the current
-     * user is not a member of the owning organization.
+     * Raise HTTP 404 if the board does not exist, HTTP 403 if not a member of the owning organization.
      * @param data The data for the request.
      * @param data.boardId
      * @returns AuditLogPublic Successful Response
@@ -60,9 +199,7 @@ export class AuditLogsService {
     
     /**
      * List Card Audit Logs
-     * List a card's audit log, newest first (Req 8.5).
-     *
-     * Enforces org-scoping (HTTP 403 for non-members of the card's organization).
+     * Raise HTTP 403 if the current user is not a member of the card's organization.
      * @param data The data for the request.
      * @param data.cardId
      * @returns AuditLogPublic Successful Response
@@ -82,15 +219,141 @@ export class AuditLogsService {
     }
 }
 
+export class BoardMembersService {
+    /**
+     * Add Member
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.requestBody
+     * @returns BoardMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersAddMember(data: BoardMembersAddMemberData): CancelablePromise<BoardMembersAddMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/boards/{board_id}/members',
+            path: {
+                board_id: data.boardId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Members
+     * @param data The data for the request.
+     * @param data.boardId
+     * @returns BoardMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersListMembers(data: BoardMembersListMembersData): CancelablePromise<BoardMembersListMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/boards/{board_id}/members',
+            path: {
+                board_id: data.boardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Change Role
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.userId
+     * @param data.requestBody
+     * @returns BoardMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersChangeRole(data: BoardMembersChangeRoleData): CancelablePromise<BoardMembersChangeRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/boards/{board_id}/members/{user_id}/role',
+            path: {
+                board_id: data.boardId,
+                user_id: data.userId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Member
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.userId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersRemoveMember(data: BoardMembersRemoveMemberData): CancelablePromise<BoardMembersRemoveMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/boards/{board_id}/members/{user_id}',
+            path: {
+                board_id: data.boardId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Accept Invitation
+     * @param data The data for the request.
+     * @param data.boardId
+     * @returns BoardMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersAcceptInvitation(data: BoardMembersAcceptInvitationData): CancelablePromise<BoardMembersAcceptInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/boards/{board_id}/members/me/accept',
+            path: {
+                board_id: data.boardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Decline Invitation
+     * @param data The data for the request.
+     * @param data.boardId
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static BoardMembers_boardMembersDeclineInvitation(data: BoardMembersDeclineInvitationData): CancelablePromise<BoardMembersDeclineInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/boards/{board_id}/members/me/decline',
+            path: {
+                board_id: data.boardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class BoardsService {
     /**
      * Create Board
-     * Create a board for an organization the current user is a member of.
-     *
-     * Delegates to ``BoardsService.create_board`` which enforces org-membership
-     * (HTTP 403 for non-members), the free-tier cap (HTTP 403 "Free tier board
-     * limit reached"), increments ``OrgLimit.count`` and records a CREATE audit row
-     * — all atomically (Req 5.1, 5.5, 5.6, 8.1). Returns ``BoardPublic``.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns BoardPublic Successful Response
@@ -110,10 +373,6 @@ export class BoardsService {
     
     /**
      * List Boards
-     * List the boards of an organization the current user is a member of.
-     *
-     * Requires ``orgId``; enforces org-scoping via ``BoardsService.list_boards``
-     * (HTTP 403 "Not a member of this organization" for non-members — Req 4).
      * @param data The data for the request.
      * @param data.orgId
      * @returns BoardPublic Successful Response
@@ -134,12 +393,6 @@ export class BoardsService {
     
     /**
      * Get Board
-     * Return a board with its lists and cards nested, ascending by ``order``.
-     *
-     * Delegates to ``BoardsService.get_board_detail`` which enforces org-scoping
-     * (HTTP 403 for non-members), returns HTTP 404 when the board does not exist,
-     * and orders ``lists`` and each list's ``cards`` ascending by ``order``
-     * (Req 5.2).
      * @param data The data for the request.
      * @param data.boardId
      * @returns BoardDetail Successful Response
@@ -160,11 +413,6 @@ export class BoardsService {
     
     /**
      * Update Board
-     * Apply a partial update to a board and return it (Req 5.3).
-     *
-     * Delegates to ``BoardsService.update_board`` which enforces org-scoping
-     * (HTTP 403 for non-members), returns HTTP 404 when the board does not exist,
-     * applies only the provided fields and records an UPDATE audit row.
      * @param data The data for the request.
      * @param data.boardId
      * @param data.requestBody
@@ -188,12 +436,6 @@ export class BoardsService {
     
     /**
      * Delete Board
-     * Delete a board and its descendants, returning HTTP 204 (Req 5.4).
-     *
-     * Delegates to ``BoardsService.delete_board`` which enforces org-scoping
-     * (HTTP 403 for non-members), returns HTTP 404 when the board does not exist,
-     * cascades the delete to the board's lists/cards, decrements ``OrgLimit.count``
-     * and records a DELETE audit row — all atomically.
      * @param data The data for the request.
      * @param data.boardId
      * @returns void Successful Response
@@ -211,18 +453,47 @@ export class BoardsService {
             }
         });
     }
+    
+    /**
+     * List Board Tasks
+     * @param data The data for the request.
+     * @param data.boardId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Boards_boardsListBoardTasks(data: BoardsListBoardTasksData): CancelablePromise<BoardsListBoardTasksResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/boards/{board_id}/tasks',
+            path: {
+                board_id: data.boardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CanonicalStatusesService {
+    /**
+     * List Canonical Statuses
+     * Return the 4 canonical status values in fixed order.
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static CanonicalStatuses_canonicalStatusesListCanonicalStatuses(): CancelablePromise<CanonicalStatusesListCanonicalStatusesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/canonical-statuses'
+        });
+    }
 }
 
 export class CardsService {
     /**
+     * @deprecated
      * Create Card
-     * Create a card at the end of its list (Req 7.1).
-     *
-     * Delegates to ``TaskCardsService.create_card`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "List not found" / "Board not
-     * found" when the owning list/board does not exist, derives ``order`` =
-     * ``max_order(list) + 1`` and records a CREATE audit row — all atomically.
-     * Returns ``CardPublic``.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns app__schemas__task_cards_schema__CardPublic Successful Response
@@ -241,17 +512,8 @@ export class CardsService {
     }
     
     /**
+     * @deprecated
      * Reorder Cards
-     * Atomically apply a new ``order`` (and target list) to a set of cards
-     * (Req 7.4).
-     *
-     * Declared BEFORE ``/cards/{card_id}`` so ``reorder`` is matched as a literal
-     * path and not captured as a ``card_id``. Delegates to
-     * ``TaskCardsService.reorder_cards`` (forwarding ``data.items``) which enforces
-     * org-membership (HTTP 403), validates that every card and every target list
-     * belong to the same Board before touching the DB (HTTP 400 "Invalid reorder
-     * payload") and applies all updates in a single transaction. Returns the
-     * updated ``list[CardPublic]``.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns app__schemas__task_cards_schema__CardPublic Successful Response
@@ -270,13 +532,8 @@ export class CardsService {
     }
     
     /**
+     * @deprecated
      * Update Card
-     * Apply a partial update to a card and return it (Req 7.2).
-     *
-     * Delegates to ``TaskCardsService.update_card`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "Card not found" when the card
-     * does not exist, applies only the provided fields and records an UPDATE audit
-     * row.
      * @param data The data for the request.
      * @param data.cardId
      * @param data.requestBody
@@ -299,13 +556,8 @@ export class CardsService {
     }
     
     /**
+     * @deprecated
      * Delete Card
-     * Delete a card, returning HTTP 204 (Req 7.3).
-     *
-     * Delegates to ``TaskCardsService.delete_card`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "Card not found" when the card
-     * does not exist, records a DELETE audit row and removes the card — all
-     * atomically.
      * @param data The data for the request.
      * @param data.cardId
      * @returns void Successful Response
@@ -325,14 +577,8 @@ export class CardsService {
     }
     
     /**
+     * @deprecated
      * Copy Card
-     * Duplicate a card within the same list (Req 7.6).
-     *
-     * Delegates to ``TaskCardsService.copy_card`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "Card not found" when the card
-     * does not exist, appends the copy at the end of the same list (title
-     * ``"{source} - Copy"``, copying the description) and records a CREATE audit
-     * row — all atomically. Returns the new ``CardPublic``.
      * @param data The data for the request.
      * @param data.cardId
      * @returns app__schemas__task_cards_schema__CardPublic Successful Response
@@ -352,15 +598,398 @@ export class CardsService {
     }
 }
 
+export class ColumnsService {
+    /**
+     * List Columns
+     * @param data The data for the request.
+     * @param data.boardId
+     * @returns ColumnPublic Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsListColumns(data: ColumnsListColumnsData): CancelablePromise<ColumnsListColumnsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/boards/{board_id}/columns',
+            path: {
+                board_id: data.boardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Column
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.requestBody
+     * @returns ColumnPublic Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsCreateColumn(data: ColumnsCreateColumnData): CancelablePromise<ColumnsCreateColumnResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/boards/{board_id}/columns',
+            path: {
+                board_id: data.boardId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reorder Columns
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.requestBody
+     * @returns ColumnPublic Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsReorderColumns(data: ColumnsReorderColumnsData): CancelablePromise<ColumnsReorderColumnsResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/boards/{board_id}/columns/reorder',
+            path: {
+                board_id: data.boardId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Column
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.columnId
+     * @param data.requestBody
+     * @returns ColumnPublic Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsUpdateColumn(data: ColumnsUpdateColumnData): CancelablePromise<ColumnsUpdateColumnResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/boards/{board_id}/columns/{column_id}',
+            path: {
+                board_id: data.boardId,
+                column_id: data.columnId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Column
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.columnId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsDeleteColumn(data: ColumnsDeleteColumnData): CancelablePromise<ColumnsDeleteColumnResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/boards/{board_id}/columns/{column_id}',
+            path: {
+                board_id: data.boardId,
+                column_id: data.columnId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Task
+     * @param data The data for the request.
+     * @param data.boardId
+     * @param data.columnId
+     * @param data.requestBody
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Columns_columnsCreateTask(data: ColumnsCreateTaskData): CancelablePromise<ColumnsCreateTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/boards/{board_id}/columns/{column_id}/tasks',
+            path: {
+                board_id: data.boardId,
+                column_id: data.columnId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CommentsService {
+    /**
+     * Create Comment
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.requestBody
+     * @returns CommentPublic Successful Response
+     * @throws ApiError
+     */
+    public static Comments_commentsCreateComment(data: CommentsCreateCommentData): CancelablePromise<CommentsCreateCommentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/tasks/{task_id}/comments',
+            path: {
+                task_id: data.taskId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Comments
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.limit
+     * @param data.cursor
+     * @returns CommentPublic Successful Response
+     * @throws ApiError
+     */
+    public static Comments_commentsListComments(data: CommentsListCommentsData): CancelablePromise<CommentsListCommentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/{task_id}/comments',
+            path: {
+                task_id: data.taskId
+            },
+            query: {
+                limit: data.limit,
+                cursor: data.cursor
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Comment
+     * @param data The data for the request.
+     * @param data.commentId
+     * @param data.requestBody
+     * @returns CommentPublic Successful Response
+     * @throws ApiError
+     */
+    public static Comments_commentsUpdateComment(data: CommentsUpdateCommentData): CancelablePromise<CommentsUpdateCommentResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/comments/{comment_id}',
+            path: {
+                comment_id: data.commentId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Comment
+     * @param data The data for the request.
+     * @param data.commentId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Comments_commentsDeleteComment(data: CommentsDeleteCommentData): CancelablePromise<CommentsDeleteCommentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/comments/{comment_id}',
+            path: {
+                comment_id: data.commentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CustomStatusesService {
+    /**
+     * Create Custom Status
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns CustomStatusPublic Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesCreateCustomStatus(data: CustomStatusesCreateCustomStatusData): CancelablePromise<CustomStatusesCreateCustomStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/custom-statuses',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Custom Statuses
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns CustomStatusPublic Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesListCustomStatuses(data: CustomStatusesListCustomStatusesData): CancelablePromise<CustomStatusesListCustomStatusesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/custom-statuses',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Mapping Summary
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns MappingSummary Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesGetMappingSummary(data: CustomStatusesGetMappingSummaryData): CancelablePromise<CustomStatusesGetMappingSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/custom-statuses/mapping-summary',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Custom Status
+     * Fetch a single custom status by id, HTTP 404 when absent.
+     * @param data The data for the request.
+     * @param data.customStatusId
+     * @returns CustomStatusPublic Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesGetCustomStatus(data: CustomStatusesGetCustomStatusData): CancelablePromise<CustomStatusesGetCustomStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/custom-statuses/{custom_status_id}',
+            path: {
+                custom_status_id: data.customStatusId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Custom Status
+     * @param data The data for the request.
+     * @param data.customStatusId
+     * @param data.requestBody
+     * @returns CustomStatusPublic Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesUpdateCustomStatus(data: CustomStatusesUpdateCustomStatusData): CancelablePromise<CustomStatusesUpdateCustomStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/custom-statuses/{custom_status_id}',
+            path: {
+                custom_status_id: data.customStatusId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Custom Status
+     * Raise HTTP 409 if the status is still referenced by a Task or BoardColumn.
+     * @param data The data for the request.
+     * @param data.customStatusId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesDeleteCustomStatus(data: CustomStatusesDeleteCustomStatusData): CancelablePromise<CustomStatusesDeleteCustomStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/custom-statuses/{custom_status_id}',
+            path: {
+                custom_status_id: data.customStatusId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Set Custom Status Mapping
+     * @param data The data for the request.
+     * @param data.customStatusId
+     * @param data.requestBody
+     * @returns CustomStatusPublic Successful Response
+     * @throws ApiError
+     */
+    public static CustomStatuses_customStatusesSetCustomStatusMapping(data: CustomStatusesSetCustomStatusMappingData): CancelablePromise<CustomStatusesSetCustomStatusMappingResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/custom-statuses/{custom_status_id}/mapping',
+            path: {
+                custom_status_id: data.customStatusId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class ListsService {
     /**
+     * @deprecated
      * Create List
-     * Create a list at the end of its board (Req 6.1).
-     *
-     * Delegates to ``BoardListsService.create_list`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "Board not found" when the
-     * board does not exist, derives ``order`` = ``max_order(board) + 1`` and
-     * records a CREATE audit row — all atomically. Returns ``ListPublic``.
+     * Raise HTTP 403 if user is not a member of the board's org.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns ListPublic Successful Response
@@ -379,15 +1008,9 @@ export class ListsService {
     }
     
     /**
+     * @deprecated
      * Reorder Lists
-     * Atomically apply a new ``order`` to every list of a board (Req 6.4).
-     *
-     * Declared BEFORE ``/lists/{list_id}`` so ``reorder`` is matched as a literal
-     * path and not captured as a ``list_id``. Delegates to
-     * ``BoardListsService.reorder_lists`` which enforces org-membership (HTTP 403),
-     * validates the payload before touching the DB (HTTP 400 "Invalid reorder
-     * payload") and applies all updates in a single transaction. Returns the
-     * updated ``list[ListPublic]``.
+     * Declared before /{list_id} so 'reorder' is not captured as a path parameter.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns ListPublic Successful Response
@@ -406,13 +1029,9 @@ export class ListsService {
     }
     
     /**
+     * @deprecated
      * Update List
-     * Apply a partial update to a list and return it (Req 6.2).
-     *
-     * Delegates to ``BoardListsService.update_list`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "List not found" when the list
-     * does not exist, applies only the provided fields and records an UPDATE audit
-     * row.
+     * Raise HTTP 403 if user is not a member, HTTP 404 if list not found.
      * @param data The data for the request.
      * @param data.listId
      * @param data.requestBody
@@ -435,13 +1054,9 @@ export class ListsService {
     }
     
     /**
+     * @deprecated
      * Delete List
-     * Delete a list and its cards, returning HTTP 204 (Req 6.3).
-     *
-     * Delegates to ``BoardListsService.delete_list`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "List not found" when the list
-     * does not exist, cascades the delete to the list's cards and records a DELETE
-     * audit row — all atomically.
+     * Delete a list and its cards, returning HTTP 204.
      * @param data The data for the request.
      * @param data.listId
      * @returns void Successful Response
@@ -461,14 +1076,9 @@ export class ListsService {
     }
     
     /**
+     * @deprecated
      * Copy List
-     * Duplicate a list and its cards into the same board (Req 6.6).
-     *
-     * Delegates to ``BoardListsService.copy_list`` which enforces org-membership
-     * (HTTP 403 for non-members), returns HTTP 404 "List not found" when the list
-     * does not exist, appends the copy at the end of the same board (title
-     * ``"{source} - Copy"``), copies the cards preserving order and records a
-     * CREATE audit row — all atomically. Returns the new ``ListPublic``.
+     * Raise HTTP 403 if user is not a member, HTTP 404 if list not found.
      * @param data The data for the request.
      * @param data.listId
      * @returns ListPublic Successful Response
@@ -492,10 +1102,6 @@ export class LoginService {
     /**
      * Login Access Token
      * OAuth2-compatible password login; returns a bearer access token.
-     *
-     * The form ``username`` field carries the user's email. On invalid
-     * credentials a 401 ``Incorrect email or password`` is raised; otherwise a
-     * freshly minted JWT access token is returned with ``token_type="bearer"``.
      * @param data The data for the request.
      * @param data.formData
      * @returns Token Successful Response
@@ -514,10 +1120,85 @@ export class LoginService {
     }
 }
 
+export class NotificationsService {
+    /**
+     * List Notifications
+     * List the current user's notifications, newest first.
+     * @param data The data for the request.
+     * @param data.unread
+     * @param data.limit
+     * @param data.cursor
+     * @returns NotificationPublic Successful Response
+     * @throws ApiError
+     */
+    public static Notifications_notificationsListNotifications(data: NotificationsListNotificationsData = {}): CancelablePromise<NotificationsListNotificationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/me/notifications',
+            query: {
+                unread: data.unread,
+                limit: data.limit,
+                cursor: data.cursor
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Unread Count
+     * Return the current user's unread notification count.
+     * @returns UnreadCountPublic Successful Response
+     * @throws ApiError
+     */
+    public static Notifications_notificationsGetUnreadCount(): CancelablePromise<NotificationsGetUnreadCountResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/me/notifications/unread-count'
+        });
+    }
+    
+    /**
+     * Mark Notification Read
+     * Mark a single notification as read. Raises HTTP 404 if not found or owned by another user.
+     * @param data The data for the request.
+     * @param data.notificationId
+     * @returns NotificationPublic Successful Response
+     * @throws ApiError
+     */
+    public static Notifications_notificationsMarkNotificationRead(data: NotificationsMarkNotificationReadData): CancelablePromise<NotificationsMarkNotificationReadResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/me/notifications/{notification_id}/read',
+            path: {
+                notification_id: data.notificationId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Mark All Notifications Read
+     * Mark every unread notification of the current user as read.
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static Notifications_notificationsMarkAllNotificationsRead(): CancelablePromise<NotificationsMarkAllNotificationsReadResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/me/notifications/read-all'
+        });
+    }
+}
+
 export class OrganizationsService {
     /**
+     * @deprecated
      * List Organizations
-     * List the organizations the authenticated user is a member of (Req 3.3).
+     * List the organizations the authenticated user is a member of.
      * @returns OrganizationPublic Successful Response
      * @throws ApiError
      */
@@ -529,13 +1210,9 @@ export class OrganizationsService {
     }
     
     /**
+     * @deprecated
      * Create Organization
      * Create an organization owned by the authenticated user.
-     *
-     * Delegates to ``OrganizationsService.create_org`` which atomically creates the
-     * organization plus its owning ``OrganizationMember`` (role ``OWNER``),
-     * ``OrgLimit`` (``count`` = 0) and ``OrgSubscription`` rows (Req 3.2, 3.6).
-     * Returns the created organization as ``OrganizationPublic`` (camelCase).
      * @param data The data for the request.
      * @param data.requestBody
      * @returns OrganizationPublic Successful Response
@@ -554,12 +1231,9 @@ export class OrganizationsService {
     }
     
     /**
+     * @deprecated
      * Get Organization
-     * Return an organization detail, enforcing org-scoping.
-     *
-     * Returns the organization when the current user is a member; raises HTTP 403
-     * "Not a member of this organization" when they are not (Req 3.4) and HTTP 404
-     * when ``org_id`` does not exist (Req 3.5).
+     * Return organization detail. Raises HTTP 403 if not a member, HTTP 404 if org does not exist.
      * @param data The data for the request.
      * @param data.orgId
      * @returns OrganizationPublic Successful Response
@@ -571,6 +1245,263 @@ export class OrganizationsService {
             url: '/api/v1/organizations/{org_id}',
             path: {
                 org_id: data.orgId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * @deprecated
+     * Delete Organization
+     * Delete an organization; raises HTTP 403 if user is not the owner, HTTP 404 if org does not exist.
+     * @param data The data for the request.
+     * @param data.orgId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Organizations_organizationsDeleteOrganization(data: OrganizationsDeleteOrganizationData): CancelablePromise<OrganizationsDeleteOrganizationResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/organizations/{org_id}',
+            path: {
+                org_id: data.orgId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ProjectMembersService {
+    /**
+     * Add Member
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns ProjectMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersAddMember(data: ProjectMembersAddMemberData): CancelablePromise<ProjectMembersAddMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/members',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Members
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ProjectMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersListMembers(data: ProjectMembersListMembersData): CancelablePromise<ProjectMembersListMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/members',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Change Role
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.userId
+     * @param data.requestBody
+     * @returns ProjectMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersChangeRole(data: ProjectMembersChangeRoleData): CancelablePromise<ProjectMembersChangeRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/projects/{project_id}/members/{user_id}',
+            path: {
+                project_id: data.projectId,
+                user_id: data.userId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Member
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.userId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersRemoveMember(data: ProjectMembersRemoveMemberData): CancelablePromise<ProjectMembersRemoveMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/projects/{project_id}/members/{user_id}',
+            path: {
+                project_id: data.projectId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Accept Invitation
+     * Accept the current user's own pending invitation.
+     *
+     * No require_project_permission guard — a PENDING member has no effective role
+     * yet, so the RBAC matrix would wrongly deny them before they can accept.
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ProjectMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersAcceptInvitation(data: ProjectMembersAcceptInvitationData): CancelablePromise<ProjectMembersAcceptInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/members/me/accept',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Decline Invitation
+     * Decline the current user's own pending invitation.
+     *
+     * No require_project_permission guard — same rationale as accept_invitation.
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersDeclineInvitation(data: ProjectMembersDeclineInvitationData): CancelablePromise<ProjectMembersDeclineInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/members/me/decline',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ProjectsService {
+    /**
+     * Create Project
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns ProjectPublic Successful Response
+     * @throws ApiError
+     */
+    public static Projects_projectsCreateProject(data: ProjectsCreateProjectData): CancelablePromise<ProjectsCreateProjectResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/projects',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class TasksService {
+    /**
+     * Update Task
+     * Apply a partial update to a Task; raises HTTP 404 if not found.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.requestBody
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksUpdateTask(data: TasksUpdateTaskData): CancelablePromise<TasksUpdateTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/tasks/{task_id}',
+            path: {
+                task_id: data.taskId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Set Assignee
+     * Assign a Task to a user; raises HTTP 404 if task not found, HTTP 400 if assignee is not an active project member.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.requestBody
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksSetAssignee(data: TasksSetAssigneeData): CancelablePromise<TasksSetAssigneeResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/tasks/{task_id}/assignee',
+            path: {
+                task_id: data.taskId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Unset Assignee
+     * Clear a Task's assignee; raises HTTP 404 if task not found.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksUnsetAssignee(data: TasksUnsetAssigneeData): CancelablePromise<TasksUnsetAssigneeResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/tasks/{task_id}/assignee',
+            path: {
+                task_id: data.taskId
             },
             errors: {
                 422: 'Validation Error'
@@ -613,6 +1544,113 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/users/me'
+        });
+    }
+}
+
+export class WorkspaceMembersService {
+    /**
+     * Invite Member
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns WorkspaceMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersInviteMember(data: WorkspaceMembersInviteMemberData): CancelablePromise<WorkspaceMembersInviteMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/members',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Members
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns WorkspaceMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersListMembers(data: WorkspaceMembersListMembersData): CancelablePromise<WorkspaceMembersListMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/members',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Accept Invitation
+     * Raise HTTP 409 if no pending invitation exists for the current user.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns WorkspaceMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersAcceptInvitation(data: WorkspaceMembersAcceptInvitationData): CancelablePromise<WorkspaceMembersAcceptInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/members/me/accept',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Decline Invitation
+     * Raise HTTP 409 if no pending invitation exists for the current user.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersDeclineInvitation(data: WorkspaceMembersDeclineInvitationData): CancelablePromise<WorkspaceMembersDeclineInvitationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/members/me/decline',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Invitations
+     * @param data The data for the request.
+     * @param data.type
+     * @returns InvitationPublic Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersListInvitations(data: WorkspaceMembersListInvitationsData = {}): CancelablePromise<WorkspaceMembersListInvitationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/me/invitations',
+            query: {
+                type: data.type
+            },
+            errors: {
+                422: 'Validation Error'
+            }
         });
     }
 }

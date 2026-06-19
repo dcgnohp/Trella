@@ -14,13 +14,6 @@ interface ActivityPageProps {
   };
 }
 
-/**
- * Activity page (Req 8.3, 10.2, 13.6).
- *
- * Removes `checkSubscription()` (Phase 1 has no Pro tier — Req 10.2) and the
- * `is_pro` flag is hard-coded to `false`. Auth is enforced via
- * `getCurrentUser()`; audit-log fetching lives in `<ActivityList />`.
- */
 const ActivityPage = async ({ params }: ActivityPageProps) => {
   const user = await getCurrentUser();
   if (!user) {

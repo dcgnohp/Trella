@@ -22,9 +22,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   const { title, image } = data;
 
-  // Resolve the active organization with the documented priority (task 22.1):
-  // an explicit `orgId` from the form/route param, otherwise the `org_id`
-  // cookie set by the org picker.
   const orgId = data.orgId ?? getCurrentOrgId();
 
   if (!orgId) {
@@ -51,8 +48,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let board;
 
   try {
-    // The backend enforces the free-tier board limit, increments OrgLimit and
-    // writes the CREATE audit log inside the same transaction (Req 5.5, 8.1, 9.4).
     board = await BoardsService.Boards_boardsCreateBoard({
       requestBody: {
         orgId,
@@ -70,7 +65,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  revalidatePath(`/board/${board.id}`);
+  revalidatePath(`/workspaces/${board.orgId}/boards/${board.id}`);
   return { data: board };
 };
 

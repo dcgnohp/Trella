@@ -7,12 +7,6 @@ interface ActivityItemProps {
   data: AuditLogPublic;
 };
 
-/**
- * Build a human-readable activity sentence from an audit log entry.
- *
- * Replaces the deleted `@/lib/generate-log-message` helper. `action` and
- * `entityType` arrive as plain strings from the backend (`AuditLogPublic`).
- */
 function generateLogMessage(log: AuditLogPublic): string {
   const { action, entityTitle, entityType } = log;
   const entity = entityType.toLowerCase();

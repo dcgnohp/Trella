@@ -1,16 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import localFont from "next/font/local";
 
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/auth-provider";
 
 const headingFont = localFont({
   src: "../public/fonts/font.woff2",
 });
 
 export const Logo = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <Link href="/">
+    <Link href={isAuthenticated ? "/organization" : "/"}>
       <div className="hover:opacity-75 transition items-center gap-x-2 hidden md:flex">
         <Image
           src="/logo.svg"

@@ -1,20 +1,3 @@
-﻿"""auth schema layer.
-
-Pydantic request/response schemas for the ``auth`` domain.
-
-Moved (not yet deleted) from the template ``app/models/models.py`` (``Token`` /
-``TokenPayload``). The ``auth`` domain has no model/repository — only schema,
-service and router (see design.md → exceptions for the ``auth`` domain).
-
-- ``Token``: the access-token response returned by ``POST /login/access-token``.
-- ``TokenPayload``: the decoded JWT payload (``sub`` = the user id as a string).
-- ``LoginRequest``: an email + password request body provided for completeness.
-  The actual OAuth2 endpoint uses ``OAuth2PasswordRequestForm`` (username +
-  password), but a typed ``LoginRequest`` is useful for non-form callers/tests.
-
-See requirements 2.3, 2.4, 2.7.
-"""
-
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 

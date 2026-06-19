@@ -125,9 +125,7 @@ def _build_sandbox(root: Path) -> Path:
 
     codegen_dir = sandbox / "lib" / "codegen"
     codegen_dir.mkdir(parents=True)
-    shutil.copy2(
-        REAL_METHOD_NAME_BUILDER, codegen_dir / "method-name-builder.ts"
-    )
+    shutil.copy2(REAL_METHOD_NAME_BUILDER, codegen_dir / "method-name-builder.ts")
 
     _link_node_modules(sandbox / "node_modules", REAL_NODE_MODULES)
     return sandbox

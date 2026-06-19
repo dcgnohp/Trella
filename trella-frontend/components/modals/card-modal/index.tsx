@@ -11,20 +11,6 @@ import { Description } from "./description";
 import { Actions } from "./actions";
 import { Activity } from "./activity";
 
-/**
- * Per-card detail dialog (Req 16.3).
- *
- * Refactored away from the deleted `/api/cards/[cardId]` and
- * `/api/cards/[cardId]/logs` route handlers: the card data now arrives via
- * the `useCardModal` zustand store (the parent board page already has every
- * card on the board through `BoardsService.Boards_boardsGetBoard`), and the
- * activity tab calls `AuditLogsService.AuditLogs_auditLogsListCardAuditLogs`
- * on the generated client directly. No `react-query`, no `fetcher` helper.
- *
- * `Header` / `Description` invoke `onUpdated()` on a successful update so we
- * can refresh the audit log list (the backend writes a new UPDATE row in the
- * same transaction).
- */
 export const CardModal = () => {
   const card = useCardModal((state) => state.card);
   const isOpen = useCardModal((state) => state.isOpen);

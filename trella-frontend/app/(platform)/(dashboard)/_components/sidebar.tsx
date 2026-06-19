@@ -24,9 +24,6 @@ export const Sidebar = ({
     {}
   );
 
-  // API-backed organization state (Requirement 15.3, 15.4): the org list +
-  // active org come from `GET /api/org`, which reads the httpOnly auth cookie
-  // server-side and proxies `GET /organizations`.
   const [organizations, setOrganizations] = useState<OrganizationPublic[]>([]);
   const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);

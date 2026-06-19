@@ -1,36 +1,6 @@
-"""Domain tables (Backend Modular Refactor — Phase 1, cluster 2).
-
-Creates the DOMAIN cluster of tables for the modular-monolith refactor, layered
-on top of the foundational cluster (``0001_foundational_tables``):
-
-- ``boards``
-- ``lists``       (physical table for the ``board_lists`` domain / ``List`` model)
-- ``cards``       (physical table for the ``task_cards`` domain / ``Card`` model)
-- ``audit_logs``
-
-Tables are created in dependency order so foreign keys always resolve:
-``boards`` -> ``lists`` -> ``cards``, then ``audit_logs`` (which references the
-foundational ``organizations`` / ``users`` tables). This migration does NOT
-reference the template ``item`` table in any way.
-
-Foreign keys (with ``ON DELETE CASCADE`` where the SQLModel models declare
-``ondelete="CASCADE"``), mirroring the ER chain
-``Organization -> Board -> List -> Card``:
-
-- ``boards.org_id      -> organizations.id`` (CASCADE)
-- ``lists.board_id     -> boards.id``        (CASCADE)
-- ``cards.list_id      -> lists.id``          (CASCADE)
-- ``audit_logs.org_id  -> organizations.id`` (CASCADE)
-- ``audit_logs.user_id -> users.id``         (no cascade)
-
-Column shapes mirror ``app/models/*_model.py`` + the shared mixins in
-``app/core/base.py`` (``UUIDMixin`` -> uuid PK, ``TimestampMixin`` ->
-timezone-aware ``created_at`` / ``updated_at``).
-
-Revision ID: 0002_domain_tables
+"""Revision ID: 0002_domain_tables
 Revises: 0001_foundational_tables
 Create Date: 2024-01-01 00:00:01.000000
-
 """
 
 import sqlalchemy as sa
@@ -133,7 +103,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Drop in reverse dependency order so foreign keys never dangle.
     op.drop_table("audit_logs")
     op.drop_table("cards")
     op.drop_table("lists")

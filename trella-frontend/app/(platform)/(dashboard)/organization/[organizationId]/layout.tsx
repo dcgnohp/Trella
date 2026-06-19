@@ -9,8 +9,6 @@ export async function generateMetadata({
 }: {
   params: { organizationId: string };
 }) {
-  // Resolve the active organization name via the organizations API
-  // (Requirement 15.4). Falls back to a generic title on any error.
   let name = "organization";
   try {
     const org = await OrganizationsService.Organizations_organizationsGetOrganization({

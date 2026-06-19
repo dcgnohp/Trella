@@ -24,13 +24,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
-/**
- * Create-organization form (Requirements 15.2, 14.5).
- *
- * shadcn `Form` + `react-hook-form` + `zod`. On submit it calls the
- * `createOrganization` server action (`POST /organizations` + persist active
- * org). On success it redirects to the new org's dashboard.
- */
 export const CreateOrganizationForm = () => {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)

@@ -10,19 +10,6 @@ import {
   getCurrentOrgId,
 } from "@/lib/current-org"
 
-/**
- * Organization Route Handlers backing the client-side org picker / sidebar
- * (Requirements 15.3, 15.4).
- *
- * Client components cannot call the generated client directly with the
- * httpOnly auth cookie, so they go through these server-side handlers:
- *
- *  - `GET  /api/org`  → `{ organizations: OrganizationPublic[], currentOrgId }`
- *      Lists the orgs the user belongs to plus the active org id (cookie).
- *  - `POST /api/org`  → switch the active organization.
- *      Body: `{ orgId: string }`. Validates membership, then sets the `org_id`
- *      cookie so subsequent org-scoped requests target the chosen org.
- */
 export async function GET() {
   const user = await getCurrentUser()
   if (!user) {
@@ -65,8 +52,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "orgId is required" }, { status: 400 })
   }
 
-  // Validate membership before switching: the backend returns 403/404 when the
-  // user is not a member or the org does not exist.
+  // Backend returns 403/404 if user is not a member or org does not exist.
   try {
     await OrganizationsService.Organizations_organizationsGetOrganization({ orgId })
   } catch (error) {

@@ -14,10 +14,20 @@ validate service behavior at the unit level.
 from collections.abc import Iterator
 
 import pytest
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, create_engine
 
 from app.models import SQLModel  # imports every domain model -> full metadata
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    # Ensure foreign keys are enabled for SQLite
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 @pytest.fixture

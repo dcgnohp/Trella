@@ -22,8 +22,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   const { id, boardId } = data;
 
   try {
-    // Org scope resolved server-side; DELETE audit log written in the same
-    // transaction (Req 7.3, 8.1).
     await CardsService.Cards_cardsDeleteCard({
       cardId: id,
     });

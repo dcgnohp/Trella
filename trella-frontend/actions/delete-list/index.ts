@@ -22,8 +22,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   const { id, boardId } = data;
 
   try {
-    // Cascade delete of cards + DELETE audit log handled server-side in one
-    // transaction (Req 6.3, 8.1).
     await ListsService.Lists_listsDeleteList({
       listId: id,
     });

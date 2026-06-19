@@ -7,6 +7,8 @@ import {
   CreditCard,
   Layout,
   Settings,
+  Tag,
+  Users,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -18,13 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/**
- * Organization shape used by the sidebar nav.
- *
- * The API `OrganizationPublic` only provides `id` + `name` (no `slug` /
- * `imageUrl`), so those are optional. When `imageUrl` is absent we render an
- * initial-letter placeholder instead of a broken <Image />.
- */
 export type Organization = {
   id: string;
   name: string;
@@ -73,6 +68,16 @@ export const NavItem = ({
       label: "Billing",
       icon: <CreditCard className="h-4 w-4 mr-2" />,
       href: `/organization/${organization.id}/billing`,
+    },
+    {
+      label: "Members",
+      icon: <Users className="h-4 w-4 mr-2" />,
+      href: `/workspaces/${organization.id}/settings/members`,
+    },
+    {
+      label: "Statuses",
+      icon: <Tag className="h-4 w-4 mr-2" />,
+      href: `/workspaces/${organization.id}/settings/statuses`,
     },
   ];
 

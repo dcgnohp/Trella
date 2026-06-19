@@ -1,34 +1,4 @@
-"""Foundational tables (Backend Modular Refactor — Phase 1, cluster 1).
-
-Creates the FOUNDATIONAL cluster of tables for the modular-monolith refactor:
-
-- ``users``
-- ``organizations``
-- ``organization_members``
-- ``org_limits``
-- ``org_subscriptions``
-
-This is the NEW BASE of the refactor's incremental migration chain
-(``down_revision = None``). It is designed to be applied to an EMPTY database
-and does NOT reference the template ``item`` table in any way.
-
-Foreign keys (with ``ON DELETE CASCADE`` where the SQLModel models declare
-``ondelete="CASCADE"``):
-
-- ``organization_members.user_id -> users.id``        (CASCADE)
-- ``organization_members.org_id  -> organizations.id`` (CASCADE)
-- ``org_limits.org_id            -> organizations.id`` (CASCADE)
-- ``org_subscriptions.org_id     -> organizations.id`` (CASCADE)
-
-Column shapes mirror ``app/models/*_model.py`` + the shared mixins in
-``app/core/base.py`` (``UUIDMixin`` -> uuid PK, ``TimestampMixin`` ->
-timezone-aware ``created_at`` / ``updated_at``).
-
-Revision ID: 0001_foundational_tables
-Revises:
-Create Date: 2024-01-01 00:00:00.000000
-
-"""
+"""Create foundational tables: users, organizations, organization_members, org_limits, org_subscriptions."""
 
 import sqlalchemy as sa
 from alembic import op

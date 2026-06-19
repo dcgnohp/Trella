@@ -5,6 +5,7 @@ import { Medal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth";
 
 const headingFont = localFont({
   src: "../../public/fonts/font.woff2"
@@ -25,7 +26,9 @@ const textFont = Poppins({
   ],
 });
 
-const MarketingPage = () => {
+const MarketingPage = async () => {
+  const user = await getCurrentUser();
+
   return (
     <div className="flex items-center justify-center flex-col">
       <div className={cn(
@@ -50,8 +53,8 @@ const MarketingPage = () => {
         Collaborate, manage projects, and reach new productivity peaks. From high rises to the home office, the way your team works is unique - accomplish it all with Taskify.
       </div>
       <Button className="mt-6" size="lg" asChild>
-        <Link href="/sign-up">
-          Get Taskify for free
+        <Link href={user ? "/organization" : "/sign-up"}>
+          {user ? "Go to Dashboard" : "Get Taskify for free"}
         </Link>
       </Button>
     </div>

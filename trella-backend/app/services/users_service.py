@@ -1,16 +1,3 @@
-﻿"""users service layer.
-
-Service (business logic) for the ``users`` domain.
-
-Owns the registration use case: enforce the unique-email rule, hash the password
-with Argon2 (via ``app.core.security.hash_password``), persist the user through
-``UsersRepository`` and own the transaction (commit / refresh).
-
-Logic moved (not yet deleted) from the template ``app/crud.py`` and
-``app/api/routes/users.py``. See requirements 2.1, 2.2 and ``design.md``
-section "Error Handling" (409 "Email already registered").
-"""
-
 import uuid
 
 from fastapi import HTTPException, status
@@ -29,11 +16,7 @@ class UsersService:
         self.repo = repo or UsersRepository()
 
     def register(self, session: Session, data: UserRegister) -> User:
-        """Register a new user.
-
-        Raises HTTP 409 "Email already registered" if the email is taken.
-        Otherwise hashes the password (Argon2), persists the user and commits.
-        """
+        """Raise HTTP 409 if the email is already registered, otherwise create and return the user."""
         existing = self.repo.get_by_email(session, data.email)
         if existing is not None:
             raise HTTPException(

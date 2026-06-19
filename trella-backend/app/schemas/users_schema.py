@@ -1,18 +1,3 @@
-﻿"""users schema layer.
-
-Pydantic request/response schemas for the ``users`` domain.
-
-- ``UserCreate`` / ``UserRegister``: request bodies for creating/registering a
-  user. Both carry the plaintext ``password`` (validated, min length 8) which
-  the service hashes before persisting — it is never stored as-is.
-- ``UserPublic``: API response shape. It extends ``CamelModel`` so fields
-  serialize to camelCase (``fullName``, ``isActive``, ``isSuperuser``,
-  ``createdAt``, ``updatedAt``) and it deliberately EXCLUDES
-  ``password`` / ``hashed_password``.
-
-See requirements 2.1, 2.7 and design.md section "2. Serialization camelCase".
-"""
-
 import uuid
 from datetime import datetime
 
@@ -39,11 +24,7 @@ class UserRegister(SQLModel):
 
 
 class UserPublic(CamelModel):
-    """API response for a user — never exposes password/hashed_password.
-
-    Serializes to camelCase: ``fullName``, ``isActive``, ``isSuperuser``,
-    ``createdAt``, ``updatedAt``.
-    """
+    """API response for a user — never exposes password/hashed_password."""
 
     id: uuid.UUID
     email: EmailStr

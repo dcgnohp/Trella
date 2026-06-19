@@ -1,42 +1,49 @@
-"""Model layer aggregator (layer-first ``models``).
-
-Two responsibilities:
-
-1. Re-export ``SQLModel`` so ``from app.models import SQLModel`` keeps working —
-   Alembic's ``app/alembic/env.py`` relies on this to build
-   ``SQLModel.metadata`` for autogenerate.
-2. Import every domain model module so their tables register on
-   ``SQLModel.metadata`` (required for Alembic autogenerate and for SQLModel to
-   resolve relationships).
-
-As new domains are implemented (organizations, organization_members, boards,
-board_lists, task_cards, audit_logs, org_limits, org_subscriptions, ...) import
-their ``*_model`` module here. Only modules that currently exist are imported.
-"""
-
 from sqlmodel import SQLModel
 
+from app.models.activity_logs_model import ActivityLog
+from app.models.attachments_model import Attachment
 from app.models.audit_logs_model import AuditAction, AuditLog, EntityType
 from app.models.board_lists_model import List
+from app.models.board_members_model import BoardMember
 from app.models.boards_model import Board
+from app.models.comment_mentions_model import CommentMention
+from app.models.comments_model import Comment
+from app.models.custom_statuses_model import CustomStatus
+from app.models.notifications_model import Notification
 from app.models.org_limits_model import OrgLimit
 from app.models.org_subscriptions_model import OrgSubscription
-from app.models.organization_members_model import OrganizationMember
-from app.models.organizations_model import Organization
+from app.models.project_members_model import ProjectMember
+from app.models.projects_model import Project
 from app.models.task_cards_model import Card
 from app.models.users_model import User
+from app.models.workspace_members_model import WorkspaceMember
+from app.models.workspaces_model import Workspace
+
+Organization = Workspace
+OrganizationMember = WorkspaceMember
 
 __all__ = [
     "SQLModel",
     "User",
+    "Workspace",
+    "WorkspaceMember",
     "Organization",
     "OrganizationMember",
     "OrgSubscription",
     "OrgLimit",
+    "Project",
+    "ProjectMember",
     "Board",
+    "BoardMember",
     "List",
     "Card",
     "AuditLog",
     "AuditAction",
     "EntityType",
+    "Notification",
+    "Comment",
+    "CommentMention",
+    "Attachment",
+    "CustomStatus",
+    "ActivityLog",
 ]

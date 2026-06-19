@@ -1,22 +1,3 @@
-﻿"""users router layer.
-
-FastAPI ``APIRouter`` for the ``users`` domain.
-
-Exposes the template-compatible auth-adjacent user endpoints under the
-``/users`` prefix (the global ``/api/v1`` prefix is added at
-``app/api/main.py``):
-
-- ``POST /users/signup`` (full path ``/api/v1/users/signup``): public
-  self-registration. Delegates to ``UsersService.register`` and returns a
-  ``UserPublic`` (camelCase, never exposes the password).
-- ``GET /users/me`` (full path ``/api/v1/users/me``): returns the authenticated
-  user resolved by the ``get_current_user`` dependency.
-
-Logic moved (not yet deleted) from the template ``app/api/routes/users.py``.
-See requirements 2.1, 2.5 and design.md sections "9. Đăng ký router" and
-"Dependency Injection (deps)".
-"""
-
 from fastapi import APIRouter
 
 from app.core.deps import CurrentUser, SessionDep

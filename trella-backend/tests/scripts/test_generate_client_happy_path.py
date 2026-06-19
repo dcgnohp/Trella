@@ -216,9 +216,7 @@ def _build_sandbox(root: Path) -> None:
 
     shutil.copy2(REAL_SCRIPT_PATH, scripts_dir / "generate-client.sh")
 
-    (frontend_dir / "package.json").write_text(
-        _STUB_PACKAGE_JSON, encoding="utf-8"
-    )
+    (frontend_dir / "package.json").write_text(_STUB_PACKAGE_JSON, encoding="utf-8")
     (frontend_dir / "generate-stub.js").write_text(
         _STUB_GENERATE_STUB_JS, encoding="utf-8"
     )
@@ -285,6 +283,6 @@ def test_generate_client_script_writes_openapi_and_regenerates_client(
         f"Expected `lib/client/index.ts` at {regen_marker} after codegen; "
         f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
-    assert (
-        regen_marker.read_text(encoding="utf-8") == "// regenerated stub\n"
-    ), "regen sentinel file did not contain expected content"
+    assert regen_marker.read_text(encoding="utf-8") == "// regenerated stub\n", (
+        "regen sentinel file did not contain expected content"
+    )

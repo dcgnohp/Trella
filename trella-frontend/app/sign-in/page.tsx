@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
@@ -29,18 +29,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
-/**
- * `/sign-in` page (Requirements 13.3, 13.5, 14.5).
- *
- * Client component built with shadcn `Form` + `react-hook-form` + `zod`.
- * On submit it calls `useAuth().signIn(email, password)`, which posts to the
- * `/api/auth/login` Route Handler. That handler exchanges the credentials for a
- * JWT and sets the httpOnly cookie server-side (httpOnly cookies cannot be set
- * from client JS). On success we redirect to the post-login destination; on
- * failure (e.g. 401) we surface "Incorrect email or password".
- */
-
-/** Destination after a successful sign-in. The org picker (task 22.1) takes over from here. */
 const POST_LOGIN_REDIRECT = "/organization"
 
 const signInSchema = z.object({
@@ -52,8 +40,14 @@ type SignInValues = z.infer<typeof signInSchema>
 
 export default function SignInPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, isAuthenticated, isLoading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push(POST_LOGIN_REDIRECT)
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -70,7 +64,6 @@ export default function SignInPage() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Incorrect email or password"
-      // Surface as both a toast and an inline form error for accessibility.
       toast.error(message)
       form.setError("password", { type: "manual", message })
     } finally {

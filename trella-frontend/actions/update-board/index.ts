@@ -23,8 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let board;
 
   try {
-    // Org membership is enforced server-side; the UPDATE audit log is written
-    // by the backend in the same transaction (Req 4.1, 8.1).
     board = await BoardsService.Boards_boardsUpdateBoard({
       boardId: id,
       requestBody: {

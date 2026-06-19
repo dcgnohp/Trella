@@ -17,11 +17,6 @@ import { Button } from "@/components/ui/button";
 
 interface DescriptionProps {
   data: CardWithList;
-  /**
-   * Called after a successful update so the parent modal can refresh the
-   * activity feed (the backend writes an UPDATE audit row in the same
-   * transaction).
-   */
   onUpdated?: () => void;
 }
 
@@ -59,8 +54,7 @@ export const Description = ({
 
   const { execute, fieldErrors } = useAction(updateCard, {
     onSuccess: (updated) => {
-      // Update the modal store so the description text reflects the new
-      // value on the next render without re-fetching the card.
+      // Update modal store so the description reflects the new value without re-fetching.
       setCard({ ...data, ...updated });
       toast.success(`Card "${updated.title}" updated`);
       onUpdated?.();

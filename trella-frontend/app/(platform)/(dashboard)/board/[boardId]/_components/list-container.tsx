@@ -60,7 +60,6 @@ export const ListContainer = ({
       return;
     }
 
-    // if dropped in the same position
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -68,7 +67,6 @@ export const ListContainer = ({
       return;
     }
 
-    // User moves a list
     if (type === "list") {
       const items = reorder(
         orderedData,
@@ -77,11 +75,6 @@ export const ListContainer = ({
       ).map((item, index) => ({ ...item, order: index }));
 
       setOrderedData(items);
-      // The reorder action's zod schema models `createdAt` / `updatedAt` as
-      // `z.date()` (PART 2 leftover; not in scope here). The board-detail API
-      // serialises them as ISO strings, so coerce at the action boundary so
-      // safeParse accepts the payload — the backend itself only consumes
-      // `id` + `order` (Req 6.4).
       executeUpdateListOrder({
         items: items.map((item) => ({
           ...item,
@@ -92,11 +85,9 @@ export const ListContainer = ({
       });
     }
 
-    // User moves a card
     if (type === "card") {
       let newOrderedData = [...orderedData];
 
-      // Source and destination list
       const sourceList = newOrderedData.find(list => list.id === source.droppableId);
       const destList = newOrderedData.find(list => list.id === destination.droppableId);
 
@@ -104,17 +95,14 @@ export const ListContainer = ({
         return;
       }
 
-      // Check if cards exists on the sourceList
       if (!sourceList.cards) {
         sourceList.cards = [];
       }
 
-      // Check if cards exists on the destList
       if (!destList.cards) {
         destList.cards = [];
       }
 
-      // Moving the card in the same list
       if (source.droppableId === destination.droppableId) {
         const reorderedCards = reorder(
           sourceList.cards,
@@ -129,8 +117,6 @@ export const ListContainer = ({
         sourceList.cards = reorderedCards;
 
         setOrderedData(newOrderedData);
-        // Same `z.date()` coercion as the list reorder above; the backend
-        // only consumes `id` / `order` / `listId` (Req 7.4).
         executeUpdateCardOrder({
           boardId: boardId,
           items: reorderedCards.map((card) => ({
@@ -139,22 +125,17 @@ export const ListContainer = ({
             updatedAt: new Date(card.updatedAt),
           })),
         });
-        // User moves the card to another list
       } else {
-        // Remove card from the source list
         const [movedCard] = sourceList.cards.splice(source.index, 1);
 
-        // Assign the new listId to the moved card
         movedCard.listId = destination.droppableId;
 
-        // Add card to the destination list
         destList.cards.splice(destination.index, 0, movedCard);
 
         sourceList.cards.forEach((card, idx) => {
           card.order = idx;
         });
 
-        // Update the order for each card in the destination list
         destList.cards.forEach((card, idx) => {
           card.order = idx;
         });

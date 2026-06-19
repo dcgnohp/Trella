@@ -27,6 +27,7 @@ from app.models.board_lists_model import List
 from app.models.boards_model import Board
 from app.models.organization_members_model import OrganizationMember
 from app.models.organizations_model import Organization
+from app.models.projects_model import Project
 from app.models.task_cards_model import Card
 from app.models.users_model import User
 from app.repositories.task_cards_repository import TaskCardsRepository
@@ -56,13 +57,30 @@ def _seed_org(session: Session) -> Organization:
 
 def _add_member(session: Session, org_id: uuid.UUID, user_id: uuid.UUID) -> None:
     session.add(
-        OrganizationMember(org_id=org_id, user_id=user_id, role="OWNER")
+        OrganizationMember(
+            workspace_id=org_id, user_id=user_id, role="OWNER", status="ACTIVE"
+        )
     )
     session.commit()
 
 
-def _seed_board(session: Session, org_id: uuid.UUID) -> Board:
-    board = Board(org_id=org_id, title="Sprint 1")
+def _seed_board(session: Session, workspace_id: uuid.UUID) -> Board:
+    """Seed a board under a fresh project of ``workspace_id``.
+
+    A board no longer carries ``org_id``; it belongs to a ``Project`` whose
+    ``workspace_id`` is the owning workspace.
+    """
+    creator = _seed_user(session)
+    project = Project(
+        workspace_id=workspace_id,
+        name="Project",
+        key=uuid.uuid4().hex[:8].upper(),
+        created_by=creator.id,
+    )
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    board = Board(project_id=project.id, title="Sprint 1")
     session.add(board)
     session.commit()
     session.refresh(board)
@@ -104,9 +122,7 @@ def test_create_card_appends_order(session: Session) -> None:
     assert first.list_id == board_list.id
 
     # A CREATE audit row was written for the first card (Req 8.1).
-    logs = session.exec(
-        select(AuditLog).where(AuditLog.entity_id == first.id)
-    ).all()
+    logs = session.exec(select(AuditLog).where(AuditLog.entity_id == first.id)).all()
     assert len(logs) == 1
     assert logs[0].action == "CREATE"
     assert logs[0].entity_type == "CARD"
@@ -118,9 +134,7 @@ def test_create_card_missing_list_not_found(session: Session) -> None:
     user = _seed_user(session)
     service = TaskCardsService()
     with pytest.raises(HTTPException) as exc:
-        service.create_card(
-            session, CardCreate(title="x", list_id=uuid.uuid4()), user
-        )
+        service.create_card(session, CardCreate(title="x", list_id=uuid.uuid4()), user)
     assert exc.value.status_code == 404
     assert exc.value.detail == "List not found"
     assert session.exec(select(Card)).first() is None
@@ -173,9 +187,7 @@ def test_update_card_missing_not_found(session: Session) -> None:
     user = _seed_user(session)
     service = TaskCardsService()
     with pytest.raises(HTTPException) as exc:
-        service.update_card(
-            session, uuid.uuid4(), CardUpdate(title="x"), user
-        )
+        service.update_card(session, uuid.uuid4(), CardUpdate(title="x"), user)
     assert exc.value.status_code == 404
     assert exc.value.detail == "Card not found"
 
@@ -189,9 +201,7 @@ def test_update_card_non_member_forbidden(session: Session) -> None:
     )
 
     with pytest.raises(HTTPException) as exc:
-        service.update_card(
-            session, created.id, CardUpdate(title="hijack"), outsider
-        )
+        service.update_card(session, created.id, CardUpdate(title="hijack"), outsider)
     assert exc.value.status_code == 403
 
 
@@ -229,15 +239,9 @@ def test_delete_card_missing_not_found(session: Session) -> None:
 def test_list_by_list_ordered_by_order(session: Session) -> None:
     user, board_list = _setup(session)
     service = TaskCardsService()
-    service.create_card(
-        session, CardCreate(title="A", list_id=board_list.id), user
-    )
-    service.create_card(
-        session, CardCreate(title="B", list_id=board_list.id), user
-    )
-    service.create_card(
-        session, CardCreate(title="C", list_id=board_list.id), user
-    )
+    service.create_card(session, CardCreate(title="A", list_id=board_list.id), user)
+    service.create_card(session, CardCreate(title="B", list_id=board_list.id), user)
+    service.create_card(session, CardCreate(title="C", list_id=board_list.id), user)
 
     rows = TaskCardsRepository().list_by_list(session, board_list.id)
     orders = [row.order for row in rows]
@@ -345,9 +349,7 @@ def test_reorder_cards_unknown_id_rejected(session: Session) -> None:
     """An unknown card id -> 400 and the DB is left unchanged."""
     user, list_a = _setup(session)
     service = TaskCardsService()
-    card = service.create_card(
-        session, CardCreate(title="C", list_id=list_a.id), user
-    )
+    card = service.create_card(session, CardCreate(title="C", list_id=list_a.id), user)
 
     with pytest.raises(HTTPException) as exc:
         service.reorder_cards(
@@ -365,10 +367,12 @@ def test_reorder_cards_unknown_id_rejected(session: Session) -> None:
 
 
 def _seed_org_for_list(session: Session, board_list: List) -> uuid.UUID:
-    """Return the org id owning ``board_list`` (via its board)."""
+    """Return the workspace id owning ``board_list`` (via its board -> project)."""
     board = session.get(Board, board_list.board_id)
     assert board is not None
-    return board.org_id
+    project = session.get(Project, board.project_id)
+    assert project is not None
+    return project.workspace_id
 
 
 def _add_member_if_needed(
@@ -376,7 +380,7 @@ def _add_member_if_needed(
 ) -> None:
     existing = session.exec(
         select(OrganizationMember).where(
-            OrganizationMember.org_id == org_id,
+            OrganizationMember.workspace_id == org_id,
             OrganizationMember.user_id == user_id,
         )
     ).first()

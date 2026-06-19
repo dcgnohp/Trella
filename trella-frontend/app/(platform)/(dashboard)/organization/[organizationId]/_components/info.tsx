@@ -25,8 +25,6 @@ export const Info = ({
   const params = useParams();
   const organizationId = params.organizationId as string | undefined;
 
-  // API-backed organization state (Requirement 15.4): resolve the active org's
-  // details from `GET /api/org` using the route param.
   const [organization, setOrganization] = useState<OrganizationPublic | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 

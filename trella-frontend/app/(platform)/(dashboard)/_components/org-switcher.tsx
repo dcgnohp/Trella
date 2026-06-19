@@ -21,18 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-/**
- * Organization picker (Requirements 15.3, 15.4).
- *
- * Replaces the Clerk `<OrganizationSwitcher />`. Lists the orgs the user
- * belongs to (fetched server-side and passed in as props) and lets them switch
- * the active organization. Selecting an org:
- *  1. POSTs to `/api/org` to persist the active org id (`org_id` cookie), and
- *  2. navigates to that org's dashboard (`/organization/{id}`).
- *
- * "Create organization" routes to `/select-org` (the create-org flow).
- */
-
 interface OrgSwitcherProps {
   organizations: OrganizationPublic[]
   activeOrgId: string | null

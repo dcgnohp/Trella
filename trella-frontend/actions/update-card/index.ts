@@ -23,9 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   let card;
 
   try {
-    // Org scope is resolved server-side via card -> list -> board -> org_id;
-    // only the provided fields are applied and an UPDATE audit log is written
-    // in the same transaction (Req 7.2, 4.4, 8.1).
     card = await CardsService.Cards_cardsUpdateCard({
       cardId: id,
       requestBody: {

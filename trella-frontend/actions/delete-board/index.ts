@@ -23,9 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   const { id } = data;
 
-  // Resolve the active organization with the documented priority (task 22.1):
-  // explicit `orgId` from the form/route param, else the `org_id` cookie. Used
-  // to redirect back to the organization dashboard after deletion.
   const orgId = data.orgId ?? getCurrentOrgId();
 
   if (!orgId) {
@@ -35,8 +32,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   try {
-    // Cascade delete + OrgLimit decrement + DELETE audit log are handled by the
-    // backend in a single transaction (Req 5.4, 8.1, 9.5).
     await BoardsService.Boards_boardsDeleteBoard({
       boardId: id,
     });

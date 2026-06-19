@@ -7,25 +7,12 @@ import { getCurrentUser } from "@/lib/auth";
 
 import { Info } from "../_components/info";
 
-/**
- * Billing page placeholder (Req 10.2, 10.3, 13.6).
- *
- * Phase 1 of the backend-modular-refactor explicitly drops Stripe / billing:
- *  - `is_pro` always returns `false` on the backend (Req 10.2).
- *  - There are no `/api/v1/billing/*` endpoints (Req 10.3).
- *
- * The previous page rendered a `<SubscriptionButton />` that called the now
- * stubbed `stripeRedirect` action; we replace it with a static "not available
- * in Phase 1" notice using shadcn's `Card` primitive. PART 2 will wire in real
- * billing once the backend gains the endpoints.
- */
 const BillingPage = async () => {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/sign-in");
   }
 
-  // Phase 1: no Pro tier (Req 10.2).
   const isPro = false;
 
   return (
