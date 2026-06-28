@@ -131,6 +131,20 @@ class TasksService:
             return False
         return recipient.status != UserAccountStatus.REMOVED.value
 
+    @staticmethod
+    def _push_task_event(task: Task, event: str) -> None:
+        """Broadcast a project-scoped realtime event for ``task``. Best-effort."""
+        try:
+            from app.core.realtime import ws_manager
+
+            ws_manager.push_to_project(
+                task.project_id,
+                event,
+                {"task_id": str(task.id), "board_id": str(task.board_id)},
+            )
+        except Exception:  # noqa: BLE001 — never fail the caller on a push.
+            logger.warning("realtime push failed for task %s", task.id, exc_info=True)
+
     # ------------------------------------------------------------------ #
     # update_task                                                        #
     # ------------------------------------------------------------------ #
@@ -233,6 +247,7 @@ class TasksService:
                 title="A task assigned to you was updated",
                 task=task,
             )
+        self._push_task_event(task, "task.updated")
         return task
 
     # ------------------------------------------------------------------ #
@@ -343,6 +358,7 @@ class TasksService:
                 title="You have been assigned a task",
                 task=task,
             )
+        self._push_task_event(task, "task.updated")
         return task
 
     def unset_assignee(
@@ -392,4 +408,5 @@ class TasksService:
                 title="You have been unassigned from a task",
                 task=task,
             )
+        self._push_task_event(task, "task.updated")
         return task

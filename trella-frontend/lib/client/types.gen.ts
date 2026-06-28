@@ -477,6 +477,8 @@ export type WorkspaceMemberPublic = {
     id: string;
     workspaceId: string;
     userId: string;
+    email: string;
+    fullName: (string | null);
     role: string;
     status: string;
     invitedBy?: (string | null);
@@ -901,6 +903,12 @@ export type ProjectsCreateProjectData = {
 
 export type ProjectsCreateProjectResponse = (ProjectPublic);
 
+export type ProjectsGetProjectData = {
+    projectId: string;
+};
+
+export type ProjectsGetProjectResponse = (ProjectPublic);
+
 export type TasksUpdateTaskData = {
     requestBody: TaskUpdate;
     taskId: string;
@@ -955,6 +963,13 @@ export type WorkspaceMembersDeclineInvitationData = {
 export type WorkspaceMembersDeclineInvitationResponse = ({
     [key: string]: (boolean);
 });
+
+export type WorkspaceMembersRemoveMemberData = {
+    workspaceId: string;
+    userId: string;
+};
+
+export type WorkspaceMembersRemoveMemberResponse = void;
 
 export type WorkspaceMembersListInvitationsData = {
     type?: string;

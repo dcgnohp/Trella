@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useLocalStorage } from "usehooks-ts";
+import { useQuery } from "@tanstack/react-query";
 
 import type { OrganizationPublic } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,11 @@ interface SidebarProps {
   storageKey?: string;
 };
 
+type OrgResponse = {
+  organizations?: OrganizationPublic[];
+  currentOrgId?: string | null;
+};
+
 export const Sidebar = ({
   storageKey = "t-sidebar-state",
 }: SidebarProps) => {
@@ -24,32 +29,20 @@ export const Sidebar = ({
     {}
   );
 
-  const [organizations, setOrganizations] = useState<OrganizationPublic[]>([]);
-  const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Sourced via React Query so accepting an invitation (which invalidates
+  // ["organizations"]) refreshes the list without a reload.
+  const orgQuery = useQuery({
+    queryKey: ["organizations"],
+    queryFn: async (): Promise<OrgResponse> => {
+      const res = await fetch("/api/org", { cache: "no-store" });
+      if (!res.ok) return { organizations: [], currentOrgId: null };
+      return res.json();
+    },
+  });
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/org", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : { organizations: [], currentOrgId: null }))
-      .then((data: { organizations?: OrganizationPublic[]; currentOrgId?: string | null }) => {
-        if (!active) return;
-        setOrganizations(data.organizations ?? []);
-        setActiveOrgId(data.currentOrgId ?? null);
-      })
-      .catch(() => {
-        if (active) {
-          setOrganizations([]);
-          setActiveOrgId(null);
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoaded(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const organizations = orgQuery.data?.organizations ?? [];
+  const activeOrgId = orgQuery.data?.currentOrgId ?? null;
+  const isLoaded = !orgQuery.isLoading;
 
   const defaultAccordionValue: string[] = Object.keys(expanded)
     .reduce((acc: string[], key: string) => {

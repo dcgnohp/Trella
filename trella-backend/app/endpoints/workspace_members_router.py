@@ -5,6 +5,7 @@ from sqlmodel import Session
 
 from app.core.deps import CurrentUser, SessionDep
 from app.models.organizations_model import Organization
+from app.models.users_model import User
 from app.models.workspace_members_model import WorkspaceMember
 from app.repositories.workspace_members_repository import WorkspaceMembersRepository
 from app.schemas.workspace_members_schema import (
@@ -20,6 +21,25 @@ router = APIRouter(tags=["workspace_members"])
 _service = WorkspaceMembersService()
 _repo = WorkspaceMembersRepository()
 _org_member_service = OrganizationMemberService()
+
+
+def _to_public(
+    session: Session, membership: WorkspaceMember
+) -> WorkspaceMemberPublic:
+    """Build a WorkspaceMemberPublic, enriching with the user's email/full name."""
+    user = session.get(User, membership.user_id)
+    return WorkspaceMemberPublic(
+        id=membership.id,
+        workspace_id=membership.workspace_id,
+        user_id=membership.user_id,
+        email=user.email if user else "",
+        full_name=user.full_name if user else None,
+        role=membership.role,
+        status=membership.status,
+        invited_by=membership.invited_by,
+        created_at=membership.created_at,
+        updated_at=membership.updated_at,
+    )
 
 
 def _workspace_name(session: Session, workspace_id: uuid.UUID) -> str:
@@ -40,7 +60,7 @@ def invite_member(
     current_user: CurrentUser,
 ) -> WorkspaceMemberPublic:
     membership = _service.invite_member(session, workspace_id, data, current_user)
-    return WorkspaceMemberPublic.model_validate(membership)
+    return _to_public(session, membership)
 
 
 @router.post(
@@ -55,7 +75,7 @@ def accept_invitation(
 ) -> WorkspaceMemberPublic:
     """Raise HTTP 409 if no pending invitation exists for the current user."""
     membership = _service.accept(session, workspace_id, current_user)
-    return WorkspaceMemberPublic.model_validate(membership)
+    return _to_public(session, membership)
 
 
 @router.post(
@@ -106,5 +126,18 @@ def list_members(
     current_user: CurrentUser,
 ) -> list[WorkspaceMemberPublic]:
     _org_member_service.assert_member(session, workspace_id, current_user.id)
-    members = _repo.list_active(session, workspace_id)
-    return [WorkspaceMemberPublic.model_validate(m) for m in members]
+    members = _repo.list_all(session, workspace_id)
+    return [_to_public(session, m) for m in members]
+
+
+@router.delete(
+    "/workspaces/{workspace_id}/members/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def remove_member(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    user_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> None:
+    _service.remove_member(session, workspace_id, user_id, current_user)

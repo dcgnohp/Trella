@@ -1,3 +1,5 @@
+import asyncio
+
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -5,6 +7,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.realtime import ws_manager
+from app.endpoints.realtime_router import router as realtime_router
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -20,6 +24,13 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
+
+@app.on_event("startup")
+async def _bind_realtime_loop() -> None:
+    """Capture the running loop so sync push points can schedule WS sends."""
+    ws_manager.bind_loop(asyncio.get_running_loop())
+
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
@@ -31,3 +42,6 @@ if settings.all_cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+# WebSocket routes are mounted at the root (no /api/v1 prefix) to match the
+# frontend's realtime URL contract (/ws/...).
+app.include_router(realtime_router)

@@ -134,6 +134,9 @@ function InvitationActions({
       toast.success("Invitation accepted");
       onMarkRead(notification.id);
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications() });
+      // Refresh the sidebar's org list so a newly-joined workspace appears
+      // without a reload.
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
     onError: () => toast.error("Failed to accept invitation"),
   });

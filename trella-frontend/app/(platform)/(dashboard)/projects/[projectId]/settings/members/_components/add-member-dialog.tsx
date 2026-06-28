@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -122,10 +123,12 @@ export const AddMemberDialog = ({
         }
       }}
     >
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4" />
-        Add Member
-      </Button>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="h-4 w-4" />
+          Add Member
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Add member</DialogTitle>

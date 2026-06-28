@@ -1,6 +1,7 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
+import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import type { TaskPublic, ColumnPublic, ProjectMemberPublic } from "@/lib/client";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ interface KanbanColumnProps {
   tasks: TaskPublic[];
   boardId: string;
   projectMembers: ProjectMemberPublic[];
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
   onTaskClick: (task: TaskPublic) => void;
   onTaskCreated: () => void;
 }
@@ -28,6 +30,7 @@ export const KanbanColumn = ({
   tasks,
   boardId,
   projectMembers,
+  dragHandleProps,
   onTaskClick,
   onTaskCreated,
 }: KanbanColumnProps) => {
@@ -37,8 +40,9 @@ export const KanbanColumn = ({
   return (
     <div className="flex w-72 shrink-0 flex-col rounded-lg bg-[#f1f2f4] dark:bg-neutral-800 shadow-sm border border-neutral-200/50 dark:border-neutral-700/50">
       <div
+        {...dragHandleProps}
         className={cn(
-          "flex items-center justify-between border-t-2 rounded-t-lg px-3 py-2.5",
+          "flex items-center justify-between border-t-2 rounded-t-lg px-3 py-2.5 cursor-grab active:cursor-grabbing",
           headerClass,
         )}
       >

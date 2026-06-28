@@ -19,6 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -95,10 +96,12 @@ export const AddBoardMemberDialog = ({
         if (!next) reset();
       }}
     >
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4" />
-        Add Member
-      </Button>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="h-4 w-4" />
+          Add Member
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Add board member</DialogTitle>
@@ -113,7 +116,7 @@ export const AddBoardMemberDialog = ({
             <Select
               value={selectedUserId}
               onValueChange={setSelectedUserId}
-              disabled={addMember.isPending || projectMembersQuery.isLoading}
+              disabled={addMember.isPending}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a member…" />

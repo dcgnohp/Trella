@@ -76,6 +76,7 @@ class CommentsService:
             session, scope, task_id, user, ActivityAction.COMMENT_CREATED
         )
         self._process_mentions(session, comment, scope)
+        self._push_comment_event(scope, task_id)
         return comment
 
     def list_comments(
@@ -208,6 +209,22 @@ class CommentsService:
             actor=actor,
             action=action,
         )
+
+    @staticmethod
+    def _push_comment_event(scope: ResolvedScope, task_id: uuid.UUID) -> None:
+        """Broadcast comment.created on the project channel. Best-effort."""
+        if scope.project_id is None:
+            return
+        try:
+            from app.core.realtime import ws_manager
+
+            ws_manager.push_to_project(
+                scope.project_id,
+                "comment.created",
+                {"task_id": str(task_id)},
+            )
+        except Exception:  # noqa: BLE001 — never fail the caller on a push.
+            pass
 
     def _to_public(self, session: Session, comment: Comment) -> CommentPublic:
         return CommentPublic(

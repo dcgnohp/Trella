@@ -25,6 +25,23 @@ import {
 /** Tunables for the low-level channel. */
 const RECONNECT_DELAY_MS = 3000;
 
+/**
+ * Fetch the backend JWT from our server route so the browser can authenticate
+ * the WS handshake. Cached at module scope so concurrent channels share one
+ * request; returns null when unauthenticated.
+ */
+let cachedTokenPromise: Promise<string | null> | null = null;
+
+async function fetchRealtimeToken(): Promise<string | null> {
+  if (!cachedTokenPromise) {
+    cachedTokenPromise = fetch("/api/realtime-token", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { token: null }))
+      .then((data: { token?: string | null }) => data.token ?? null)
+      .catch(() => null);
+  }
+  return cachedTokenPromise;
+}
+
 interface UseRealtimeChannelOptions {
   /** Path beginning with `/`, e.g. `/ws/projects/{projectId}`. */
   path: string | null;
@@ -35,9 +52,9 @@ interface UseRealtimeChannelOptions {
 }
 
 /**
- * Low-level WebSocket channel with auto-reconnect. Cleans up fully on unmount
- * or when `enabled`/`path` change. No-ops when realtime is disabled or the
- * path is null.
+ * Low-level WebSocket channel with auth + auto-reconnect. Cleans up fully on
+ * unmount or when `enabled`/`path` change. No-ops when realtime is disabled or
+ * the path is null.
  */
 export function useRealtimeChannel({
   path,
@@ -55,17 +72,19 @@ export function useRealtimeChannel({
       return;
     }
 
-    const url = buildRealtimeUrl(path);
-    if (!url) {
-      return;
-    }
-
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
 
-    const connect = () => {
+    const connect = async () => {
       if (disposed) return;
+
+      const token = await fetchRealtimeToken();
+      if (disposed) return;
+
+      const url = buildRealtimeUrl(path, token);
+      if (!url) return;
+
       try {
         socket = new WebSocket(url);
       } catch {
@@ -93,11 +112,11 @@ export function useRealtimeChannel({
       if (disposed || reconnectTimer) return;
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
-        connect();
+        void connect();
       }, RECONNECT_DELAY_MS);
     };
 
-    connect();
+    void connect();
 
     return () => {
       disposed = true;
@@ -201,4 +220,46 @@ export function useNotificationsRealtime(): void {
   );
 
   useRealtimeChannel({ path: "/ws/notifications", enabled, onEvent });
+}
+
+interface UseBoardRealtimeOptions {
+  /** Project that owns the board — the WebSocket is project-scoped (§7). */
+  projectId: string | null | undefined;
+  /** Board whose task list should refresh on task events. */
+  boardId: string | null | undefined;
+}
+
+/**
+ * Subscribe a kanban board to project-scoped task events so cards appear,
+ * move, and update live without a reload. Any `task.*` event on the project
+ * channel invalidates the board's task list. No-ops when realtime is
+ * unavailable; refetch-on-focus is the fallback.
+ */
+export function useBoardRealtime({
+  projectId,
+  boardId,
+}: UseBoardRealtimeOptions): void {
+  const queryClient = useQueryClient();
+  const enabled = Boolean(projectId && boardId) && isRealtimeEnabled();
+  const path = projectId ? `/ws/projects/${projectId}` : null;
+
+  const onEvent = React.useCallback(
+    (event: RealtimeEvent) => {
+      if (!boardId) return;
+      switch (event.event) {
+        case "task.created":
+        case "task.updated":
+        case "task.moved":
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.boardTasks(boardId),
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [queryClient, boardId],
+  );
+
+  useRealtimeChannel({ path, enabled, onEvent });
 }

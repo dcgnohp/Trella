@@ -113,6 +113,8 @@ class WorkspaceMembersService:
                 "invited_by": str(actor.id),
             },
         )
+        session.commit()
+        session.refresh(membership)
 
         return membership
 
@@ -136,6 +138,38 @@ class WorkspaceMembersService:
         """
         membership = self._require_pending(session, workspace_id, user)
         self.repo.set_status(session, membership, MemberStatus.DECLINED)
+        session.commit()
+
+    def remove_member(
+        self,
+        session: Session,
+        workspace_id: uuid.UUID,
+        target_user_id: uuid.UUID,
+        actor: User,
+    ) -> None:
+        """Remove target_user_id from workspace_id.
+
+        Raises HTTP 403 if actor lacks ADMIN/OWNER, HTTP 404 if membership not found,
+        HTTP 409 if actor tries to remove themselves.
+        """
+        self.rbac_service.check(
+            session,
+            Action.MANAGE_WORKSPACE_MEMBER,
+            user=actor,
+            workspace_id=workspace_id,
+        )
+        if target_user_id == actor.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You cannot remove yourself from the workspace",
+            )
+        membership = self.repo.get(session, workspace_id, target_user_id)
+        if membership is None or membership.status == MemberStatus.REMOVED.value:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Membership not found",
+            )
+        self.repo.set_status(session, membership, MemberStatus.REMOVED)
         session.commit()
 
     def list_invitations(

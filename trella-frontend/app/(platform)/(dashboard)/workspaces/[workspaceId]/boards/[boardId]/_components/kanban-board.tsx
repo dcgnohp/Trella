@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
@@ -258,20 +258,40 @@ export const KanbanBoard = ({
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 items-start overflow-x-auto px-4 pb-4 h-full">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            tasks={tasksByColumn.get(column.id) ?? []}
-            boardId={boardId}
-            projectMembers={projectMembers}
-            onTaskClick={onTaskClick}
-            onTaskCreated={handleTaskCreated}
-          />
-        ))}
+      <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="flex gap-4 items-start overflow-x-auto px-4 pb-4 h-full"
+          >
+            {columns.map((column, index) => (
+              <Draggable key={column.id} draggableId={column.id} index={index}>
+                {(dragProvided, dragSnapshot) => (
+                  <div
+                    ref={dragProvided.innerRef}
+                    {...dragProvided.draggableProps}
+                    style={{
+                      ...dragProvided.draggableProps.style,
+                      opacity: dragSnapshot.isDragging ? 0.85 : 1,
+                    }}
+                  >
+                    <KanbanColumn
+                      column={column}
+                      tasks={tasksByColumn.get(column.id) ?? []}
+                      boardId={boardId}
+                      projectMembers={projectMembers}
+                      dragHandleProps={dragProvided.dragHandleProps}
+                      onTaskClick={onTaskClick}
+                      onTaskCreated={handleTaskCreated}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
 
-        <div ref={containerRef} className="w-72 shrink-0 relative">
+            <div ref={containerRef} className="w-72 shrink-0 relative">
           {isAdding ? (
             <form
               onSubmit={onSubmit}
@@ -361,7 +381,9 @@ export const KanbanBoard = ({
             </button>
           )}
         </div>
-      </div>
+          </div>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 };

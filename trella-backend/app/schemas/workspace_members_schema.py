@@ -26,6 +26,8 @@ class WorkspaceMemberPublic(CamelModel):
     id: uuid.UUID
     workspace_id: uuid.UUID
     user_id: uuid.UUID
+    email: str
+    full_name: str | None = None
     role: str
     status: str
     invited_by: uuid.UUID | None = None

@@ -10,6 +10,7 @@ import {
   ProjectMembersService,
 } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
+import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TaskDetailModal } from "@/components/modals/task-detail-modal";
 
@@ -53,6 +54,10 @@ export const KanbanBoardScreen = ({
   const boardData = boardQuery.data;
   const projectId = boardData?.projectId;
 
+  // Live board updates: subscribe to the project channel and refresh the
+  // board's task list when tasks are created/updated/moved elsewhere.
+  useBoardRealtime({ projectId, boardId });
+
   const projectMembersQuery = useQuery({
     queryKey: queryKeys.projectMembers(projectId || ""),
     queryFn: () =>
@@ -93,7 +98,7 @@ export const KanbanBoardScreen = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen flex-col bg-background pt-14">
+      <div className="flex h-full flex-col bg-background">
         <BoardHeaderSkeleton />
         <div className="flex-1 p-6">
           <KanbanBoardSkeleton />
@@ -104,7 +109,7 @@ export const KanbanBoardScreen = ({
 
   if (isError || !boardQuery.data) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background p-6 pt-14">
+      <div className="flex h-full items-center justify-center bg-background p-6">
         <div className="text-center space-y-3">
           <h2 className="text-xl font-semibold text-destructive">Error Loading Board</h2>
           <p className="text-sm text-muted-foreground">
@@ -126,7 +131,7 @@ export const KanbanBoardScreen = ({
 
   return (
     <div
-      className="relative flex h-screen flex-col bg-no-repeat bg-cover bg-center overflow-hidden pt-14"
+      className="relative flex h-full flex-col bg-no-repeat bg-cover bg-center overflow-hidden"
       style={{ backgroundImage }}
     >
       <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" />

@@ -68,6 +68,15 @@ class WorkspaceMembersRepository:
         )
         return list(session.exec(statement).all())
 
+    def list_all(
+        self, session: Session, workspace_id: uuid.UUID
+    ) -> list[WorkspaceMember]:
+        """Return all members of a workspace regardless of status."""
+        statement = select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace_id,
+        )
+        return list(session.exec(statement).all())
+
     def update(self, session: Session, member: WorkspaceMember) -> WorkspaceMember:
         session.add(member)
         session.flush()

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse } from './types.gen';
+import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse } from './types.gen';
 
 export class ActivityLogsService {
     /**
@@ -1437,6 +1437,19 @@ export class ProjectsService {
             }
         });
     }
+
+    public static Projects_projectsGetProject(data: ProjectsGetProjectData): CancelablePromise<ProjectsGetProjectResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class TasksService {
@@ -1633,7 +1646,29 @@ export class WorkspaceMembersService {
             }
         });
     }
-    
+
+    /**
+     * Remove Member
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.userId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersRemoveMember(data: WorkspaceMembersRemoveMemberData): CancelablePromise<WorkspaceMembersRemoveMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workspaces/{workspace_id}/members/{user_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                user_id: data.userId,
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
     /**
      * List Invitations
      * @param data The data for the request.

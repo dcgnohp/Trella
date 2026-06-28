@@ -149,6 +149,17 @@ def create_task(
         raise
     session.refresh(task)
 
+    try:
+        from app.core.realtime import ws_manager
+
+        ws_manager.push_to_project(
+            task.project_id,
+            "task.created",
+            {"task_id": str(task.id), "board_id": str(task.board_id)},
+        )
+    except Exception:  # noqa: BLE001 — never fail the caller on a push.
+        pass
+
     custom_status_embed: CustomStatusEmbed | None = None
     if task.custom_status_id is not None:
         cs = CustomStatusesRepository().get(session, task.custom_status_id)

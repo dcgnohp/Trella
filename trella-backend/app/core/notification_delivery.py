@@ -33,11 +33,13 @@ class InAppDelivery:
                 )
                 return
 
+            from app.core.realtime import serialize_notification
+
             recipient_id = getattr(notification, "user_id", None)
-            manager.push(
-                user_id=recipient_id,
-                event=self.EVENT_NAME,
-                payload=notification,
+            manager.push_to_user(
+                recipient_id,
+                self.EVENT_NAME,
+                serialize_notification(notification),
             )
         except Exception:  # noqa: BLE001 — best-effort: never raise
             logger.warning(

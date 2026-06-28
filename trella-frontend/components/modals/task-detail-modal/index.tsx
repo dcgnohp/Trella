@@ -72,7 +72,7 @@ export function TaskDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl gap-4">
+      <DialogContent className="max-w-2xl gap-4" onFocusOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="truncate pr-8">
             {task ? task.title : "Task"}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
+import { Loader2, Trash2, Users } from "lucide-react";
 
 import {
   WorkspaceMembersService,
@@ -13,6 +13,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { AddWorkspaceMemberDialog } from "./add-workspace-member-dialog";
@@ -21,14 +22,40 @@ interface WorkspaceMembersScreenProps {
   workspaceId: string;
 }
 
-function initialsFor(userId: string): string {
-  return userId.slice(0, 2).toUpperCase();
+function initialsFor(fullName: string | null | undefined, email: string): string {
+  const name = fullName?.trim() || email;
+  const parts = name.split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
 }
+
+const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "secondary"> = {
+  ACTIVE: "success",
+  PENDING: "warning",
+  DECLINED: "secondary",
+  REMOVED: "destructive",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Active",
+  PENDING: "Pending",
+  DECLINED: "Declined",
+  REMOVED: "Removed",
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  OWNER: "Owner",
+  ADMIN: "Admin",
+  MANAGER: "Manager",
+  MEMBER: "Member",
+  VIEWER: "Viewer",
+};
 
 export const WorkspaceMembersScreen = ({
   workspaceId,
 }: WorkspaceMembersScreenProps) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const membersQuery = useQuery({
     queryKey: queryKeys.workspaceMembers(workspaceId),
@@ -44,6 +71,19 @@ export const WorkspaceMembersScreen = ({
     }
   }, [membersQuery.isError]);
 
+  const removeMutation = useMutation({
+    mutationFn: (userId: string) =>
+      WorkspaceMembersService.WorkspaceMembers_workspaceMembersRemoveMember({
+        workspaceId,
+        userId,
+      }),
+    onSuccess: () => {
+      toast.success("Member removed");
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceMembers(workspaceId) });
+    },
+    onError: () => toast.error("Failed to remove member"),
+  });
+
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
 
   const existingUserIds = useMemo(
@@ -56,7 +96,8 @@ export const WorkspaceMembersScreen = ({
     [members, user?.id],
   );
 
-  const isAdmin = currentMembership?.role === "ADMIN";
+  const isAdmin =
+    currentMembership?.role === "OWNER" || currentMembership?.role === "ADMIN";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -89,6 +130,9 @@ export const WorkspaceMembersScreen = ({
         <MembersTable
           members={members}
           currentUserId={user?.id}
+          isAdmin={isAdmin}
+          removingUserId={removeMutation.isPending ? removeMutation.variables : undefined}
+          onRemove={(userId) => removeMutation.mutate(userId)}
         />
       )}
     </div>
@@ -98,34 +142,45 @@ export const WorkspaceMembersScreen = ({
 const MembersTable = ({
   members,
   currentUserId,
+  isAdmin,
+  removingUserId,
+  onRemove,
 }: {
   members: WorkspaceMemberPublic[];
   currentUserId: string | undefined;
+  isAdmin: boolean;
+  removingUserId: string | undefined;
+  onRemove: (userId: string) => void;
 }) => (
   <div className="overflow-hidden rounded-md border">
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
           <th className="px-4 py-3 font-medium">Member</th>
+          <th className="px-4 py-3 font-medium">Email</th>
           <th className="px-4 py-3 font-medium">Role</th>
           <th className="px-4 py-3 font-medium">Status</th>
+          {isAdmin ? <th className="px-4 py-3 font-medium w-12" /> : null}
         </tr>
       </thead>
       <tbody className="divide-y">
         {members.map((member) => {
+          const label = member.fullName?.trim() || member.email;
           const isSelf = member.userId === currentUserId;
+          const isRemoving = removingUserId === member.userId;
+          const canRemove = isAdmin && !isSelf && member.status !== "REMOVED";
           return (
             <tr key={member.id} className="hover:bg-muted/20">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className="text-xs">
-                      {initialsFor(member.userId)}
+                      {initialsFor(member.fullName, member.email)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium font-mono text-xs">
-                      {member.userId}
+                    <span className={member.status === "REMOVED" ? "font-medium text-muted-foreground line-through" : "font-medium"}>
+                      {label}
                     </span>
                     {isSelf ? (
                       <Badge variant="outline" className="rounded px-1.5 py-0">
@@ -135,17 +190,35 @@ const MembersTable = ({
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-3 text-muted-foreground">
-                {member.role}
-              </td>
+              <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
+              <td className="px-4 py-3 text-muted-foreground">{ROLE_LABEL[member.role] ?? member.role}</td>
               <td className="px-4 py-3">
                 <Badge
-                  variant={member.status === "ACTIVE" ? "default" : "warning"}
-                  className="rounded px-1.5 py-0"
+                  variant={STATUS_VARIANT[member.status] ?? "secondary"}
+                  className="rounded-full px-2.5 py-0.5 text-xs font-medium"
                 >
-                  {member.status}
+                  {STATUS_LABEL[member.status] ?? member.status}
                 </Badge>
               </td>
+              {isAdmin ? (
+                <td className="px-4 py-3">
+                  {canRemove ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      disabled={isRemoving}
+                      onClick={() => onRemove(member.userId)}
+                    >
+                      {isRemoving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : null}
+                </td>
+              ) : null}
             </tr>
           );
         })}

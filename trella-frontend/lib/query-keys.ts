@@ -48,6 +48,9 @@ export const queryKeys = {
   /** The board details. */
   board: (boardId: string) => ["board", boardId] as const,
 
+  /** Project details (used to derive workspaceId). */
+  project: (projectId: string) => ["project", projectId] as const,
+
   /** Active members of a workspace. */
   workspaceMembers: (workspaceId: string) =>
     ["workspace-members", workspaceId] as const,

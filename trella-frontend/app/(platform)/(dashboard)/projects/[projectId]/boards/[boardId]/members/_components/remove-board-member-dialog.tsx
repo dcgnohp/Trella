@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { apiErrorMessage } from "./board-roles";
@@ -49,16 +50,17 @@ export const RemoveBoardMemberDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !remove.isPending && setOpen(next)}>
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={disabled}
-        aria-label={`Remove ${memberLabel}`}
-        className="text-muted-foreground hover:text-destructive"
-        onClick={() => setOpen(true)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          aria-label={`Remove ${memberLabel}`}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Remove board member</DialogTitle>

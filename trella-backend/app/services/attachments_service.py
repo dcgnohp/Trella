@@ -143,6 +143,16 @@ class AttachmentsService:
             self._best_effort_storage_delete(storage_key)
             raise
         session.refresh(attachment)
+        try:
+            from app.core.realtime import ws_manager
+
+            ws_manager.push_to_project(
+                project_id,
+                "attachment.uploaded",
+                {"task_id": str(task_id)},
+            )
+        except Exception:  # noqa: BLE001 — never fail the caller on a push.
+            pass
         return attachment
 
     def list_attachments(
