@@ -2,15 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CreditCard } from "lucide-react";
-
 import type { OrganizationPublic } from "@/lib/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-interface InfoProps {
-  isPro: boolean;
-};
 
 function orgInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -19,12 +11,9 @@ function orgInitials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
-export const Info = ({
-  isPro,
-}: InfoProps) => {
+export const Info = ({ isPro }: { isPro: boolean }) => {
   const params = useParams();
   const organizationId = params.organizationId as string | undefined;
-
   const [organization, setOrganization] = useState<OrganizationPublic | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -34,42 +23,31 @@ export const Info = ({
       .then((res) => (res.ok ? res.json() : { organizations: [] }))
       .then((data: { organizations?: OrganizationPublic[] }) => {
         if (!active) return;
-        const found =
-          data.organizations?.find((org) => org.id === organizationId) ?? null;
-        setOrganization(found);
+        setOrganization(data.organizations?.find((org) => org.id === organizationId) ?? null);
       })
-      .catch(() => {
-        if (active) setOrganization(null);
-      })
-      .finally(() => {
-        if (active) setIsLoaded(true);
-      });
-    return () => {
-      active = false;
-    };
+      .catch(() => { if (active) setOrganization(null); })
+      .finally(() => { if (active) setIsLoaded(true); });
+    return () => { active = false; };
   }, [organizationId]);
 
-  if (!isLoaded) {
-    return (
-      <Info.Skeleton />
-    );
-  }
+  if (!isLoaded) return <Info.Skeleton />;
 
+  const name = organization?.name ?? "Organization";
   return (
-    <div className="flex items-center gap-x-4">
-      <Avatar className="w-[60px] h-[60px] rounded-md">
-        <AvatarFallback className="rounded-md bg-sky-100 text-sky-700 text-lg font-semibold">
-          {organization ? orgInitials(organization.name) : "?"}
-        </AvatarFallback>
-      </Avatar>
-      <div className="space-y-1">
-        <p className="font-semibold text-xl">
-          {organization?.name ?? "Organization"}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+        background: 'linear-gradient(135deg,#0052CC,#6554C0)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 18, fontWeight: 700, color: '#fff',
+      }}>
+        {orgInitials(name)}
+      </div>
+      <div>
+        <p style={{ fontSize: 18, fontWeight: 700, color: '#172B4D', margin: 0 }}>{name}</p>
+        <p style={{ fontSize: 12, color: '#7A869A', margin: '2px 0 0' }}>
+          {isPro ? 'Pro' : 'Free'}
         </p>
-        <div className="flex items-center text-xs text-muted-foreground">
-          <CreditCard className="h-3 w-3 mr-1" />
-          {isPro ? "Pro" : "Free"}
-        </div>
       </div>
     </div>
   );
@@ -77,16 +55,11 @@ export const Info = ({
 
 Info.Skeleton = function SkeletonInfo() {
   return (
-    <div className="flex items-center gap-x-4">
-      <div className="w-[60px] h-[60px] relative">
-        <Skeleton className="w-full h-full absolute" />
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-[200px]" />
-        <div className="flex items-center">
-          <Skeleton className="h-4 w-4 mr-2" />
-          <Skeleton className="h-4 w-[100px]" />
-        </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: '#DFE1E6' }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ width: 160, height: 20, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+        <div style={{ width: 60, height: 14, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TaskDetailModal } from "@/components/modals/task-detail-modal";
+import { TaskDetailDrawer } from "@/components/task-detail-drawer";
 
 import { BoardHeader } from "./board-header";
 import { KanbanBoard } from "./kanban-board";
@@ -49,6 +49,16 @@ export const KanbanBoardScreen = ({
       CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({
         workspaceId,
       }),
+  });
+
+  const canManageQuery = useQuery({
+    queryKey: ["status-admin", workspaceId],
+    queryFn: async () => {
+      const res = await fetch(`/api/workspaces/${workspaceId}/status-admin`, { cache: "no-store" });
+      if (!res.ok) return { canManage: false };
+      return res.json() as Promise<{ canManage: boolean }>;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const boardData = boardQuery.data;
@@ -98,9 +108,9 @@ export const KanbanBoardScreen = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col bg-background">
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F4F5F7' }}>
         <BoardHeaderSkeleton />
-        <div className="flex-1 p-6">
+        <div style={{ flex: 1, padding: 24 }}>
           <KanbanBoardSkeleton />
         </div>
       </div>
@@ -109,10 +119,10 @@ export const KanbanBoardScreen = ({
 
   if (isError || !boardQuery.data) {
     return (
-      <div className="flex h-full items-center justify-center bg-background p-6">
-        <div className="text-center space-y-3">
-          <h2 className="text-xl font-semibold text-destructive">Error Loading Board</h2>
-          <p className="text-sm text-muted-foreground">
+      <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F5F7', padding: 24 }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 600, color: '#FF5630' }}>Error Loading Board</h2>
+          <p style={{ fontSize: 14, color: '#5E6C84', marginTop: 8 }}>
             We couldn&apos;t retrieve the board. Please verify your permissions or try again.
           </p>
         </div>
@@ -125,38 +135,24 @@ export const KanbanBoardScreen = ({
   const tasks = tasksQuery.data ?? [];
   const customStatuses = customStatusesQuery.data ?? [];
 
-  const backgroundImage = board.imageFullUrl
-    ? `url(${board.imageFullUrl})`
-    : undefined;
-
   return (
-    <div
-      className="relative flex h-full flex-col bg-no-repeat bg-cover bg-center overflow-hidden"
-      style={{ backgroundImage }}
-    >
-      <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F4F5F7', overflow: 'hidden' }}>
+      <BoardHeader board={board} workspaceId={workspaceId} canManageStatuses={canManageQuery.data?.canManage ?? false} />
+      <main style={{ flex: 1, overflowX: 'auto', padding: '16px 20px' }}>
+        <KanbanBoard
+          boardId={boardId}
+          workspaceId={workspaceId}
+          columns={columns}
+          tasks={tasks}
+          customStatuses={customStatuses}
+          projectMembers={projectMembersQuery.data ?? []}
+          onTaskClick={(task) => setSelectedTaskId(task.id)}
+        />
+      </main>
 
-      <div className="relative z-10 flex flex-col h-full overflow-hidden">
-        <BoardHeader board={board} workspaceId={workspaceId} />
-
-        <main className="flex-1 overflow-x-auto p-6">
-          <KanbanBoard
-            boardId={boardId}
-            workspaceId={workspaceId}
-            columns={columns}
-            tasks={tasks}
-            customStatuses={customStatuses}
-            projectMembers={projectMembersQuery.data ?? []}
-            onTaskClick={(task) => setSelectedTaskId(task.id)}
-          />
-        </main>
-      </div>
-
-      <TaskDetailModal
+      <TaskDetailDrawer
         open={!!selectedTaskId}
-        onOpenChange={(open) => {
-          if (!open) setSelectedTaskId(null);
-        }}
+        onClose={() => setSelectedTaskId(null)}
         task={selectedTask}
         actorNames={actorNames}
       />
@@ -165,34 +161,26 @@ export const KanbanBoardScreen = ({
 };
 
 const BoardHeaderSkeleton = () => (
-  <div className="flex items-center justify-between border-b bg-background/80 px-6 py-3.5 backdrop-blur">
-    <Skeleton className="h-6 w-48" />
-    <Skeleton className="h-8 w-24" />
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #DFE1E6', padding: '10px 20px', backgroundColor: 'transparent' }}>
+    <div style={{ height: 24, width: 192, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+    <div style={{ height: 32, width: 96, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
   </div>
 );
 
 const KanbanBoardSkeleton = () => (
-  <div className="flex gap-4 overflow-x-auto pb-4">
+  <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
     {Array.from({ length: 3 }).map((_, colIndex) => (
-      <div
-        key={colIndex}
-        className="flex w-72 shrink-0 flex-col rounded-lg border bg-muted/20 p-3.5 space-y-3.5"
-      >
-        <div className="flex items-center justify-between px-1">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-5 w-5 rounded-full" />
+      <div key={colIndex} style={{ width: 272, flexShrink: 0, borderRadius: 6, backgroundColor: '#FFFFFF', padding: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ height: 20, width: 96, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+          <div style={{ height: 20, width: 20, borderRadius: '50%', backgroundColor: '#DFE1E6' }} />
         </div>
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, cardIndex) => (
-            <div
-              key={cardIndex}
-              className="rounded-md border bg-background/90 p-4 space-y-2.5 shadow-sm"
-            >
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-3.5 w-2/3" />
-            </div>
-          ))}
-        </div>
+        {Array.from({ length: 3 }).map((_, cardIndex) => (
+          <div key={cardIndex} style={{ borderRadius: 4, backgroundColor: '#F4F5F7', padding: 16, marginBottom: 8 }}>
+            <div style={{ height: 16, borderRadius: 4, backgroundColor: '#DFE1E6', marginBottom: 8 }} />
+            <div style={{ height: 14, width: '66%', borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+          </div>
+        ))}
       </div>
     ))}
   </div>

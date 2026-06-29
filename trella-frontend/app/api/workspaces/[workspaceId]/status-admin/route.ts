@@ -54,47 +54,32 @@ export async function GET(
 
   const { workspaceId } = params
 
-  try {
-    const [statuses, summary, canonicalStatuses, canManage] =
-      await Promise.all([
-        CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({
-          workspaceId,
-        }) as Promise<CustomStatusPublic[]>,
-        CustomStatusesService.CustomStatuses_customStatusesGetMappingSummary({
-          workspaceId,
-        }) as Promise<MappingSummary>,
-        CanonicalStatusesService.CanonicalStatuses_canonicalStatusesListCanonicalStatuses() as Promise<
-          string[]
-        >,
-        determineCanManage(workspaceId, user.id),
-      ])
+  // Check permission separately so a failing data call doesn't mask the real role.
+  const canManage = await determineCanManage(workspaceId, user.id)
 
-    return NextResponse.json({
-      canManage,
-      statuses,
-      summary,
-      canonicalStatuses:
-        Array.isArray(canonicalStatuses) && canonicalStatuses.length > 0
-          ? canonicalStatuses
-          : CANONICAL_FALLBACK,
-    })
+  let statuses: CustomStatusPublic[] = []
+  let summary: MappingSummary = { total: 0, mapped: 0, unmapped: 0, byCanonical: {} }
+  let canonicalStatuses: string[] = CANONICAL_FALLBACK
+
+  try {
+    const [s, m, c] = await Promise.all([
+      CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({
+        workspaceId,
+      }) as Promise<CustomStatusPublic[]>,
+      CustomStatusesService.CustomStatuses_customStatusesGetMappingSummary({
+        workspaceId,
+      }) as Promise<MappingSummary>,
+      CanonicalStatusesService.CanonicalStatuses_canonicalStatusesListCanonicalStatuses() as Promise<string[]>,
+    ])
+    statuses = s
+    summary = m
+    if (Array.isArray(c) && c.length > 0) canonicalStatuses = c
   } catch (error) {
-    // A 403 on the member-level list/summary means the caller is not an active
-    // member of this workspace at all → definitely cannot manage statuses.
-    if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
-      return NextResponse.json(
-        {
-          canManage: false,
-          statuses: [],
-          summary: { total: 0, mapped: 0, unmapped: 0, byCanonical: {} },
-          canonicalStatuses: CANONICAL_FALLBACK,
-        },
-        { status: 200 },
-      )
+    // Data fetch failed — still return canManage so the UI can show an empty state.
+    if (error instanceof ApiError && error.status === 403) {
+      return NextResponse.json({ error: "Not a member of this workspace" }, { status: 403 })
     }
-    return NextResponse.json(
-      { error: "Failed to load custom statuses" },
-      { status: 502 },
-    )
   }
+
+  return NextResponse.json({ canManage, statuses, summary, canonicalStatuses })
 }

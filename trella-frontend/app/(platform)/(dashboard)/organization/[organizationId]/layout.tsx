@@ -1,28 +1,4 @@
-import { startCase } from "lodash";
-
-import { OrganizationsService } from "@/lib/client";
-
 import { OrgControl } from "./_components/org-control";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: { organizationId: string };
-}) {
-  let name = "organization";
-  try {
-    const org = await OrganizationsService.Organizations_organizationsGetOrganization({
-      orgId: params.organizationId,
-    });
-    name = org.name;
-  } catch {
-    // ignore — use fallback title
-  }
-
-  return {
-    title: startCase(name),
-  };
-};
 
 const OrganizationIdLayout = ({
   children
@@ -32,7 +8,9 @@ const OrganizationIdLayout = ({
   return (
     <>
       <OrgControl />
-      {children}
+      <div style={{ padding: '32px 40px', maxWidth: 1200, color: '#E0E6F0' }}>
+        {children}
+      </div>
     </>
   );
 };

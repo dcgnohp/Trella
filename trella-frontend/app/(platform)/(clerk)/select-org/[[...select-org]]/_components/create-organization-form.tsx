@@ -51,7 +51,9 @@ export const CreateOrganizationForm = () => {
       }
 
       toast.success("Organization created")
-      router.push(`/organization/${result.data.id}`)
+      // Send the new workspace through the onboarding flow (template / name /
+      // work types / statuses / invite) before landing in the workspace.
+      router.push(`/onboarding?orgId=${result.data.id}`)
       router.refresh()
     } catch {
       toast.error("Could not create organization.")

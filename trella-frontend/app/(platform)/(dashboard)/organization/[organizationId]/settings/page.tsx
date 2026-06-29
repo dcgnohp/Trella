@@ -150,7 +150,7 @@ const SettingsPage = () => {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle className="text-destructive flex items-center gap-x-2">
-                    Delete Workspace "{organization.name}"?
+                    Delete Workspace &quot;{organization.name}&quot;?
                   </DialogTitle>
                   <DialogDescription>
                     This will permanently delete the workspace and all its data.

@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle } from "lucide-react"
+import WarningIcon from "@atlaskit/icon/core/warning"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -40,10 +40,7 @@ export function DeleteInUseDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle
-              className="h-5 w-5 text-warning-foreground"
-              strokeWidth={1.5}
-            />
+            <span style={{ display: 'flex', alignItems: 'center', color: '#FF991F' }}><WarningIcon label="Warning" size="small" /></span>
             Can&apos;t delete this status
           </DialogTitle>
           <DialogDescription>

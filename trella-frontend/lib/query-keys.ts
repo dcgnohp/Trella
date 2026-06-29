@@ -55,6 +55,10 @@ export const queryKeys = {
   workspaceMembers: (workspaceId: string) =>
     ["workspace-members", workspaceId] as const,
 
+  /** All boards for a workspace. */
+  workspaceBoards: (workspaceId: string) =>
+    ["workspace-boards", workspaceId] as const,
+
   /** The current user's notification list. */
   notifications: () => ["notifications"] as const,
 

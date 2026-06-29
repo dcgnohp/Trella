@@ -1,82 +1,117 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import { Users, MoreHorizontal, X, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { deleteBoard } from "@/actions/delete-board";
-import { useAction } from "@/hooks/use-action";
+import SearchIcon from '@atlaskit/icon/core/search';
+import FilterIcon from '@atlaskit/icon/core/filter';
+import SettingsIcon from '@atlaskit/icon/core/settings';
+import ChevronDownIcon from '@atlaskit/icon/core/chevron-down';
+import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
 import type { BoardPublic } from "@/lib/client";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverClose,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface BoardHeaderProps {
   board: BoardPublic;
   workspaceId: string;
+  canManageStatuses?: boolean;
 }
 
-export const BoardHeader = ({ board, workspaceId }: BoardHeaderProps) => {
-  const { execute, isLoading } = useAction(deleteBoard, {
-    onError: (error) => {
-      toast.error(error);
-    }
-  });
-
-  const onDelete = () => {
-    execute({ id: board.id, orgId: workspaceId });
-  };
+export const BoardHeader = ({ board, workspaceId, canManageStatuses }: BoardHeaderProps) => {
+  const [search, setSearch] = useState('');
 
   return (
-    <div className="flex items-center justify-between border-b bg-background/80 px-6 py-3 backdrop-blur">
-      <h1 className="text-lg font-semibold truncate">{board.title}</h1>
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link
-            href={`/projects/${workspaceId}/boards/${board.id}/members`}
-          >
-            <Users className="h-4 w-4 mr-1.5" />
-            Members
-          </Link>
-        </Button>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="px-0 pt-3 pb-3 w-56" 
-            side="bottom" 
-            align="end"
-          >
-            <div className="text-sm font-medium text-center text-neutral-600 pb-4">
-              Board actions
-            </div>
-            <PopoverClose asChild>
-              <Button 
-                className="h-auto w-auto p-2 absolute top-2 right-2 text-neutral-600"
-                variant="ghost"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </PopoverClose>
-            <Button
-              variant="ghost"
-              onClick={onDelete}
-              disabled={isLoading}
-              className="rounded-none w-full h-auto p-2 px-5 justify-start font-normal text-sm text-destructive hover:text-destructive hover:bg-destructive/5"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete this board
-            </Button>
-          </PopoverContent>
-        </Popover>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      padding: '10px 20px',
+      flexShrink: 0,
+      backgroundColor: 'transparent',
+      borderBottom: '1px solid #DFE1E6',
+    }}>
+      {/* Search board */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #DFE1E6',
+        borderRadius: 4, padding: '0 10px', height: 32,
+      }}>
+        <span style={{ color: '#97A0AF', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <SearchIcon label="" size="small" />
+        </span>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search board"
+          style={{ background: 'none', border: 'none', outline: 'none', color: '#172B4D', fontSize: 13, width: 140 }}
+        />
       </div>
+
+      {/* Avatar filter */}
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        background: 'linear-gradient(135deg,#0052CC,#6554C0)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 11, fontWeight: 700, color: 'white', cursor: 'pointer', flexShrink: 0,
+      }}>KS</div>
+
+      {/* Filter */}
+      <button style={{
+        background: 'none',
+        border: '1px solid #DFE1E6',
+        borderRadius: 4, padding: '0 12px', height: 32,
+        color: '#5E6C84', fontSize: 13, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <span style={{ display: 'flex', alignItems: 'center' }}><FilterIcon label="" size="small" /></span> Filter
+      </button>
+
+      <div style={{ flex: 1 }} />
+
+      {/* Status Mapping link — only for ADMIN/OWNER */}
+      {canManageStatuses && (
+        <Link
+          href={`/workspaces/${workspaceId}/settings/statuses`}
+          style={{ textDecoration: 'none' }}
+        >
+          <button style={{
+            background: 'none', border: '1px solid #DFE1E6',
+            borderRadius: 4, padding: '0 12px', height: 32,
+            color: '#5E6C84', fontSize: 13, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}><SettingsIcon label="" size="small" /></span> Status Mapping
+          </button>
+        </Link>
+      )}
+
+      {/* Complete sprint (scrum only) */}
+      <button style={{
+        background: '#0052CC', color: 'white', border: 'none',
+        borderRadius: 4, padding: '0 14px', height: 32,
+        fontSize: 13, fontWeight: 500, cursor: 'pointer',
+      }}>
+        Complete sprint
+      </button>
+
+      {/* Group */}
+      <button style={{
+        background: 'none', border: '1px solid #DFE1E6',
+        borderRadius: 4, padding: '0 12px', height: 32,
+        color: '#5E6C84', fontSize: 13, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        Group <span style={{ display: 'flex', alignItems: 'center' }}><ChevronDownIcon label="" size="small" /></span>
+      </button>
+
+      {/* More */}
+      <button style={{
+        background: 'none', border: '1px solid #DFE1E6',
+        borderRadius: 4, padding: '0 10px', height: 32,
+        color: '#5E6C84', fontSize: 14, cursor: 'pointer',
+        display: 'flex', alignItems: 'center',
+      }}>
+        <ShowMoreHorizontalIcon label="More" size="small" />
+      </button>
     </div>
   );
 };

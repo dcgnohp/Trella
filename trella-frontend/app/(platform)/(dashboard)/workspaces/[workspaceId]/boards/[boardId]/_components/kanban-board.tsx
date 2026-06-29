@@ -4,10 +4,8 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
 
 import {
-  BoardsService,
   ColumnsService,
   TasksService,
   type ColumnPublic,
@@ -16,8 +14,6 @@ import {
   type ProjectMemberPublic,
 } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 import { KanbanColumn } from "./kanban-column";
 
@@ -263,7 +259,15 @@ export const KanbanBoard = ({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex gap-4 items-start overflow-x-auto px-4 pb-4 h-full"
+            style={{
+              display: 'flex',
+              gap: 12,
+              alignItems: 'flex-start',
+              overflowX: 'auto',
+              padding: '0 4px 16px',
+              height: '100%',
+              minHeight: 0,
+            }}
           >
             {columns.map((column, index) => (
               <Draggable key={column.id} draggableId={column.id} index={index}>
@@ -291,29 +295,43 @@ export const KanbanBoard = ({
             ))}
             {provided.placeholder}
 
-            <div ref={containerRef} className="w-72 shrink-0 relative">
+            <div ref={containerRef} style={{ width: 272, flexShrink: 0, position: 'relative' }}>
           {isAdding ? (
             <form
               onSubmit={onSubmit}
-              className="w-full p-3 rounded-lg border bg-background space-y-3 shadow-sm"
+              style={{
+                width: '100%', padding: 12, borderRadius: 6,
+                border: '1px solid #DFE1E6',
+                backgroundColor: '#FFFFFF',
+                display: 'flex', flexDirection: 'column', gap: 10,
+              }}
             >
-              <div className="relative">
-                <Input
+              <div style={{ position: 'relative' }}>
+                <input
                   ref={inputRef}
                   value={columnName}
-                  onChange={(e) => {
-                    setColumnName(e.target.value);
-                    setShowSuggestions(true);
-                  }}
+                  onChange={(e) => { setColumnName(e.target.value); setShowSuggestions(true); }}
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="Column name (e.g. In review)..."
-                  className="h-8 text-sm bg-background"
+                  style={{
+                    width: '100%', height: 32, padding: '0 10px', borderRadius: 4,
+                    border: '1px solid #DFE1E6',
+                    backgroundColor: '#FAFBFC',
+                    color: '#172B4D', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                  }}
                 />
 
                 {/* Autocomplete Suggestions */}
                 {showSuggestions && filteredSuggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
-                    <p className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div style={{
+                    position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 50, marginTop: 4,
+                    maxHeight: 192, overflowY: 'auto', borderRadius: 6,
+                    border: '1px solid #DFE1E6',
+                    backgroundColor: '#FFFFFF',
+                    padding: '4px 0',
+                    boxShadow: '0 4px 16px rgba(9,30,66,0.15)',
+                  }}>
+                    <p style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                       Map to Workspace Status
                     </p>
                     {filteredSuggestions.map((cs) => (
@@ -323,60 +341,65 @@ export const KanbanBoard = ({
                         onClick={() => {
                           setColumnName(cs.name);
                           setShowSuggestions(false);
-                          handleAddColumn(
-                            cs.name,
-                            cs.canonicalStatus || "TODO",
-                          );
+                          handleAddColumn(cs.name, cs.canonicalStatus || "TODO");
                         }}
-                        className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-muted text-popover-foreground transition"
+                        style={{
+                          display: 'flex', width: '100%', alignItems: 'center', gap: 8,
+                          padding: '6px 10px', background: 'none', border: 'none',
+                          cursor: 'pointer', fontSize: 12, color: '#172B4D', textAlign: 'left',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(9,30,66,0.04)')}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         {cs.color && (
-                          <span
-                            className="h-3 w-3 shrink-0 rounded-sm border border-border"
-                            style={{ backgroundColor: cs.color }}
-                          />
+                          <span style={{ width: 12, height: 12, flexShrink: 0, borderRadius: 3, border: '1px solid rgba(0,0,0,0.1)', backgroundColor: cs.color, display: 'inline-block' }} />
                         )}
-                        <span className="font-medium truncate">{cs.name}</span>
-                        <span className="ml-auto text-[10px] text-muted-foreground uppercase">
-                          {cs.canonicalStatus}
-                        </span>
+                        <span style={{ fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cs.name}</span>
+                        <span style={{ fontSize: 10, color: '#7A869A', textTransform: 'uppercase' }}>{cs.canonicalStatus}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-1.5">
-                <Button
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
                   type="submit"
-                  size="sm"
-                  className="h-7 px-3 text-xs"
                   disabled={createColumn.isPending}
-                >
-                  {createColumn.isPending ? "Adding..." : "Add column"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => {
-                    setIsAdding(false);
-                    setColumnName("");
+                  style={{
+                    height: 28, padding: '0 12px', borderRadius: 4, border: 'none',
+                    backgroundColor: '#0052CC', color: 'white', fontSize: 12, fontWeight: 500,
+                    cursor: createColumn.isPending ? 'not-allowed' : 'pointer', opacity: createColumn.isPending ? 0.6 : 1,
                   }}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                  {createColumn.isPending ? "Adding..." : "Add column"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsAdding(false); setColumnName(""); }}
+                  style={{
+                    height: 28, width: 28, borderRadius: 4, border: '1px solid #DFE1E6',
+                    backgroundColor: 'transparent', color: '#5E6C84', fontSize: 16, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  ×
+                </button>
               </div>
             </form>
           ) : (
             <button
-              onClick={() => {
-                setIsAdding(true);
-                setTimeout(() => inputRef.current?.focus(), 0);
+              onClick={() => { setIsAdding(true); setTimeout(() => inputRef.current?.focus(), 0); }}
+              style={{
+                display: 'flex', width: '100%', alignItems: 'center', gap: 8,
+                borderRadius: 6, border: '1px dashed #DFE1E6',
+                backgroundColor: '#F4F5F7', padding: 12,
+                fontSize: 13, color: '#97A0AF', cursor: 'pointer',
+                transition: 'background 0.12s, color 0.12s',
               }}
-              className="flex w-full items-center gap-2 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-200/50 dark:bg-neutral-800/50 p-3 text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 hover:text-foreground transition-colors"
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(9,30,66,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = '#5E6C84'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F4F5F7'; (e.currentTarget as HTMLButtonElement).style.color = '#97A0AF'; }}
             >
-              <Plus className="h-4 w-4" />
+              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
               Add column
             </button>
           )}

@@ -1,16 +1,11 @@
-import { Navbar } from "./_components/navbar";
+import { DashboardShell } from './_components/dashboard-shell';
 
-const DashboardLayout = ({ 
-  children
-}: { 
+const DashboardLayout = ({
+  children,
+}: {
   children: React.ReactNode;
- }) => {
-  return (
-    <div className="h-full">
-      <Navbar />
-      <main className="pt-14 h-full">{children}</main>
-    </div>
-  );
- };
+}) => {
+  return <DashboardShell>{children}</DashboardShell>;
+};
 
- export default DashboardLayout;
+export default DashboardLayout;

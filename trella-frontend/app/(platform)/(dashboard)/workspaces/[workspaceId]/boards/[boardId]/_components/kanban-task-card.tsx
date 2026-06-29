@@ -3,7 +3,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import type { TaskPublic, ColumnPublic, ProjectMemberPublic } from "@/lib/client";
 import type { CanonicalStatus } from "@/lib/status/display-style";
-import { TaskCard } from "@/components/task-card";
+import { TaskCard } from "@/components/ads/task-card";
 
 interface KanbanTaskCardProps {
   task: TaskPublic;
@@ -20,8 +20,6 @@ export const KanbanTaskCard = ({
   projectMembers,
   onClick,
 }: KanbanTaskCardProps) => {
-  // If the task has no custom status, synthesise one from the column's statusKey
-  // so TaskCard always has a canonical to derive its DisplayStyle from.
   const effectiveTask: TaskPublic =
     task.customStatus == null
       ? {
@@ -35,7 +33,6 @@ export const KanbanTaskCard = ({
         }
       : task;
 
-  // Resolve the assignee for display on the board
   const assigneeMember = task.assigneeId
     ? projectMembers.find((m) => m.userId === task.assigneeId)
     : null;
@@ -54,18 +51,21 @@ export const KanbanTaskCard = ({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          style={provided.draggableProps.style as React.CSSProperties}
-          className={snapshot.isDragging ? "opacity-80" : ""}
+          style={{
+            ...(provided.draggableProps.style as React.CSSProperties),
+            marginBottom: 8,
+            opacity: snapshot.isDragging ? 0.85 : 1,
+          }}
         >
           <TaskCard
             task={effectiveTask}
             assignee={assignee}
             dragHandleProps={provided.dragHandleProps}
             onClick={() => onClick(task)}
-            className="mb-2"
           />
         </div>
       )}
     </Draggable>
   );
 };
+

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import AddIcon from "@atlaskit/icon/core/add";
 
 import { WorkspaceMembersService } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
@@ -82,7 +82,7 @@ export const AddWorkspaceMemberDialog = ({
     >
       <DialogTrigger asChild>
         <Button size="sm">
-          <Plus className="h-4 w-4" />
+          <span style={{ display: 'flex', alignItems: 'center' }}><AddIcon label="" size="small" /></span>
           Invite Member
         </Button>
       </DialogTrigger>

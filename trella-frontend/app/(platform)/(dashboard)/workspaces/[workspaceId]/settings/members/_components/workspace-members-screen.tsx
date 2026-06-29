@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Trash2, Users } from "lucide-react";
+import DeleteIcon from "@atlaskit/icon/core/delete";
+import PeopleGroupIcon from "@atlaskit/icon/core/people-group";
+import Spinner from "@atlaskit/spinner";
 
 import {
   WorkspaceMembersService,
@@ -211,9 +213,9 @@ const MembersTable = ({
                       onClick={() => onRemove(member.userId)}
                     >
                       {isRemoving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Spinner size="small" />
                       ) : (
-                        <Trash2 className="h-4 w-4" />
+                        <span style={{ display: 'flex', alignItems: 'center' }}><DeleteIcon label="Remove" size="small" /></span>
                       )}
                     </Button>
                   ) : null}
@@ -248,7 +250,7 @@ const MembersTableSkeleton = () => (
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center rounded-md border border-dashed px-6 py-16 text-center">
-    <Users className="mb-3 h-8 w-8 text-muted-foreground" />
+    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: '#97A0AF' }}><PeopleGroupIcon label="" size="medium" /></span>
     <p className="text-sm font-medium">No members yet</p>
     <p className="mt-1 text-sm text-muted-foreground">
       Invite people to join this workspace.

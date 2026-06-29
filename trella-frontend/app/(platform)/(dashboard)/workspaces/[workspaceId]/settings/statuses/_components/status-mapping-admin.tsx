@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Plus, Trash2 } from "lucide-react"
+import AddIcon from "@atlaskit/icon/core/add"
+import DeleteIcon from "@atlaskit/icon/core/delete"
 
 import { cn } from "@/lib/utils"
 import type {
@@ -13,7 +13,6 @@ import type {
   MappingSummary,
   TaskPublic,
 } from "@/lib/client"
-import { queryKeys } from "@/lib/query-keys"
 import { TaskCard } from "@/components/task-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -105,10 +104,9 @@ function makePreviewTask(status: CustomStatusPublic): TaskPublic {
 }
 
 export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const queryKey = React.useMemo(
-    () => queryKeys.customStatuses(workspaceId),
+    () => ["status-admin", workspaceId] as const,
     [workspaceId],
   )
 
@@ -134,14 +132,13 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
     },
   })
 
-  // ADMIN/OWNER-only guard: redirect + toast when the caller cannot manage
-  // statuses (Req 11.1, 11.2). Fire once to avoid duplicate toasts.
+  // ADMIN/OWNER-only guard: show inline message instead of redirecting to avoid
+  // navigation loops when workspaceId changes.
   React.useEffect(() => {
     if (!data || data.canManage || guardFiredRef.current) return
     guardFiredRef.current = true
     toast.error(PERMISSION_TOAST)
-    router.replace(`/workspaces/${workspaceId}`)
-  }, [data, router, workspaceId])
+  }, [data])
 
   const canonicalStatuses = data?.canonicalStatuses ?? [
     "TODO",
@@ -282,7 +279,7 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
           </p>
         </div>
         <Button onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" />
+          <span style={{ display: 'flex', alignItems: 'center' }}><AddIcon label="" size="small" /></span>
           Add Custom Status
         </Button>
       </div>
@@ -387,7 +384,7 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
                           }
                           onClick={() => deleteMutation.mutate(status)}
                         >
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                          <span style={{ display: 'flex', alignItems: 'center', color: '#5E6C84' }}><DeleteIcon label="Delete" size="small" /></span>
                         </Button>
                       </div>
                     </td>
@@ -469,7 +466,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
         to canonical statuses.
       </p>
       <Button onClick={onAdd}>
-        <Plus className="h-4 w-4" />
+        <span style={{ display: 'flex', alignItems: 'center' }}><AddIcon label="" size="small" /></span>
         Add Custom Status
       </Button>
     </div>

@@ -133,26 +133,6 @@ class BoardsService:
             session.rollback()
             raise
         session.refresh(board)
-        _DEFAULT_COLS = [
-            ("Pending", "PENDING", 0),
-            ("To Do", "TODO", 1),
-            ("In Progress", "IN_PROGRESS", 2),
-            ("Done", "DONE", 3),
-        ]
-        try:
-            for name, status_key, pos in _DEFAULT_COLS:
-                session.add(
-                    BoardColumn(
-                        board_id=board.id,
-                        name=name,
-                        status_key=status_key,
-                        position=pos,
-                    )
-                )
-            session.commit()
-        except Exception:
-            session.rollback()
-            raise
         return board
 
     def update_board(

@@ -3,7 +3,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import type { TaskPublic, ColumnPublic, ProjectMemberPublic } from "@/lib/client";
-import { cn } from "@/lib/utils";
+import { token } from "@atlaskit/tokens";
 
 import { KanbanTaskCard } from "./kanban-task-card";
 import { AddTaskForm } from "./add-task-form";
@@ -18,11 +18,11 @@ interface KanbanColumnProps {
   onTaskCreated: () => void;
 }
 
-const STATUS_HEADER_CLASS: Record<string, string> = {
-  TODO: "border-t-slate-400",
-  IN_PROGRESS: "border-t-blue-500",
-  PENDING: "border-t-yellow-500",
-  DONE: "border-t-green-500",
+const STATUS_ACCENT: Record<string, string> = {
+  TODO: token("color.border"),
+  IN_PROGRESS: token("color.border.brand"),
+  PENDING: token("color.border.warning"),
+  DONE: token("color.border.success"),
 };
 
 export const KanbanColumn = ({
@@ -34,33 +34,58 @@ export const KanbanColumn = ({
   onTaskClick,
   onTaskCreated,
 }: KanbanColumnProps) => {
-  const headerClass =
-    STATUS_HEADER_CLASS[column.statusKey] ?? "border-t-slate-300";
+  const accent = STATUS_ACCENT[column.statusKey] ?? token("color.border");
 
   return (
-    <div className="flex w-72 shrink-0 flex-col rounded-lg bg-[#f1f2f4] dark:bg-neutral-800 shadow-sm border border-neutral-200/50 dark:border-neutral-700/50">
+    <div style={{
+      width: 272,
+      flexShrink: 0,
+      display: "flex",
+      flexDirection: "column",
+      borderRadius: "6px",
+      backgroundColor: "#F4F5F7",
+      border: "1px solid #DFE1E6",
+      overflow: "hidden",
+      maxHeight: "calc(100vh - 200px)",
+    }}>
+      {/* Column header */}
       <div
         {...dragHandleProps}
-        className={cn(
-          "flex items-center justify-between border-t-2 rounded-t-lg px-3 py-2.5 cursor-grab active:cursor-grabbing",
-          headerClass,
-        )}
+        style={{
+          borderTop: `3px solid ${accent}`,
+          padding: "10px 12px 10px 14px",
+          cursor: dragHandleProps ? "grab" : "default",
+          backgroundColor: "transparent",
+        }}
       >
-        <span className="text-sm font-semibold">{column.name}</span>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {tasks.length}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: accent, letterSpacing: '0.05em' }}>
+            {column.name.toUpperCase()}
+          </span>
+          <div style={{
+            minWidth: 20, height: 20, borderRadius: 10,
+            backgroundColor: 'rgba(9,30,66,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 600, color: '#5E6C84',
+            padding: '0 6px',
+          }}>{tasks.length}</div>
+        </div>
       </div>
 
+      {/* Task list */}
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={cn(
-              "min-h-[2rem] flex-1 px-2 pt-2 transition-colors",
-              snapshot.isDraggingOver && "bg-neutral-200/50 dark:bg-neutral-700/50",
-            )}
+            style={{
+              flex: 1,
+              minHeight: 40,
+              overflowY: 'auto',
+              padding: "0 8px",
+              backgroundColor: snapshot.isDraggingOver ? "rgba(0,82,204,0.06)" : "transparent",
+              transition: "background-color 0.15s ease",
+            }}
           >
             {tasks.map((task, index) => (
               <KanbanTaskCard
@@ -77,12 +102,9 @@ export const KanbanColumn = ({
         )}
       </Droppable>
 
-      <div className="px-2 pb-2">
-        <AddTaskForm
-          column={column}
-          boardId={boardId}
-          onTaskCreated={onTaskCreated}
-        />
+      {/* Add task */}
+      <div style={{ padding: "8px" }}>
+        <AddTaskForm column={column} boardId={boardId} onTaskCreated={onTaskCreated} />
       </div>
     </div>
   );
