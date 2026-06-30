@@ -7,6 +7,7 @@ from sqlmodel import Field
 from app.core.base import TimestampMixin, UUIDMixin
 
 DEFAULT_TASK_PRIORITY = "MEDIUM"
+DEFAULT_TASK_TYPE = "TASK"
 
 
 class Task(UUIDMixin, TimestampMixin, table=True):
@@ -38,6 +39,22 @@ class Task(UUIDMixin, TimestampMixin, table=True):
         nullable=True,
     )
     position: int = Field()
+    # Jira-mode fields
+    type: str = Field(default=DEFAULT_TASK_TYPE, max_length=20)
+    story_point: int | None = Field(default=None, nullable=True)
+    sprint_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="sprints.id",
+        ondelete="SET NULL",
+        nullable=True,
+    )
+    epic_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="tasks.id",
+        ondelete="SET NULL",
+        nullable=True,
+    )
+
 
 
 from sqlalchemy import event

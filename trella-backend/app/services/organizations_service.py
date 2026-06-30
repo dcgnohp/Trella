@@ -139,3 +139,84 @@ class OrganizationsService:
         except Exception:
             session.rollback()
             raise
+
+    def switch_mode(
+        self, session: Session, workspace_id: uuid.UUID, new_mode: str, user: User
+    ) -> Organization:
+        """Switch workspace between TRELLO and JIRA mode. Requires OWNER role.
+
+        TRELLO→JIRA: create a default sprint per project, set all tasks sprint_id=NULL.
+        JIRA→TRELLO: set mode only; data is preserved.
+        """
+        from app.models.enums import WorkspaceMode
+
+        member = self.member_service.assert_member(session, workspace_id, user.id)
+        if member.role != "OWNER":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the workspace owner can change workspace mode",
+            )
+        org = self.organizations_repo.get(session, workspace_id)
+        if org is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Workspace not found",
+            )
+        if new_mode not in {WorkspaceMode.TRELLO.value, WorkspaceMode.JIRA.value}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid mode: {new_mode}. Must be TRELLO or JIRA",
+            )
+
+        old_mode = org.mode
+        if old_mode == new_mode:
+            return org
+
+        if old_mode == WorkspaceMode.TRELLO.value and new_mode == WorkspaceMode.JIRA.value:
+            self._migrate_trello_to_jira(session, workspace_id)
+
+        org.mode = new_mode
+        try:
+            session.add(org)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(org)
+        return org
+
+    def _migrate_trello_to_jira(
+        self, session: Session, workspace_id: uuid.UUID
+    ) -> None:
+        """Create a default Sprint per project and move all tasks to backlog."""
+        from sqlmodel import select
+
+        from app.models.enums import SprintStatus
+        from app.models.projects_model import Project
+        from app.models.sprints_model import Sprint
+        from app.models.tasks_model import Task
+
+        projects = list(
+            session.exec(select(Project).where(Project.workspace_id == workspace_id)).all()
+        )
+        for project in projects:
+            # Create default Sprint 1 if none exists
+            existing = session.exec(
+                select(Sprint).where(Sprint.project_id == project.id)
+            ).first()
+            if existing is None:
+                session.add(
+                    Sprint(
+                        project_id=project.id,
+                        name="Sprint 1",
+                        status=SprintStatus.PLANNED.value,
+                    )
+                )
+            # Move all tasks to backlog
+            tasks = list(
+                session.exec(select(Task).where(Task.project_id == project.id)).all()
+            )
+            for task in tasks:
+                task.sprint_id = None
+                session.add(task)
+        session.flush()

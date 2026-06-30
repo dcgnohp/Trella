@@ -8,6 +8,7 @@ from app.repositories.custom_statuses_repository import CustomStatusesRepository
 from app.schemas.tasks_schema import (
     AssigneeUpdate,
     CustomStatusEmbed,
+    StoryPointUpdate,
     TaskPublic,
     TaskUpdate,
 )
@@ -45,6 +46,10 @@ def _to_public(session: SessionDep, task: Task) -> TaskPublic:
         custom_status_id=task.custom_status_id,
         custom_status=custom_status,
         position=task.position,
+        type=getattr(task, "type", "TASK") or "TASK",
+        story_point=getattr(task, "story_point", None),
+        sprint_id=getattr(task, "sprint_id", None),
+        epic_id=getattr(task, "epic_id", None),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )
@@ -83,3 +88,29 @@ def unset_assignee(
     """Clear a Task's assignee; raises HTTP 404 if task not found."""
     task = _service.unset_assignee(session, task_id, current_user)
     return _to_public(session, task)
+
+
+@router.patch("/{task_id}/story-point", response_model=TaskPublic)
+def update_story_point(
+    session: SessionDep,
+    task_id: uuid.UUID,
+    data: StoryPointUpdate,
+    current_user: CurrentUser,
+) -> TaskPublic:
+    """Update the story point estimate for a task."""
+    task = _service.update_story_point(session, task_id, data.story_point, current_user)
+    return _to_public(session, task)
+
+
+backlog_router = APIRouter(tags=["backlog"])
+
+
+@backlog_router.get("/projects/{project_id}/backlog", response_model=list[TaskPublic])
+def get_backlog(
+    session: SessionDep,
+    project_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> list[TaskPublic]:
+    """Return all tasks not assigned to a sprint (backlog)."""
+    tasks = _service.list_backlog(session, project_id, current_user)
+    return [_to_public(session, t) for t in tasks]

@@ -14,6 +14,7 @@ from app.models.org_limits_model import OrgLimit
 from app.models.org_subscriptions_model import OrgSubscription
 from app.models.project_members_model import ProjectMember
 from app.models.projects_model import Project
+from app.models.sprints_model import Sprint
 from app.models.task_cards_model import Card
 from app.models.users_model import User
 from app.models.workspace_members_model import WorkspaceMember
@@ -46,4 +47,5 @@ __all__ = [
     "Attachment",
     "CustomStatus",
     "ActivityLog",
+    "Sprint",
 ]

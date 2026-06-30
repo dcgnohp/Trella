@@ -85,3 +85,34 @@ class ActivityAction(str, Enum):
     MEMBER_REMOVED = "MEMBER_REMOVED"
     # Status mapping changes
     STATUS_MAPPING_CHANGED = "STATUS_MAPPING_CHANGED"
+    # Sprint changes
+    SPRINT_CREATED = "SPRINT_CREATED"
+    SPRINT_STARTED = "SPRINT_STARTED"
+    SPRINT_COMPLETED = "SPRINT_COMPLETED"
+    SPRINT_UPDATED = "SPRINT_UPDATED"
+    SPRINT_DELETED = "SPRINT_DELETED"
+    # Epic changes
+    EPIC_CREATED = "EPIC_CREATED"
+    EPIC_UPDATED = "EPIC_UPDATED"
+    EPIC_DELETED = "EPIC_DELETED"
+    TASK_EPIC_CHANGED = "TASK_EPIC_CHANGED"
+    TASK_SPRINT_CHANGED = "TASK_SPRINT_CHANGED"
+
+
+class WorkspaceMode(str, Enum):
+    TRELLO = "TRELLO"
+    JIRA = "JIRA"
+
+
+class SprintStatus(str, Enum):
+    PLANNED = "PLANNED"
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+
+
+class TaskType(str, Enum):
+    TASK = "TASK"
+    STORY = "STORY"
+    BUG = "BUG"
+    EPIC = "EPIC"
+    SUBTASK = "SUBTASK"

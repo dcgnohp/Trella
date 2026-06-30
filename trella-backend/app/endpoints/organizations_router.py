@@ -5,8 +5,10 @@ from fastapi import APIRouter, status
 from app.core.deps import CurrentUser, SessionDep
 from app.schemas.organizations_schema import OrganizationCreate, OrganizationPublic
 from app.services.organizations_service import OrganizationsService
+from app.core.base import CamelModel
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
+workspaces_router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
 _service = OrganizationsService()
 
@@ -51,3 +53,19 @@ def delete_organization(
 ) -> None:
     """Delete an organization; raises HTTP 403 if user is not the owner, HTTP 404 if org does not exist."""
     _service.delete_org(session, org_id, current_user)
+
+
+class WorkspaceModeUpdate(CamelModel):
+    mode: str
+
+
+@workspaces_router.patch("/{workspace_id}/mode", response_model=OrganizationPublic)
+def switch_workspace_mode(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    data: WorkspaceModeUpdate,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Switch workspace mode between TRELLO and JIRA. OWNER only."""
+    org = _service.switch_mode(session, workspace_id, data.mode, current_user)
+    return OrganizationPublic.model_validate(org)

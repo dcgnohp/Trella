@@ -19,7 +19,19 @@ from app.services.notifications_service import NotificationService
 logger = logging.getLogger(__name__)
 
 _UPDATABLE_FIELDS = frozenset(
-    {"title", "description", "priority", "due_date", "custom_status_id", "column_id"}
+    {
+        "title",
+        "description",
+        "priority",
+        "due_date",
+        "custom_status_id",
+        "column_id",
+        # Jira-mode fields
+        "type",
+        "story_point",
+        "sprint_id",
+        "epic_id",
+    }
 )
 
 
@@ -360,6 +372,36 @@ class TasksService:
             )
         self._push_task_event(task, "task.updated")
         return task
+
+    def update_story_point(
+        self,
+        session: Session,
+        task_id: uuid.UUID,
+        story_point: int,
+        user: User,
+    ) -> Task:
+        """Set story_point on a task. Requires MANAGE_TASK."""
+        task = self._load(session, task_id)
+        project_id, workspace_id = self._resolve_scope(session, task)
+        self.rbac_service.check(session, Action.MANAGE_TASK, user=user, project_id=project_id)
+        task.story_point = story_point
+        try:
+            task = self.repo.update(session, task)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(task)
+        return task
+
+    def list_backlog(
+        self, session: Session, project_id: uuid.UUID, user: User
+    ) -> list[Task]:
+        """Return tasks with sprint_id IS NULL for a project. Requires VIEW_PROJECT_RESOURCE."""
+        self.rbac_service.check(
+            session, Action.VIEW_PROJECT_RESOURCE, user=user, project_id=project_id
+        )
+        return self.repo.list_backlog(session, project_id)
 
     def unset_assignee(
         self,

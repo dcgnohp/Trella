@@ -76,3 +76,12 @@ class TasksRepository:
             Task.custom_status_id == custom_status_id
         )
         return session.exec(statement).one()
+
+    def list_backlog(self, session: Session, project_id: uuid.UUID) -> list[Task]:
+        """Return all tasks for a project where sprint_id IS NULL, ordered by position."""
+        statement = (
+            select(Task)
+            .where(Task.project_id == project_id, Task.sprint_id.is_(None))  # type: ignore[union-attr]
+            .order_by(col(Task.column_id), col(Task.position))
+        )
+        return list(session.exec(statement).all())
