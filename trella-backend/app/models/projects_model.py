@@ -17,3 +17,4 @@ class Project(UUIDMixin, TimestampMixin, table=True):
     key: str = Field(max_length=20)
     description: str | None = Field(default=None, sa_type=Text)
     created_by: uuid.UUID = Field(foreign_key="users.id")
+    task_counter: int = Field(default=0, nullable=False)

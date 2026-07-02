@@ -11,6 +11,10 @@ import { useQuery } from '@tanstack/react-query';
 import { BoardsService } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
 import type { TaskPublic } from '@/lib/client';
+import CheckMarkIcon from '@atlaskit/icon/core/check-mark';
+import EditIcon from '@atlaskit/icon/core/edit';
+import WorkItemsIcon from '@atlaskit/icon/core/work-items';
+import CalendarIcon from '@atlaskit/icon/core/calendar';
 
 // ponytail: inline SVG donut instead of recharts to avoid bundling the full library for a single chart
 function DonutChart({ done, total }: { done: number; total: number }) {
@@ -46,7 +50,7 @@ function DonutChart({ done, total }: { done: number; total: number }) {
   );
 }
 
-function StatCard({ icon, count, label, sublabel }: { icon: string; count: number; label: string; sublabel: string }) {
+function StatCard({ icon, count, label, sublabel }: { icon: React.ReactNode; count: number; label: string; sublabel: string }) {
   return (
     <Box
       padding="space.300"
@@ -59,7 +63,7 @@ function StatCard({ icon, count, label, sublabel }: { icon: string; count: numbe
     >
       <Stack space="space.150">
         <Inline space="space.150" alignBlock="center">
-          <span style={{ fontSize: 20 }}>{icon}</span>
+          <span style={{ display: 'flex', alignItems: 'center', color: '#5E6C84' }}>{icon}</span>
           <Text weight="bold" color="color.text" size="large">{count}</Text>
         </Inline>
         <Text size="small" weight="medium" color="color.text">{label}</Text>
@@ -118,10 +122,10 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: token('space.200'), marginBottom: token('space.400') }}>
-          <StatCard icon="✓" count={done.length} label="Completed" sublabel="in last 7 days" />
-          <StatCard icon="✏" count={updated.length} label="Updated" sublabel="in last 7 days" />
-          <StatCard icon="📋" count={created.length} label="Created" sublabel="in last 7 days" />
-          <StatCard icon="📅" count={dueSoon.length} label="Due soon" sublabel="in next 7 days" />
+          <StatCard icon={<CheckMarkIcon label="" size="small" />} count={done.length} label="Completed" sublabel="in last 7 days" />
+          <StatCard icon={<EditIcon label="" size="small" />} count={updated.length} label="Updated" sublabel="in last 7 days" />
+          <StatCard icon={<WorkItemsIcon label="" size="small" />} count={created.length} label="Created" sublabel="in last 7 days" />
+          <StatCard icon={<CalendarIcon label="" size="small" />} count={dueSoon.length} label="Due soon" sublabel="in next 7 days" />
         </div>
 
         {/* Status overview + activity */}

@@ -1,9 +1,11 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from sqlmodel import select
 
 from app.core.deps import CurrentUser, SessionDep
 from app.models.tasks_model import Task
+from app.models.projects_model import Project
 from app.repositories.custom_statuses_repository import CustomStatusesRepository
 from app.schemas.tasks_schema import (
     AssigneeUpdate,
@@ -50,9 +52,21 @@ def _to_public(session: SessionDep, task: Task) -> TaskPublic:
         story_point=getattr(task, "story_point", None),
         sprint_id=getattr(task, "sprint_id", None),
         epic_id=getattr(task, "epic_id", None),
+        parent_id=getattr(task, "parent_id", None),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )
+
+
+@router.get("/{task_id}", response_model=TaskPublic)
+def get_task(
+    session: SessionDep,
+    task_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> TaskPublic:
+    """Fetch a single Task by id; raises HTTP 404 if not found."""
+    task = _service._load(session, task_id)
+    return _to_public(session, task)
 
 
 @router.patch("/{task_id}", response_model=TaskPublic)
@@ -102,7 +116,25 @@ def update_story_point(
     return _to_public(session, task)
 
 
+@router.get("/{task_id}/subtasks", response_model=list[TaskPublic])
+def list_subtasks(
+    session: SessionDep,
+    task_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> list[TaskPublic]:
+    """Return all direct subtasks of a task."""
+    tasks = _service.list_subtasks(session, task_id, current_user)
+    return [_to_public(session, t) for t in tasks]
+
+
 backlog_router = APIRouter(tags=["backlog"])
+
+
+def _resolve_project_from_workspace(session: SessionDep, workspace_id: uuid.UUID) -> uuid.UUID:
+    project = session.exec(select(Project).where(Project.workspace_id == workspace_id)).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="No project found for this workspace")
+    return project.id
 
 
 @backlog_router.get("/projects/{project_id}/backlog", response_model=list[TaskPublic])
@@ -112,5 +144,17 @@ def get_backlog(
     current_user: CurrentUser,
 ) -> list[TaskPublic]:
     """Return all tasks not assigned to a sprint (backlog)."""
+    tasks = _service.list_backlog(session, project_id, current_user)
+    return [_to_public(session, t) for t in tasks]
+
+
+@backlog_router.get("/workspaces/{workspace_id}/backlog", response_model=list[TaskPublic])
+def get_workspace_backlog(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> list[TaskPublic]:
+    """Return backlog tasks for the primary project of a workspace."""
+    project_id = _resolve_project_from_workspace(session, workspace_id)
     tasks = _service.list_backlog(session, project_id, current_user)
     return [_to_public(session, t) for t in tasks]

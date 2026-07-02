@@ -45,6 +45,11 @@ def _task_to_public(session: SessionDep, task) -> TaskPublic:
         custom_status_id=task.custom_status_id,
         custom_status=custom_status_embed,
         position=task.position,
+        type=getattr(task, "type", "TASK") or "TASK",
+        story_point=getattr(task, "story_point", None),
+        sprint_id=getattr(task, "sprint_id", None),
+        epic_id=getattr(task, "epic_id", None),
+        parent_id=getattr(task, "parent_id", None),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )

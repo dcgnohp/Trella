@@ -270,6 +270,23 @@ class ProjectMembersService:
         )
         return self.project_members_repo.list_visible(session, project_id)
 
+    def search_members(
+        self,
+        session: Session,
+        project_id: uuid.UUID,
+        query: str,
+        user: User,
+    ) -> list[ProjectMember]:
+        """Return ACTIVE members matching name/email query. Requires VIEW_PROJECT_RESOURCE."""
+        self._resolve_project(session, project_id)
+        self.rbac_service.check(
+            session,
+            Action.VIEW_PROJECT_RESOURCE,
+            user=user,
+            project_id=project_id,
+        )
+        return self.project_members_repo.search_active(session, project_id, query)
+
     def accept_invitation(
         self,
         session: Session,

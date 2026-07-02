@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.core.deps import (
     CurrentUser,
@@ -45,6 +45,22 @@ def _to_public(session: SessionDep, member: ProjectMember) -> ProjectMemberPubli
         project_role=member.project_role,
         status=member.status,
     )
+
+
+@router.get(
+    "/search",
+    response_model=list[ProjectMemberPublic],
+    dependencies=[Depends(require_project_permission(Action.VIEW_PROJECT_RESOURCE))],
+)
+def search_members(
+    session: SessionDep,
+    project_id: uuid.UUID,
+    current_user: CurrentUser,
+    q: str = Query(default="", description="Search query for name or email"),
+) -> list[ProjectMemberPublic]:
+    """Search ACTIVE project members by name or email (case-insensitive substring)."""
+    members = _service.search_members(session, project_id, q, current_user)
+    return [_to_public(session, member) for member in members]
 
 
 @router.post(

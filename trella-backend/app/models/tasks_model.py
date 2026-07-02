@@ -54,7 +54,13 @@ class Task(UUIDMixin, TimestampMixin, table=True):
         ondelete="SET NULL",
         nullable=True,
     )
-
+    parent_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="tasks.id",
+        ondelete="SET NULL",
+        nullable=True,
+    )
+    issue_key: str | None = Field(default=None, max_length=50, nullable=True)
 
 
 from sqlalchemy import event

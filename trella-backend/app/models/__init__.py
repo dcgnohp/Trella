@@ -17,6 +17,7 @@ from app.models.projects_model import Project
 from app.models.sprints_model import Sprint
 from app.models.task_cards_model import Card
 from app.models.users_model import User
+from app.models.velocity_config_model import VelocityConfig
 from app.models.workspace_members_model import WorkspaceMember
 from app.models.workspaces_model import Workspace
 
@@ -48,4 +49,5 @@ __all__ = [
     "CustomStatus",
     "ActivityLog",
     "Sprint",
+    "VelocityConfig",
 ]

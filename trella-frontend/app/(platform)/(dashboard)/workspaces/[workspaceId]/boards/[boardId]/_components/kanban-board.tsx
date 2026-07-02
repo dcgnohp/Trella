@@ -22,6 +22,7 @@ interface KanbanBoardProps {
   workspaceId: string;
   columns: ColumnPublic[];
   tasks: TaskPublic[];
+  subtasksByParent: Map<string, TaskPublic[]>;
   customStatuses: CustomStatusEmbed[];
   projectMembers: ProjectMemberPublic[];
   onTaskClick: (task: TaskPublic) => void;
@@ -32,6 +33,7 @@ export const KanbanBoard = ({
   workspaceId,
   columns,
   tasks,
+  subtasksByParent,
   customStatuses,
   projectMembers,
   onTaskClick,
@@ -283,6 +285,7 @@ export const KanbanBoard = ({
                     <KanbanColumn
                       column={column}
                       tasks={tasksByColumn.get(column.id) ?? []}
+                      subtasksByParent={subtasksByParent}
                       boardId={boardId}
                       projectMembers={projectMembers}
                       dragHandleProps={dragProvided.dragHandleProps}

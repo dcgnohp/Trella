@@ -1,153 +1,298 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Stack, Inline, Text } from '@atlaskit/primitives';
-import { token } from '@atlaskit/tokens';
+import React, { useState, useRef } from 'react';
+import { Droppable } from '@hello-pangea/dnd';
 import Button from '@atlaskit/button/new';
-import Lozenge from '@atlaskit/lozenge';
-import Avatar from '@atlaskit/avatar';
-import Badge from '@atlaskit/badge';
+import Textfield from '@atlaskit/textfield';
+import ModalDialog, { ModalBody, ModalFooter, ModalHeader, ModalTitle } from '@atlaskit/modal-dialog';
 import ChevronDownIcon from '@atlaskit/icon/core/chevron-down';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
-
-import type { TaskPublic } from '@/lib/client';
-import { StatusLozenge } from '@/components/ads/status-lozenge';
-import type { CanonicalStatus } from '@/lib/status/display-style';
-
-// ponytail: mock sprint data until BE endpoint exists
-interface Sprint {
-  id: string;
-  name: string;
-  startDate?: string;
-  endDate?: string;
-  status: 'active' | 'planned' | 'completed';
-  tasks: TaskPublic[];
-}
+import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
+import type { SprintWithTasks, ProjectMemberPublic, CustomStatusPublic } from '@/lib/client';
+import { SprintsService } from '@/lib/client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query-keys';
+import { toast } from 'sonner';
+import { TaskRow } from './task-row';
+import { StartSprintModal } from './start-sprint-modal';
+import { CompleteSprintModal } from './complete-sprint-modal';
 
 interface SprintSectionProps {
-  sprint: Sprint;
-  onCompleteSprintClick?: (sprint: Sprint) => void;
-  onStartSprintClick?: (sprint: Sprint) => void;
+  sprint: SprintWithTasks;
+  allSprints: SprintWithTasks[];
+  projectId: string;
+  members: ProjectMemberPublic[];
+  customStatuses: CustomStatusPublic[];
+  onTaskClick: (taskId: string) => void;
 }
 
-export function SprintSection({ sprint, onCompleteSprintClick, onStartSprintClick }: SprintSectionProps) {
+type SprintMenu = 'rename' | 'edit-dates' | 'delete' | null;
+
+export function SprintSection({ sprint, allSprints, projectId, members, customStatuses, onTaskClick }: SprintSectionProps) {
+  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<SprintMenu>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const dateRange = sprint.startDate && sprint.endDate
-    ? `${new Date(sprint.startDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })} – ${new Date(sprint.endDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`
-    : 'No dates';
+  // Rename state
+  const [newName, setNewName] = useState(sprint.name);
+  // Edit dates state
+  const [startDate, setStartDate] = useState(sprint.startDate?.slice(0, 10) ?? '');
+  const [endDate, setEndDate] = useState(sprint.endDate?.slice(0, 10) ?? '');
 
-  const doneCount = sprint.tasks.filter(t => t.customStatus?.canonicalStatus === 'DONE').length;
-  const todoCount = sprint.tasks.filter(t => t.customStatus?.canonicalStatus === 'TODO').length;
-  const inProgressCount = sprint.tasks.filter(t => t.customStatus?.canonicalStatus === 'IN_PROGRESS').length;
+  const updateMutation = useMutation({
+    mutationFn: (data: { name?: string; startDate?: string; endDate?: string }) =>
+      SprintsService.Sprints_sprintsUpdateSprint({ sprintId: sprint.id, requestBody: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
+      toast.success('Sprint updated');
+      setActiveDialog(null);
+    },
+    onError: () => toast.error('Failed to update sprint'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => SprintsService.Sprints_sprintsDeleteSprint({ sprintId: sprint.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
+      toast.success('Sprint deleted');
+      setActiveDialog(null);
+    },
+    onError: (err: any) => toast.error(err?.message ?? 'Failed to delete sprint'),
+  });
+
+  const dateRange =
+    sprint.startDate && sprint.endDate
+      ? `${new Date(sprint.startDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })} – ${new Date(sprint.endDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`
+      : 'No dates set';
+
+  const canDelete = sprint.status === 'PLANNED' && (sprint.tasks ?? []).length === 0;
 
   return (
-    <div style={{
-      marginBottom: token('space.300'),
-      border: `1px solid ${token('color.border')}`,
-      borderRadius: '6px',
-      overflow: 'hidden',
-    }}>
-      {/* Sprint header */}
-      <div style={{
-        padding: `${token('space.150')} ${token('space.300')}`,
-        backgroundColor: token('elevation.surface'),
-        display: 'flex',
-        alignItems: 'center',
-        gap: token('space.200'),
-        cursor: 'pointer',
-      }} onClick={() => setExpanded(e => !e)}>
-        <span style={{ display: 'flex', alignItems: 'center', color: token('color.text.subtlest'), userSelect: 'none' }}>
-          {expanded ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
-        </span>
-        <Text weight="bold" size="small" color="color.text">{sprint.name}</Text>
-        <Text size="small" color="color.text.subtlest">{dateRange}</Text>
-        <Text size="small" color="color.text.subtlest">({sprint.tasks.length} work items)</Text>
+    <>
+      <div
+        style={{
+          border: `1px solid ${'#DFE1E6'}`,
+          borderRadius: 6,
+          overflow: 'hidden',
+          marginBottom: '16px',
+        }}
+      >
+        {/* Header row */}
+        <div
+          style={{
+            padding: '8px 12px',
+            backgroundColor: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: 'pointer',
+          }}
+          onClick={() => setExpanded(e => !e)}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', color: '#97A0AF', flexShrink: 0 }}>
+            {expanded ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 13, color: '#172B4D', whiteSpace: 'nowrap' }}>
+            {sprint.name}
+          </span>
+          <span style={{ fontSize: 12, color: '#97A0AF', whiteSpace: 'nowrap' }}>{dateRange}</span>
+          <span style={{ fontSize: 12, color: '#97A0AF', whiteSpace: 'nowrap' }}>
+            ({(sprint.tasks ?? []).length} work items)
+          </span>
 
-        {/* Mini status badges */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
-          {todoCount > 0 && <Badge appearance="default">{todoCount}</Badge>}
-          {inProgressCount > 0 && <Badge appearance="primary">{inProgressCount}</Badge>}
-          {doneCount > 0 && <Badge appearance="added">{doneCount}</Badge>}
-        </div>
+          {/* Status badges */}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
+            {(sprint.todoCount ?? 0) > 0 && (
+              <span style={{ padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600, backgroundColor: '#8590A2', color: '#fff' }}>
+                {sprint.todoCount}
+              </span>
+            )}
+            {(sprint.inProgressCount ?? 0) > 0 && (
+              <span style={{ padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600, backgroundColor: '#579DFF', color: '#fff' }}>
+                {sprint.inProgressCount}
+              </span>
+            )}
+            {(sprint.doneCount ?? 0) > 0 && (
+              <span style={{ padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600, backgroundColor: '#4CAF50', color: '#fff' }}>
+                {sprint.doneCount}
+              </span>
+            )}
+          </div>
 
-        <div onClick={e => e.stopPropagation()}>
-          {sprint.status === 'active' && onCompleteSprintClick && (
-            <Button appearance="default" spacing="compact" onClick={() => onCompleteSprintClick(sprint)}>
-              Complete sprint
-            </Button>
-          )}
-          {sprint.status === 'planned' && onStartSprintClick && (
-            <Button appearance="primary" spacing="compact" onClick={() => onStartSprintClick(sprint)}>
-              Start sprint
-            </Button>
-          )}
-        </div>
-      </div>
+          {/* Action buttons */}
+          <div
+            style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}
+            onClick={e => e.stopPropagation()}
+          >
+            {sprint.status === 'ACTIVE' && (
+              <Button appearance="default" spacing="compact" onClick={() => setShowCompleteModal(true)}>
+                Complete sprint
+              </Button>
+            )}
+            {sprint.status === 'PLANNED' && (
+              <Button appearance="primary" spacing="compact" onClick={() => setShowStartModal(true)}>
+                Start sprint
+              </Button>
+            )}
 
-      {/* Task rows */}
-      {expanded && (
-        <div style={{ backgroundColor: token('elevation.surface') }}>
-          {sprint.tasks.length === 0 ? (
-            <div style={{
-              padding: token('space.400'),
-              textAlign: 'center',
-              border: `2px dashed ${token('color.border')}`,
-              margin: token('space.200'),
-              borderRadius: '3px',
-            }}>
-              <Text size="small" color="color.text.subtlest">
-                Plan a sprint by dragging work items into it
-              </Text>
+            {/* ... menu */}
+            <div ref={menuRef} style={{ position: 'relative' }}>
+              <Button
+                appearance="subtle"
+                spacing="compact"
+                iconBefore={() => <ShowMoreHorizontalIcon label="more" size="small" />}
+                onClick={() => setMenuOpen(m => !m)}
+              >{' '}</Button>
+              {menuOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '100%',
+                    zIndex: 100,
+                    backgroundColor: '#FFFFFF',
+                    border: `1px solid ${'#DFE1E6'}`,
+                    borderRadius: 4,
+                    boxShadow: '0 4px 16px rgba(9,30,66,0.18)',
+                    minWidth: 160,
+                  }}
+                >
+                  {[
+                    { label: 'Rename sprint', action: 'rename' as SprintMenu },
+                    { label: 'Edit dates', action: 'edit-dates' as SprintMenu },
+                    ...(canDelete ? [{ label: 'Delete sprint', action: 'delete' as SprintMenu }] : []),
+                  ].map(item => (
+                    <div
+                      key={item.action}
+                      onClick={() => { setMenuOpen(false); setActiveDialog(item.action); }}
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: 13,
+                        color: item.action === 'delete' ? '#FF5630' : '#172B4D',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(9,30,66,0.06)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+                    >
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            sprint.tasks.map((task, i) => (
-              <TaskRow key={task.id} task={task} index={i} total={sprint.tasks.length} />
-            ))
-          )}
-          <div style={{ padding: token('space.200'), borderTop: `1px solid ${token('color.border')}` }}>
-            <Button appearance="subtle" spacing="compact">+ Create issue</Button>
           </div>
         </div>
+
+        {/* Task list */}
+        {expanded && (
+          <Droppable droppableId={`sprint:${sprint.id}`} type="TASK">
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                style={{
+                  backgroundColor: snapshot.isDraggingOver
+                    ? '#CCE0FF'
+                    : '#FFFFFF',
+                  minHeight: 40,
+                }}
+              >
+                {(sprint.tasks ?? []).length === 0 ? (
+                  <div style={{ padding: 16, textAlign: 'center', border: `2px dashed ${'#DFE1E6'}`, margin: 8, borderRadius: 3 }}>
+                    <span style={{ fontSize: 12, color: '#97A0AF' }}>
+                      Plan a sprint by dragging work items into it
+                    </span>
+                  </div>
+                ) : (
+                  (sprint.tasks ?? []).map((task, i) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      index={i}
+                      droppableId={`sprint:${sprint.id}`}
+                      members={members}
+                      customStatuses={customStatuses}
+                      onTaskClick={t => onTaskClick(t.id)}
+                      projectId={projectId}
+                    />
+                  ))
+                )}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        )}
+      </div>
+
+      {/* Modals */}
+      {showStartModal && (
+        <StartSprintModal sprint={sprint} projectId={projectId} onClose={() => setShowStartModal(false)} />
       )}
-    </div>
-  );
-}
+      {showCompleteModal && (
+        <CompleteSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} onClose={() => setShowCompleteModal(false)} />
+      )}
 
-function TaskRow({ task, index, total }: { task: TaskPublic; index: number; total: number }) {
-  const canonicalStatus = (task.customStatus?.canonicalStatus ?? 'TODO') as CanonicalStatus;
-  const isLast = index === total - 1;
+      {activeDialog === 'rename' && (
+        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
+          <ModalHeader><ModalTitle>Rename sprint</ModalTitle></ModalHeader>
+          <ModalBody>
+            <Textfield value={newName} onChange={e => setNewName((e.target as HTMLInputElement).value)} autoFocus />
+          </ModalBody>
+          <ModalFooter>
+            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
+            <Button appearance="primary" isLoading={updateMutation.isPending} onClick={() => updateMutation.mutate({ name: newName })}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalDialog>
+      )}
 
-  return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '24px 1fr 140px auto auto',
-      alignItems: 'center',
-      gap: token('space.150'),
-      padding: `${token('space.100')} ${token('space.300')}`,
-      borderBottom: isLast ? 'none' : `1px solid ${token('color.border')}`,
-      cursor: 'pointer',
-    }}>
-      {/* Type icon placeholder */}
-      <div style={{
-        width: 16, height: 16, borderRadius: 3,
-        backgroundColor: token('color.background.brand.bold'),
-        flexShrink: 0,
-      }} />
+      {activeDialog === 'edit-dates' && (
+        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
+          <ModalHeader><ModalTitle>Edit sprint dates</ModalTitle></ModalHeader>
+          <ModalBody>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Start date</label>
+                <Textfield type="date" value={startDate} onChange={e => setStartDate((e.target as HTMLInputElement).value)} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
+                <Textfield type="date" value={endDate} onChange={e => setEndDate((e.target as HTMLInputElement).value)} />
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
+            <Button
+              appearance="primary"
+              isLoading={updateMutation.isPending}
+              onClick={() => updateMutation.mutate({ startDate: startDate || undefined, endDate: endDate || undefined })}
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalDialog>
+      )}
 
-      {/* Title */}
-      <Text size="small" color="color.text">{task.title}</Text>
-
-      {/* Status */}
-      <StatusLozenge status={canonicalStatus} label={task.customStatus?.name ?? canonicalStatus} />
-
-      {/* Due date */}
-      <Text size="small" color="color.text.subtlest">
-        {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '—'}
-      </Text>
-
-      {/* Assignee */}
-      <Avatar size="xsmall" name={task.assigneeId ?? 'Unassigned'} />
-    </div>
+      {activeDialog === 'delete' && (
+        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
+          <ModalHeader><ModalTitle>Delete sprint</ModalTitle></ModalHeader>
+          <ModalBody>
+            <p style={{ margin: 0, fontSize: 14 }}>Are you sure you want to delete <strong>{sprint.name}</strong>? This action cannot be undone.</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
+            <Button appearance="danger" isLoading={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
+              Delete sprint
+            </Button>
+          </ModalFooter>
+        </ModalDialog>
+      )}
+    </>
   );
 }

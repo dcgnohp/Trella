@@ -1214,6 +1214,439 @@ export const CustomStatusUpdateSchema = {
     title: 'CustomStatusUpdate'
 } as const;
 
+export const EpicCreateSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        priority: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Priority'
+        },
+        dueDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duedate'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        }
+    },
+    type: 'object',
+    required: ['title'],
+    title: 'EpicCreate'
+} as const;
+
+export const EpicProgressPublicSchema = {
+    properties: {
+        epicId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Epicid'
+        },
+        totalTasks: {
+            type: 'integer',
+            title: 'Totaltasks'
+        },
+        completedTasks: {
+            type: 'integer',
+            title: 'Completedtasks'
+        },
+        storyPointsTotal: {
+            type: 'integer',
+            title: 'Storypointstotal'
+        },
+        storyPointsCompleted: {
+            type: 'integer',
+            title: 'Storypointscompleted'
+        },
+        completionPercentage: {
+            type: 'number',
+            title: 'Completionpercentage'
+        }
+    },
+    type: 'object',
+    required: ['epicId', 'totalTasks', 'completedTasks', 'storyPointsTotal', 'storyPointsCompleted', 'completionPercentage'],
+    title: 'EpicProgressPublic'
+} as const;
+
+export const EpicPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        projectId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Projectid'
+        },
+        boardId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Boardid'
+        },
+        columnId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Columnid'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        priority: {
+            type: 'string',
+            title: 'Priority'
+        },
+        dueDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duedate'
+        },
+        assigneeId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Assigneeid'
+        },
+        customStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Customstatusid'
+        },
+        position: {
+            type: 'integer',
+            title: 'Position'
+        },
+        type: {
+            type: 'string',
+            title: 'Type'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        },
+        sprintId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintid'
+        },
+        epicId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Epicid'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        }
+    },
+    type: 'object',
+    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
+    title: 'EpicPublic'
+} as const;
+
+export const EpicUpdateSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        priority: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Priority'
+        },
+        dueDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duedate'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        }
+    },
+    type: 'object',
+    title: 'EpicUpdate'
+} as const;
+
+export const EpicWithTasksPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        projectId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Projectid'
+        },
+        boardId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Boardid'
+        },
+        columnId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Columnid'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        priority: {
+            type: 'string',
+            title: 'Priority'
+        },
+        dueDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duedate'
+        },
+        assigneeId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Assigneeid'
+        },
+        customStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Customstatusid'
+        },
+        position: {
+            type: 'integer',
+            title: 'Position'
+        },
+        type: {
+            type: 'string',
+            title: 'Type'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        },
+        sprintId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintid'
+        },
+        epicId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Epicid'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        },
+        childTasks: {
+            items: {
+                '$ref': '#/components/schemas/TaskPublic'
+            },
+            type: 'array',
+            title: 'Childtasks',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
+    title: 'EpicWithTasksPublic'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -1763,11 +2196,423 @@ export const ProjectPublicSchema = {
     title: 'ProjectPublic'
 } as const;
 
+export const SprintCompleteSchema = {
+    properties: {
+        moveOpenTo: {
+            type: 'string',
+            title: 'Moveopento',
+            default: 'backlog'
+        }
+    },
+    type: 'object',
+    title: 'SprintComplete'
+} as const;
+
+export const SprintCreateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
+        endDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Enddate'
+        }
+    },
+    type: 'object',
+    title: 'SprintCreate'
+} as const;
+
+export const SprintInsightsSchema = {
+    properties: {
+        commitment: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Commitment'
+        },
+        workTypes: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Worktypes'
+        }
+    },
+    type: 'object',
+    required: ['commitment', 'workTypes'],
+    title: 'SprintInsights'
+} as const;
+
+export const SprintPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        projectId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Projectid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
+        endDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Enddate'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        }
+    },
+    type: 'object',
+    required: ['id', 'projectId', 'name', 'goal', 'status', 'startDate', 'endDate', 'createdAt', 'updatedAt'],
+    title: 'SprintPublic'
+} as const;
+
+export const SprintStartSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        startDate: {
+            type: 'string',
+            format: 'date',
+            title: 'Startdate'
+        },
+        endDate: {
+            type: 'string',
+            format: 'date',
+            title: 'Enddate'
+        }
+    },
+    type: 'object',
+    required: ['startDate', 'endDate'],
+    title: 'SprintStart'
+} as const;
+
+export const SprintUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
+        endDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Enddate'
+        }
+    },
+    type: 'object',
+    title: 'SprintUpdate'
+} as const;
+
+export const SprintWithTasksSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        projectId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Projectid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
+        endDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Enddate'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        },
+        tasks: {
+            items: {
+                '$ref': '#/components/schemas/TaskPublic'
+            },
+            type: 'array',
+            title: 'Tasks',
+            default: []
+        },
+        todoCount: {
+            type: 'integer',
+            title: 'Todocount',
+            default: 0
+        },
+        inProgressCount: {
+            type: 'integer',
+            title: 'Inprogresscount',
+            default: 0
+        },
+        doneCount: {
+            type: 'integer',
+            title: 'Donecount',
+            default: 0
+        }
+    },
+    type: 'object',
+    required: ['id', 'projectId', 'name', 'goal', 'status', 'startDate', 'endDate', 'createdAt', 'updatedAt'],
+    title: 'SprintWithTasks',
+    description: 'Sprint list item — includes tasks + kanban status counts.'
+} as const;
+
+export const StoryPointUpdateSchema = {
+    properties: {
+        storyPoint: {
+            type: 'integer',
+            title: 'Storypoint'
+        }
+    },
+    type: 'object',
+    required: ['storyPoint'],
+    title: 'StoryPointUpdate'
+} as const;
+
 export const TaskCreateSchema = {
     properties: {
         title: {
             type: 'string',
             title: 'Title'
+        },
+        type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Type'
+        },
+        parentId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parentid'
+        },
+        dueDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duedate'
+        },
+        assigneeId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Assigneeid'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
         }
     },
     type: 'object',
@@ -1866,6 +2711,69 @@ export const TaskPublicSchema = {
             type: 'integer',
             title: 'Position'
         },
+        type: {
+            type: 'string',
+            title: 'Type',
+            default: 'TASK'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        },
+        sprintId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintid'
+        },
+        epicId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Epicid'
+        },
+        parentId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parentid'
+        },
+        issueKey: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Issuekey'
+        },
         createdAt: {
             type: 'string',
             format: 'date-time',
@@ -1929,6 +2837,18 @@ export const TaskUpdateSchema = {
             ],
             title: 'Duedate'
         },
+        assigneeId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Assigneeid'
+        },
         customStatusId: {
             anyOf: [
                 {
@@ -1952,6 +2872,64 @@ export const TaskUpdateSchema = {
                 }
             ],
             title: 'Columnid'
+        },
+        type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Type'
+        },
+        storyPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Storypoint'
+        },
+        sprintId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintid'
+        },
+        epicId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Epicid'
+        },
+        parentId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parentid'
         }
     },
     type: 'object',
@@ -2107,6 +3085,40 @@ export const ValidationErrorSchema = {
     title: 'ValidationError'
 } as const;
 
+export const VelocityConfigPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        workspaceId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Workspaceid'
+        },
+        hoursPerPoint: {
+            type: 'number',
+            title: 'Hoursperpoint'
+        }
+    },
+    type: 'object',
+    required: ['id', 'workspaceId', 'hoursPerPoint'],
+    title: 'VelocityConfigPublic'
+} as const;
+
+export const VelocityConfigUpdateSchema = {
+    properties: {
+        hoursPerPoint: {
+            type: 'number',
+            title: 'Hoursperpoint'
+        }
+    },
+    type: 'object',
+    required: ['hoursPerPoint'],
+    title: 'VelocityConfigUpdate'
+} as const;
+
 export const WorkspaceInviteSchema = {
     properties: {
         email: {
@@ -2141,6 +3153,21 @@ export const WorkspaceMemberPublicSchema = {
             format: 'uuid',
             title: 'Userid'
         },
+        email: {
+            type: 'string',
+            title: 'Email'
+        },
+        fullName: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fullname'
+        },
         role: {
             type: 'string',
             title: 'Role'
@@ -2173,8 +3200,20 @@ export const WorkspaceMemberPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'workspaceId', 'userId', 'role', 'status', 'createdAt', 'updatedAt'],
+    required: ['id', 'workspaceId', 'userId', 'email', 'role', 'status', 'createdAt', 'updatedAt'],
     title: 'WorkspaceMemberPublic'
+} as const;
+
+export const WorkspaceModeUpdateSchema = {
+    properties: {
+        mode: {
+            type: 'string',
+            title: 'Mode'
+        }
+    },
+    type: 'object',
+    required: ['mode'],
+    title: 'WorkspaceModeUpdate'
 } as const;
 
 export const app__schemas__boards_schema__CardPublicSchema = {

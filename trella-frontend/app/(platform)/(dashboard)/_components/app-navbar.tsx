@@ -2,38 +2,45 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import NotificationIcon from '@atlaskit/icon/core/notification';
 import SettingsIcon from '@atlaskit/icon/core/settings';
 import SearchIcon from '@atlaskit/icon/core/search';
 import AddIcon from '@atlaskit/icon/core/add';
-import LinkExternalIcon from '@atlaskit/icon/core/link-external';
+import PersonAvatarIcon from '@atlaskit/icon/core/person-avatar';
+import ScreenIcon from '@atlaskit/icon/core/screen';
+import AppsIcon from '@atlaskit/icon/core/apps';
+import GlobeIcon from '@atlaskit/icon/core/globe';
+import WorkItemsIcon from '@atlaskit/icon/core/work-items';
+import StoreIcon from '@atlaskit/icon/core/app-switcher';
+import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
+import CreditCardIcon from '@atlaskit/icon/core/credit-card';
 
 const NAV_BG = '#FFFFFF';
 
-// Settings menu items matching Jira screenshot
 const SETTINGS_SECTIONS = [
   {
-    heading: 'Personal Jira settings',
+    heading: 'Personal settings',
     items: [
-      { icon: '👤', label: 'General settings', sub: 'Manage language, time zone, and other personal preferences' },
-      { icon: '🔔', label: 'Notification settings', sub: 'Manage email and in-app notifications from Jira' },
+      { icon: <PersonAvatarIcon label="" size="small" />, label: 'General settings', sub: 'Manage language, time zone, and other personal preferences', href: null },
+      { icon: <NotificationIcon label="" size="small" />, label: 'Notification settings', sub: 'Manage email and in-app notifications', href: null },
     ],
   },
   {
-    heading: 'Jira admin settings',
+    heading: 'Admin settings',
     items: [
-      { icon: '🖥', label: 'System', sub: 'Manage general configuration, security, automation, user interface, and more' },
-      { icon: '⚙️', label: 'Jira apps', sub: 'Manage access, settings, and integrations across Jira' },
-      { icon: '🌐', label: 'Spaces', sub: 'Manage space settings, categories, and more' },
-      { icon: '📋', label: 'Work items', sub: 'Configure work types, workflows, screens, fields, and more' },
-      { icon: '🛒', label: 'Marketplace apps', sub: 'Add and manage Jira Marketplace apps and integrations' },
+      { icon: <ScreenIcon label="" size="small" />, label: 'System', sub: 'Manage general configuration, security, automation, user interface, and more', href: null },
+      { icon: <AppsIcon label="" size="small" />, label: 'Apps', sub: 'Manage access, settings, and integrations', href: null },
+      { icon: <GlobeIcon label="" size="small" />, label: 'Spaces', sub: 'Manage space settings, categories, and more', href: null },
+      { icon: <WorkItemsIcon label="" size="small" />, label: 'Work items', sub: 'Configure work types, workflows, screens, fields, and more', href: null },
+      { icon: <StoreIcon label="" size="small" />, label: 'Marketplace apps', sub: 'Add and manage Marketplace apps and integrations', href: null },
     ],
   },
   {
-    heading: 'Atlassian admin settings',
+    heading: 'Organization settings',
     items: [
-      { icon: '👥', label: 'User management', sub: 'Create and manage users, groups, and access requests', external: true },
-      { icon: '💳', label: 'Billing', sub: 'Update your billing details, manage subscriptions, and more', external: true },
+      { icon: <PeopleGroupIcon label="" size="small" />, label: 'User management', sub: 'Create and manage users, groups, and access requests', href: 'members' },
+      { icon: <CreditCardIcon label="" size="small" />, label: 'Billing', sub: 'Update your billing details, manage subscriptions, and more', href: null },
     ],
   },
 ];
@@ -42,6 +49,8 @@ export function AppNavbar() {
   const [createOpen, setCreateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const params = useParams();
+  const workspaceId = params?.workspaceId as string | undefined;
 
   return (
     <div style={{
@@ -166,9 +175,21 @@ export function AppNavbar() {
                   <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {section.heading}
                   </div>
-                  {section.items.map(item => (
-                    <SettingsMenuItem key={item.label} icon={item.icon} label={item.label} sub={item.sub} external={'external' in item ? item.external : undefined} />
-                  ))}
+                  {section.items.map(item => {
+                    const href = item.href && workspaceId
+                      ? `/workspaces/${workspaceId}/settings/${item.href}`
+                      : null;
+                    return (
+                      <SettingsMenuItem
+                        key={item.label}
+                        icon={item.icon}
+                        label={item.label}
+                        sub={item.sub}
+                        href={href}
+                        onClose={() => setSettingsOpen(false)}
+                      />
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -210,9 +231,12 @@ function IconBtn({ children, title, onClick }: { children: React.ReactNode; titl
   );
 }
 
-function SettingsMenuItem({ icon, label, sub, external }: { icon: string; label: string; sub: string; external?: boolean }) {
+function SettingsMenuItem({ icon, label, sub, href, onClose }: {
+  icon: React.ReactNode; label: string; sub: string;
+  href?: string | null; onClose?: () => void;
+}) {
   const [hovered, setHovered] = useState(false);
-  return (
+  const content = (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -222,16 +246,18 @@ function SettingsMenuItem({ icon, label, sub, external }: { icon: string; label:
         backgroundColor: hovered ? 'rgba(9,30,66,0.04)' : 'transparent',
       }}
     >
-      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
+      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 2, color: '#5E6C84' }}>{icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: '#172B4D', display: 'flex', alignItems: 'center', gap: 6 }}>
-          {label}
-          {external && <span style={{ display: 'flex', alignItems: 'center', color: '#97A0AF' }}><LinkExternalIcon label="" size="small" /></span>}
-        </div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: '#172B4D' }}>{label}</div>
         <div style={{ fontSize: 12, color: '#5E6C84', marginTop: 2, lineHeight: 1.4 }}>{sub}</div>
       </div>
     </div>
   );
+
+  if (href) {
+    return <Link href={href} onClick={onClose} style={{ textDecoration: 'none', display: 'block' }}>{content}</Link>;
+  }
+  return content;
 }
 
 function NavDropItem({ href, label, onClose }: { href: string; label: string; onClose: () => void }) {

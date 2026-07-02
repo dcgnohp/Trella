@@ -27,23 +27,19 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   const params = useParams();
   const boardId = params?.boardId as string | undefined;
 
-  const projectType = React.useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    return window.localStorage.getItem(`trella:projectType:${workspaceId}`) as 'kanban' | 'scrum' | null;
+  const [projectType, setProjectType] = React.useState<'kanban' | 'scrum' | null>(null);
+  const [spaceName, setSpaceName] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setProjectType(window.localStorage.getItem(`trella:projectType:${workspaceId}`) as 'kanban' | 'scrum' | null);
+    try {
+      const raw = window.localStorage.getItem(`trella:onboarding:${workspaceId}`);
+      if (raw) setSpaceName(JSON.parse(raw).name as string);
+    } catch { /* empty */ }
   }, [workspaceId]);
 
   const isScrum = projectType === 'scrum';
   const tabs = isScrum ? TABS_SCRUM : TABS_KANBAN;
-
-  // Get name from localStorage onboarding data, fallback to board title
-  const spaceName = React.useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const raw = window.localStorage.getItem(`trella:onboarding:${workspaceId}`);
-      if (raw) return JSON.parse(raw).name as string;
-    } catch { /* empty */ }
-    return null;
-  }, [workspaceId]);
 
   const boardsQuery = useQuery({
     queryKey: queryKeys.workspaceBoards(workspaceId),

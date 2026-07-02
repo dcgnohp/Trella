@@ -10,6 +10,7 @@ interface KanbanTaskCardProps {
   column: ColumnPublic;
   index: number;
   projectMembers: ProjectMemberPublic[];
+  subtasks: TaskPublic[];
   onClick: (task: TaskPublic) => void;
 }
 
@@ -18,6 +19,7 @@ export const KanbanTaskCard = ({
   column,
   index,
   projectMembers,
+  subtasks,
   onClick,
 }: KanbanTaskCardProps) => {
   const effectiveTask: TaskPublic =
@@ -61,6 +63,8 @@ export const KanbanTaskCard = ({
             task={effectiveTask}
             assignee={assignee}
             dragHandleProps={provided.dragHandleProps}
+            subtasks={subtasks}
+            onSubtaskClick={(sub) => onClick(sub)}
             onClick={() => onClick(task)}
           />
         </div>

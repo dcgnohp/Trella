@@ -1,93 +1,229 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Stack, Inline, Text } from '@atlaskit/primitives';
-import { token } from '@atlaskit/tokens';
+import React, { useState, useMemo } from 'react';
+import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
-import PageHeader from '@atlaskit/page-header';
-import { useQuery } from '@tanstack/react-query';
-import { BoardsService, ColumnsService } from '@/lib/client';
+import GraphLineIcon from '@atlaskit/icon/core/chart-bar';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  SprintsService,
+  BacklogService,
+  TasksService,
+  ProjectMembersService,
+  CustomStatusesService,
+} from '@/lib/client';
+import type { SprintWithTasks, TaskPublic } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
+import { toast } from 'sonner';
+import { TaskDetailDrawer } from '@/components/task-detail-drawer';
 
 import { SprintSection } from './sprint-section';
 import { BacklogSection } from './backlog-section';
+import { InsightsPanel } from './insights-panel';
 
 interface BacklogPageClientProps {
   workspaceId: string;
 }
 
-// ponytail: mock sprint list — replace when GET /sprints endpoint exists
-function useMockSprints(tasks: any[]) {
-  const mid = Math.ceil(tasks.length / 2);
-  return [
-    {
-      id: 'sprint-1',
-      name: 'Sprint 1',
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active' as const,
-      tasks: tasks.slice(0, mid),
-    },
-  ];
-}
-
 export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [showInsights, setShowInsights] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [memberFilter, setMemberFilter] = useState<string | null>(null);
 
-  // Load all boards then all tasks from first board
-  // ponytail: using existing boards endpoint since no backlog endpoint yet
-  const boardsQuery = useQuery({
-    queryKey: queryKeys.workspaceBoards(workspaceId),
-    queryFn: () => BoardsService.Boards_boardsListBoards({ orgId: workspaceId }),
+  const sprintsQuery = useQuery({
+    queryKey: ['workspace-sprints', workspaceId],
+    queryFn: () => SprintsService.Sprints_sprintsListWorkspaceSprints({ workspaceId }),
   });
 
-  const firstBoardId = boardsQuery.data?.[0]?.id;
-
-  const tasksQuery = useQuery({
-    queryKey: queryKeys.boardTasks(firstBoardId ?? ''),
-    queryFn: () => BoardsService.Boards_boardsListBoardTasks({ boardId: firstBoardId! }),
-    enabled: !!firstBoardId,
+  const backlogQuery = useQuery({
+    queryKey: ['workspace-backlog', workspaceId],
+    queryFn: () => BacklogService.Backlog_backlogGetWorkspaceBacklog({ workspaceId }),
   });
 
-  const allTasks = tasksQuery.data ?? [];
-  const filtered = search
-    ? allTasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
-    : allTasks;
+  // projectId from the first sprint/backlog task for members query
+  const projectId = sprintsQuery.data?.[0]?.projectId ?? null;
 
-  const sprints = useMockSprints(filtered);
-  const sprintTaskIds = new Set(sprints.flatMap(s => s.tasks.map(t => t.id)));
-  const backlogTasks = filtered.filter(t => !sprintTaskIds.has(t.id));
+  const membersQuery = useQuery({
+    queryKey: queryKeys.projectMembers(projectId ?? ''),
+    queryFn: () => ProjectMembersService.ProjectMembers_projectMembersListMembers({ projectId: projectId! }),
+    enabled: !!projectId,
+  });
+
+  const customStatusesQuery = useQuery({
+    queryKey: queryKeys.customStatuses(workspaceId),
+    queryFn: () => CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({ workspaceId }),
+  });
+
+  const sprints: SprintWithTasks[] = sprintsQuery.data ?? [];
+  const backlogTasks: TaskPublic[] = backlogQuery.data ?? [];
+  const members = membersQuery.data ?? [];
+  const customStatuses = customStatusesQuery.data ?? [];
+
+  const filterTask = (t: TaskPublic) => {
+    if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (memberFilter && t.assigneeId !== memberFilter) return false;
+    return true;
+  };
+
+  const filteredSprints = useMemo(
+    () => sprints.map(s => ({ ...s, tasks: (s.tasks ?? []).filter(filterTask) })),
+    [sprints, search, memberFilter]
+  );
+  const filteredBacklog = useMemo(() => backlogTasks.filter(filterTask), [backlogTasks, search, memberFilter]);
+
+  const selectedTask = useMemo(() => {
+    if (!selectedTaskId) return null;
+    for (const sprint of sprints) {
+      const t = (sprint.tasks ?? []).find(t => t.id === selectedTaskId);
+      if (t) return t;
+    }
+    return backlogTasks.find(t => t.id === selectedTaskId) ?? null;
+  }, [selectedTaskId, sprints, backlogTasks]);
+
+  const createSprintMutation = useMutation({
+    mutationFn: () => SprintsService.Sprints_sprintsCreateWorkspaceSprint({ workspaceId, requestBody: {} }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
+      toast.success('Sprint created');
+    },
+    onError: () => toast.error('Failed to create sprint'),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ taskId, sprintId }: { taskId: string; sprintId: string | null }) =>
+      TasksService.Tasks_tasksUpdateTask({ taskId, requestBody: { sprintId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-backlog', workspaceId] });
+    },
+    onError: () => {
+      toast.error('Failed to move task');
+      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-backlog', workspaceId] });
+    },
+  });
+
+  function onDragEnd(result: DropResult) {
+    const { draggableId, destination, source } = result;
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    const destId = destination.droppableId;
+    const newSprintId = destId === 'backlog' ? null : destId.replace('sprint:', '');
+
+    queryClient.setQueryData<SprintWithTasks[]>(['workspace-sprints', workspaceId], old => {
+      if (!old) return old;
+      let movedTask: TaskPublic | undefined;
+      const next = old.map(s => {
+        const tasks = s.tasks ?? [];
+        const idx = tasks.findIndex(t => t.id === draggableId);
+        if (idx === -1) return s;
+        movedTask = tasks[idx];
+        return { ...s, tasks: tasks.filter(t => t.id !== draggableId) };
+      });
+      if (newSprintId && movedTask) {
+        return next.map(s => {
+          const tasks = s.tasks ?? [];
+          return s.id === newSprintId
+            ? { ...s, tasks: [...tasks.slice(0, destination.index), movedTask!, ...tasks.slice(destination.index)] }
+            : s;
+        });
+      }
+      return next;
+    });
+
+    if (!newSprintId) {
+      const task = sprints.flatMap(s => s.tasks ?? []).find(t => t.id === draggableId);
+      if (task) {
+        queryClient.setQueryData<TaskPublic[]>(['workspace-backlog', workspaceId], old => {
+          if (!old) return [task];
+          const filtered = old.filter(t => t.id !== draggableId);
+          return [...filtered.slice(0, destination.index), task, ...filtered.slice(destination.index)];
+        });
+      }
+    } else {
+      queryClient.setQueryData<TaskPublic[]>(
+        ['workspace-backlog', workspaceId],
+        old => old?.filter(t => t.id !== draggableId)
+      );
+    }
+
+    updateTaskMutation.mutate({ taskId: draggableId, sprintId: newSprintId });
+  }
+
+  const isLoading = sprintsQuery.isLoading || backlogQuery.isLoading;
+
+  // projectId needed by SprintSection/BacklogSection for their own mutations
+  // Fall back to first backlog task's projectId if no sprints yet
+  const resolvedProjectId = projectId ?? backlogTasks[0]?.projectId ?? '';
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: `${token('space.400')} ${token('space.500')}` }}>
-        <PageHeader>Backlog</PageHeader>
+    <div style={{ height: '100%', overflowY: 'auto', position: 'relative' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px', paddingRight: showInsights ? 344 : 24, transition: 'padding-right 0.2s ease' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#172B4D', margin: '0 0 16px' }}>Backlog</h1>
 
-        {/* Toolbar */}
-        <div style={{ marginBottom: token('space.400'), display: 'flex', gap: token('space.200'), alignItems: 'center' }}>
-          <div style={{ width: 240 }}>
-            <Textfield
-              value={search}
-              onChange={e => setSearch((e.target as HTMLInputElement).value)}
-              placeholder="Search backlog"
-              aria-label="Search backlog"
-            />
+        <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ width: 220 }}>
+            <Textfield value={search} onChange={e => setSearch((e.target as HTMLInputElement).value)} placeholder="Search backlog" aria-label="Search backlog" />
+          </div>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            {members.slice(0, 5).map(m => (
+              <button
+                key={m.userId}
+                title={m.fullName ?? m.email}
+                onClick={() => setMemberFilter(memberFilter === m.userId ? null : m.userId)}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  backgroundColor: memberFilter === m.userId ? '#579DFF' : '#0052CC',
+                  border: memberFilter === m.userId ? '2px solid #1D7AFC' : '2px solid transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, color: '#fff', fontWeight: 600, padding: 0,
+                }}
+              >
+                {m.avatarUrl ? <img src={m.avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} /> : (m.fullName ?? m.email).slice(0, 2).toUpperCase()}
+              </button>
+            ))}
           </div>
           <Button appearance="subtle">Filter</Button>
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={() => setShowInsights(v => !v)}
+            title="Toggle Backlog Insights"
+            style={{
+              width: 32, height: 32, borderRadius: 4,
+              border: showInsights ? '1px solid #579DFF' : '1px solid #DFE1E6',
+              backgroundColor: showInsights ? 'rgba(29,122,252,0.1)' : '#FFFFFF',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: showInsights ? '#579DFF' : '#97A0AF',
+            }}
+          >
+            <GraphLineIcon label="insights" size="small" />
+          </button>
         </div>
 
-        <Stack space="space.300">
-          {sprints.map(sprint => (
-            <SprintSection
-              key={sprint.id}
-              sprint={sprint}
-              onCompleteSprintClick={() => {/* TODO: open complete sprint modal */}}
-            />
-          ))}
-          <BacklogSection tasks={backlogTasks} />
-        </Stack>
+        {isLoading ? (
+          <div style={{ padding: 40, textAlign: 'center' }}><span style={{ fontSize: 13, color: '#97A0AF' }}>Loading...</span></div>
+        ) : (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {filteredSprints.map(sprint => (
+                <SprintSection key={sprint.id} sprint={sprint} allSprints={sprints} projectId={sprint.projectId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} />
+              ))}
+              <BacklogSection tasks={filteredBacklog} projectId={resolvedProjectId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} onCreateSprint={() => createSprintMutation.mutate()} />
+            </div>
+          </DragDropContext>
+        )}
       </div>
+
+      {showInsights && resolvedProjectId && (
+        <InsightsPanel projectId={resolvedProjectId} sprints={sprints} onClose={() => setShowInsights(false)} />
+      )}
+
+      <TaskDetailDrawer open={!!selectedTaskId} onClose={() => setSelectedTaskId(null)} task={selectedTask ?? null} workspaceId={workspaceId} projectMembers={members} />
     </div>
   );
 }
+

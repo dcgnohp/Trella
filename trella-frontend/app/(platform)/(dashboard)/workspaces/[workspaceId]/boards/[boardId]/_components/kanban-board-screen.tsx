@@ -11,11 +11,14 @@ import {
 } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
 import { useBoardRealtime } from "@/lib/realtime/use-realtime";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TaskDetailDrawer } from "@/components/task-detail-drawer";
+import { useAuth } from "@/components/providers/auth-provider";
 
 import { BoardHeader } from "./board-header";
 import { KanbanBoard } from "./kanban-board";
+import { StandupPanel } from "./standup-panel";
+import { ManageWorkflowModal } from "./manage-workflow-modal";
+import { EMPTY_FILTERS, type FilterState } from "./filter-panel";
 
 interface KanbanBoardScreenProps {
   workspaceId: string;
@@ -27,6 +30,10 @@ export const KanbanBoardScreen = ({
   boardId,
 }: KanbanBoardScreenProps) => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [standupActive, setStandupActive] = useState(false);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
+  const { user } = useAuth();
 
   const boardQuery = useQuery({
     queryKey: queryKeys.board(boardId),
@@ -92,6 +99,32 @@ export const KanbanBoardScreen = ({
     return tasksQuery.data.find((t) => t.id === selectedTaskId) ?? null;
   }, [selectedTaskId, tasksQuery.data]);
 
+  // Group subtasks by parentId across ALL tasks (including hidden subtasks)
+  const subtasksByParent = useMemo(() => {
+    const map = new Map<string, import("@/lib/client").TaskPublic[]>();
+    for (const t of tasksQuery.data ?? []) {
+      if (t.parentId) {
+        const list = map.get(t.parentId) ?? [];
+        list.push(t);
+        map.set(t.parentId, list);
+      }
+    }
+    return map;
+  }, [tasksQuery.data]);
+
+  const filteredTasks = useMemo(() => {
+    const all = tasksQuery.data ?? [];
+    return all.filter(task => {
+      // Subtasks (parentId set) are shown inside task detail — not on the main board
+      if (task.parentId) return false;
+      if (filters.onlyMine && task.assigneeId !== user?.id) return false;
+      if (!filters.onlyMine && filters.assigneeId && task.assigneeId !== filters.assigneeId) return false;
+      if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.customStatusId ?? "")) return false;
+      if (filters.typeFilter && (task.type ?? "task").toLowerCase() !== filters.typeFilter.toLowerCase()) return false;
+      return true;
+    });
+  }, [tasksQuery.data, filters, user?.id]);
+
   const isLoading =
     boardQuery.isLoading ||
     columnsQuery.isLoading ||
@@ -132,29 +165,56 @@ export const KanbanBoardScreen = ({
 
   const board = boardQuery.data;
   const columns = columnsQuery.data ?? [];
-  const tasks = tasksQuery.data ?? [];
   const customStatuses = customStatusesQuery.data ?? [];
+  const members = projectMembersQuery.data ?? [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F4F5F7', overflow: 'hidden' }}>
-      <BoardHeader board={board} workspaceId={workspaceId} canManageStatuses={canManageQuery.data?.canManage ?? false} />
-      <main style={{ flex: 1, overflowX: 'auto', padding: '16px 20px' }}>
-        <KanbanBoard
-          boardId={boardId}
+    <div style={{ display: "flex", height: "100%", backgroundColor: "#F4F5F7", overflow: "hidden" }}>
+      {standupActive && (
+        <StandupPanel members={members} onClose={() => setStandupActive(false)} />
+      )}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+        <BoardHeader
+          board={board}
           workspaceId={workspaceId}
-          columns={columns}
-          tasks={tasks}
+          canManageStatuses={canManageQuery.data?.canManage ?? false}
+          filters={filters}
+          onFiltersChange={setFilters}
+          projectMembers={members}
           customStatuses={customStatuses}
-          projectMembers={projectMembersQuery.data ?? []}
-          onTaskClick={(task) => setSelectedTaskId(task.id)}
+          currentUserId={user?.id ?? null}
+          onStartStandup={() => setStandupActive(true)}
+          onManageWorkflow={() => setWorkflowOpen(true)}
         />
-      </main>
+        <main style={{ flex: 1, overflowX: "auto", padding: "16px 20px" }}>
+          <KanbanBoard
+            boardId={boardId}
+            workspaceId={workspaceId}
+            columns={columns}
+            tasks={filteredTasks}
+            subtasksByParent={subtasksByParent}
+            customStatuses={customStatuses}
+            projectMembers={members}
+            onTaskClick={(task) => setSelectedTaskId(task.id)}
+          />
+        </main>
+      </div>
 
       <TaskDetailDrawer
         open={!!selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
         task={selectedTask}
         actorNames={actorNames}
+        workspaceId={workspaceId}
+        projectMembers={members}
+        columns={columns}
+      />
+
+      <ManageWorkflowModal
+        open={workflowOpen}
+        onClose={() => setWorkflowOpen(false)}
+        boardName={board.title}
+        customStatuses={customStatuses}
       />
     </div>
   );

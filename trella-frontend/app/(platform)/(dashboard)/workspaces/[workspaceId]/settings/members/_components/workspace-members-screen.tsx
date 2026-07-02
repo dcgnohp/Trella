@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import DeleteIcon from "@atlaskit/icon/core/delete";
 import PeopleGroupIcon from "@atlaskit/icon/core/people-group";
+import SearchIcon from "@atlaskit/icon/core/search";
+import ChevronDownIcon from "@atlaskit/icon/core/chevron-down";
+import ShowMoreHorizontalIcon from "@atlaskit/icon/core/show-more-horizontal";
 import Spinner from "@atlaskit/spinner";
 
-import {
-  WorkspaceMembersService,
-  type WorkspaceMemberPublic,
-} from "@/lib/client";
+import { WorkspaceMembersService, type WorkspaceMemberPublic } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/providers/auth-provider";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { AddWorkspaceMemberDialog } from "./add-workspace-member-dialog";
 
@@ -31,54 +27,31 @@ function initialsFor(fullName: string | null | undefined, email: string): string
   return name.slice(0, 2).toUpperCase();
 }
 
-const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "secondary"> = {
-  ACTIVE: "success",
-  PENDING: "warning",
-  DECLINED: "secondary",
-  REMOVED: "destructive",
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const STATUS_COLOR: Record<string, { bg: string; text: string; border: string }> = {
+  ACTIVE:   { bg: '#E3FCEF', text: '#006644', border: '#57D9A3' },
+  PENDING:  { bg: '#FFFAE6', text: '#974F0C', border: '#FFD60A' },
+  DECLINED: { bg: '#F4F5F7', text: '#5E6C84', border: '#C1C7D0' },
+  REMOVED:  { bg: '#FFEBE6', text: '#BF2600', border: '#FF8F73' },
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: "Active",
-  PENDING: "Pending",
-  DECLINED: "Declined",
-  REMOVED: "Removed",
-};
-
-const ROLE_LABEL: Record<string, string> = {
-  OWNER: "Owner",
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  MEMBER: "Member",
-  VIEWER: "Viewer",
-};
-
-export const WorkspaceMembersScreen = ({
-  workspaceId,
-}: WorkspaceMembersScreenProps) => {
+export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
 
   const membersQuery = useQuery({
     queryKey: queryKeys.workspaceMembers(workspaceId),
-    queryFn: () =>
-      WorkspaceMembersService.WorkspaceMembers_workspaceMembersListMembers({
-        workspaceId,
-      }),
+    queryFn: () => WorkspaceMembersService.WorkspaceMembers_workspaceMembersListMembers({ workspaceId }),
   });
-
-  useEffect(() => {
-    if (membersQuery.isError) {
-      toast.error("Failed to load workspace members");
-    }
-  }, [membersQuery.isError]);
 
   const removeMutation = useMutation({
     mutationFn: (userId: string) =>
-      WorkspaceMembersService.WorkspaceMembers_workspaceMembersRemoveMember({
-        workspaceId,
-        userId,
-      }),
+      WorkspaceMembersService.WorkspaceMembers_workspaceMembersRemoveMember({ workspaceId, userId }),
     onSuccess: () => {
       toast.success("Member removed");
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaceMembers(workspaceId) });
@@ -88,172 +61,273 @@ export const WorkspaceMembersScreen = ({
 
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
 
-  const existingUserIds = useMemo(
-    () => new Set(members.map((m) => m.userId)),
-    [members],
-  );
+  const existingUserIds = useMemo(() => new Set(members.map(m => m.userId)), [members]);
 
-  const currentMembership = useMemo(
-    () => members.find((m) => m.userId === user?.id),
-    [members, user?.id],
-  );
+  const currentMembership = useMemo(() => members.find(m => m.userId === user?.id), [members, user?.id]);
+  const isAdmin = currentMembership?.role === "OWNER" || currentMembership?.role === "ADMIN";
 
-  const isAdmin =
-    currentMembership?.role === "OWNER" || currentMembership?.role === "ADMIN";
+  const filtered = useMemo(() => members.filter(m => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || m.email.toLowerCase().includes(q) || (m.fullName ?? '').toLowerCase().includes(q);
+    const matchRole = !roleFilter || m.role === roleFilter;
+    return matchSearch && matchRole;
+  }), [members, search, roleFilter]);
+
+  // Stat counts
+  const total = members.length;
+  const active = members.filter(m => m.status === 'ACTIVE').length;
+  const admins = members.filter(m => m.role === 'OWNER' || m.role === 'ADMIN').length;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Workspace Members
-          </h1>
-          <p className="text-sm text-muted-foreground">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 32px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, color: '#172B4D' }}>Users</h1>
+          <p style={{ margin: '6px 0 0', fontSize: 13, color: '#5E6C84' }}>
             Manage who has access to this workspace.
           </p>
         </div>
-        {isAdmin ? (
-          <AddWorkspaceMemberDialog
-            workspaceId={workspaceId}
-            existingUserIds={existingUserIds}
-          />
-        ) : null}
-      </header>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isAdmin && (
+            <AddWorkspaceMemberDialog workspaceId={workspaceId} existingUserIds={existingUserIds} />
+          )}
+          <button style={{
+            background: 'none', border: '1px solid #DFE1E6', borderRadius: 4,
+            padding: '0 12px', height: 32, cursor: 'pointer', color: '#5E6C84',
+            display: 'flex', alignItems: 'center',
+          }}>
+            <ShowMoreHorizontalIcon label="More" size="small" />
+          </button>
+        </div>
+      </div>
 
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+        <StatCard label="Total users" count={total} />
+        <StatCard label="Active users" count={active} />
+        <StatCard label="Managed accounts" count={0} info />
+        <StatCard label="Organization admins" count={admins} />
+      </div>
+
+      {/* Filters bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          border: '1px solid #DFE1E6', borderRadius: 4, padding: '0 10px', height: 32,
+          backgroundColor: '#FFFFFF',
+        }}>
+          <span style={{ color: '#97A0AF', display: 'flex' }}><SearchIcon label="" size="small" /></span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or email"
+            style={{ background: 'none', border: 'none', outline: 'none', fontSize: 13, color: '#172B4D', width: 180 }}
+          />
+        </div>
+
+        <FilterDropdown
+          label="Role"
+          value={roleFilter}
+          options={[
+            { value: '', label: 'All roles' },
+            { value: 'OWNER', label: 'Owner' },
+            { value: 'ADMIN', label: 'Admin' },
+            { value: 'MEMBER', label: 'Member' },
+            { value: 'VIEWER', label: 'Viewer' },
+          ]}
+          onChange={setRoleFilter}
+        />
+      </div>
+
+      {/* Results label */}
+      <p style={{ fontSize: 13, color: '#5E6C84', marginBottom: 12 }}>
+        Showing results ({filtered.length})
+      </p>
+
+      {/* Table */}
       {membersQuery.isLoading ? (
-        <MembersTableSkeleton />
-      ) : membersQuery.isError ? (
-        <p className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-6 text-sm text-destructive">
-          Failed to load workspace members.
-        </p>
-      ) : members.length === 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spinner size="medium" /></div>
+      ) : filtered.length === 0 ? (
         <EmptyState />
       ) : (
         <MembersTable
-          members={members}
+          members={filtered}
           currentUserId={user?.id}
           isAdmin={isAdmin}
           removingUserId={removeMutation.isPending ? removeMutation.variables : undefined}
-          onRemove={(userId) => removeMutation.mutate(userId)}
+          onRemove={uid => removeMutation.mutate(uid)}
         />
       )}
     </div>
   );
 };
 
-const MembersTable = ({
-  members,
-  currentUserId,
-  isAdmin,
-  removingUserId,
-  onRemove,
-}: {
+function StatCard({ label, count, info }: { label: string; count: number; info?: boolean }) {
+  return (
+    <div style={{
+      border: '1px solid #DFE1E6', borderRadius: 6, padding: '16px 20px',
+      backgroundColor: '#FFFFFF',
+    }}>
+      <div style={{ fontSize: 13, color: '#5E6C84', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {info && <span style={{ fontSize: 11, color: '#97A0AF', border: '1px solid #DFE1E6', borderRadius: '50%', width: 14, height: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'help' }} title="Managed accounts are users whose accounts are owned by your organization.">i</span>}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: '#172B4D' }}>{count}</div>
+    </div>
+  );
+}
+
+function FilterDropdown({ label, value, options, onChange }: {
+  label: string; value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          appearance: 'none', border: '1px solid #DFE1E6', borderRadius: 4,
+          padding: '0 32px 0 12px', height: 32, fontSize: 13, color: '#172B4D',
+          backgroundColor: '#FFFFFF', cursor: 'pointer', outline: 'none',
+        }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.value === '' ? label : o.label}</option>)}
+      </select>
+      <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#5E6C84', display: 'flex' }}>
+        <ChevronDownIcon label="" size="small" />
+      </span>
+    </div>
+  );
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  OWNER: 'Organization admin',
+  ADMIN: 'Admin',
+  MANAGER: 'Manager',
+  MEMBER: 'Member',
+  VIEWER: 'Viewer',
+};
+
+function MembersTable({ members, currentUserId, isAdmin, removingUserId, onRemove }: {
   members: WorkspaceMemberPublic[];
   currentUserId: string | undefined;
   isAdmin: boolean;
   removingUserId: string | undefined;
   onRemove: (userId: string) => void;
-}) => (
-  <div className="overflow-hidden rounded-md border">
-    <table className="w-full text-sm">
+}) {
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr className="border-b bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          <th className="px-4 py-3 font-medium">Member</th>
-          <th className="px-4 py-3 font-medium">Email</th>
-          <th className="px-4 py-3 font-medium">Role</th>
-          <th className="px-4 py-3 font-medium">Status</th>
-          {isAdmin ? <th className="px-4 py-3 font-medium w-12" /> : null}
+        <tr style={{ borderBottom: '1px solid #DFE1E6' }}>
+          <th style={{ padding: '10px 12px', textAlign: 'left', color: '#5E6C84', fontWeight: 500 }}>User</th>
+          <th style={{ padding: '10px 12px', textAlign: 'left', color: '#5E6C84', fontWeight: 500 }}>Status</th>
+          <th style={{ padding: '10px 12px', textAlign: 'left', color: '#5E6C84', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+            Last seen
+            <span style={{ fontSize: 11, color: '#97A0AF', border: '1px solid #DFE1E6', borderRadius: '50%', width: 14, height: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'help' }} title="Date the user last accessed this workspace">i</span>
+          </th>
+          <th style={{ padding: '10px 12px', textAlign: 'right', color: '#5E6C84', fontWeight: 500 }}>Actions</th>
         </tr>
       </thead>
-      <tbody className="divide-y">
-        {members.map((member) => {
+      <tbody>
+        {members.map(member => {
           const label = member.fullName?.trim() || member.email;
           const isSelf = member.userId === currentUserId;
           const isRemoving = removingUserId === member.userId;
-          const canRemove = isAdmin && !isSelf && member.status !== "REMOVED";
+          const canRemove = isAdmin && !isSelf && member.status !== 'REMOVED';
+          const statusStyle = STATUS_COLOR[member.status] ?? STATUS_COLOR.DECLINED;
+          const initials = initialsFor(member.fullName, member.email);
+
           return (
-            <tr key={member.id} className="hover:bg-muted/20">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="text-xs">
-                      {initialsFor(member.fullName, member.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex items-center gap-2">
-                    <span className={member.status === "REMOVED" ? "font-medium text-muted-foreground line-through" : "font-medium"}>
-                      {label}
-                    </span>
-                    {isSelf ? (
-                      <Badge variant="outline" className="rounded px-1.5 py-0">
-                        You
-                      </Badge>
-                    ) : null}
+            <tr key={member.id} style={{ borderBottom: '1px solid #F4F5F7' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#FAFBFC'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
+            >
+              {/* User col */}
+              <td style={{ padding: '12px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    background: 'linear-gradient(135deg,#0052CC,#6554C0)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 12, fontWeight: 700,
+                  }}>
+                    {initials}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 500, color: '#172B4D', fontSize: 14 }}>{label}</span>
+                      {isSelf && <span style={{ fontSize: 11, color: '#5E6C84', border: '1px solid #DFE1E6', borderRadius: 3, padding: '0 5px' }}>You</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#5E6C84', marginTop: 1 }}>
+                      {member.email} · {ROLE_LABEL[member.role] ?? member.role}
+                    </div>
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
-              <td className="px-4 py-3 text-muted-foreground">{ROLE_LABEL[member.role] ?? member.role}</td>
-              <td className="px-4 py-3">
-                <Badge
-                  variant={STATUS_VARIANT[member.status] ?? "secondary"}
-                  className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                >
-                  {STATUS_LABEL[member.status] ?? member.status}
-                </Badge>
+
+              {/* Status col */}
+              <td style={{ padding: '12px 12px' }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: statusStyle.text,
+                  backgroundColor: statusStyle.bg,
+                  border: `1px solid ${statusStyle.border}`,
+                  padding: '2px 8px', borderRadius: 3,
+                  textTransform: 'uppercase', letterSpacing: '0.04em',
+                }}>
+                  {member.status}
+                </span>
               </td>
-              {isAdmin ? (
-                <td className="px-4 py-3">
-                  {canRemove ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      disabled={isRemoving}
-                      onClick={() => onRemove(member.userId)}
-                    >
-                      {isRemoving ? (
-                        <Spinner size="small" />
-                      ) : (
-                        <span style={{ display: 'flex', alignItems: 'center' }}><DeleteIcon label="Remove" size="small" /></span>
-                      )}
-                    </Button>
-                  ) : null}
-                </td>
-              ) : null}
+
+              {/* Last seen col */}
+              <td style={{ padding: '12px 12px', color: '#5E6C84', fontSize: 13 }}>
+                {formatDate(member.updatedAt)}
+              </td>
+
+              {/* Actions col */}
+              <td style={{ padding: '12px 12px', textAlign: 'right' }}>
+                {canRemove ? (
+                  <button
+                    disabled={isRemoving}
+                    onClick={() => onRemove(member.userId)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#5E6C84', padding: 4, borderRadius: 4,
+                      display: 'inline-flex', alignItems: 'center',
+                    }}
+                    title="Remove member"
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(9,30,66,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    {isRemoving ? <Spinner size="small" /> : <DeleteIcon label="Remove" size="small" />}
+                  </button>
+                ) : (
+                  <button style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: '#5E6C84', padding: 4, borderRadius: 4,
+                    display: 'inline-flex', alignItems: 'center',
+                  }}>
+                    <ShowMoreHorizontalIcon label="More" size="small" />
+                  </button>
+                )}
+              </td>
             </tr>
           );
         })}
       </tbody>
     </table>
-  </div>
-);
-
-const MembersTableSkeleton = () => (
-  <div className="overflow-hidden rounded-md border">
-    <div className="border-b bg-muted/40 px-4 py-3">
-      <Skeleton className="h-4 w-24" />
-    </div>
-    <div className="divide-y">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="flex items-center gap-3 px-4 py-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-6 w-16" />
-        </div>
-      ))}
-    </div>
-  </div>
-);
+  );
+}
 
 const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center rounded-md border border-dashed px-6 py-16 text-center">
-    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: '#97A0AF' }}><PeopleGroupIcon label="" size="medium" /></span>
-    <p className="text-sm font-medium">No members yet</p>
-    <p className="mt-1 text-sm text-muted-foreground">
-      Invite people to join this workspace.
-    </p>
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', border: '1px dashed #DFE1E6', borderRadius: 6, textAlign: 'center' }}>
+    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: '#97A0AF' }}>
+      <PeopleGroupIcon label="" size="medium" />
+    </span>
+    <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#172B4D' }}>No members yet</p>
+    <p style={{ margin: '4px 0 0', fontSize: 13, color: '#5E6C84' }}>Invite people to join this workspace.</p>
   </div>
 );

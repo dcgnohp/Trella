@@ -18,6 +18,7 @@ class TaskUpdate(CamelModel):
     description: str | None = None
     priority: str | None = None
     due_date: datetime | None = None
+    assignee_id: uuid.UUID | None = None
     custom_status_id: uuid.UUID | None = None
     column_id: uuid.UUID | None = None
     # Jira-mode fields
@@ -25,10 +26,16 @@ class TaskUpdate(CamelModel):
     story_point: int | None = None
     sprint_id: uuid.UUID | None = None
     epic_id: uuid.UUID | None = None
+    parent_id: uuid.UUID | None = None
 
 
 class TaskCreate(CamelModel):
     title: str
+    type: str | None = None
+    parent_id: uuid.UUID | None = None
+    due_date: datetime | None = None
+    assignee_id: uuid.UUID | None = None
+    story_point: int | None = None
 
 
 class AssigneeUpdate(CamelModel):
@@ -57,5 +64,7 @@ class TaskPublic(CamelModel):
     story_point: int | None = None
     sprint_id: uuid.UUID | None = None
     epic_id: uuid.UUID | None = None
+    parent_id: uuid.UUID | None = None
+    issue_key: str | None = None
     created_at: datetime
     updated_at: datetime

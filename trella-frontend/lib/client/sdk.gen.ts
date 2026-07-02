@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse } from './types.gen';
+import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BacklogGetBacklogData, BacklogGetBacklogResponse, BacklogGetWorkspaceBacklogData, BacklogGetWorkspaceBacklogResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, EpicsCreateEpicData, EpicsCreateEpicResponse, EpicsListEpicsData, EpicsListEpicsResponse, EpicsGetEpicData, EpicsGetEpicResponse, EpicsUpdateEpicData, EpicsUpdateEpicResponse, EpicsDeleteEpicData, EpicsDeleteEpicResponse, EpicsGetEpicProgressData, EpicsGetEpicProgressResponse, EpicsAddTaskToEpicData, EpicsAddTaskToEpicResponse, EpicsRemoveTaskFromEpicData, EpicsRemoveTaskFromEpicResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, ProjectMembersSearchMembersData, ProjectMembersSearchMembersResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, SprintsCreateSprintData, SprintsCreateSprintResponse, SprintsListSprintsData, SprintsListSprintsResponse, SprintsGetSprintData, SprintsGetSprintResponse, SprintsUpdateSprintData, SprintsUpdateSprintResponse, SprintsDeleteSprintData, SprintsDeleteSprintResponse, SprintsStartSprintData, SprintsStartSprintResponse, SprintsCompleteSprintData, SprintsCompleteSprintResponse, SprintsAddTaskToSprintData, SprintsAddTaskToSprintResponse, SprintsRemoveTaskFromSprintData, SprintsRemoveTaskFromSprintResponse, SprintsGetSprintInsightsData, SprintsGetSprintInsightsResponse, SprintsListWorkspaceSprintsData, SprintsListWorkspaceSprintsResponse, SprintsCreateWorkspaceSprintData, SprintsCreateWorkspaceSprintResponse, TasksGetTaskData, TasksGetTaskResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, TasksUpdateStoryPointData, TasksUpdateStoryPointResponse, TasksListSubtasksData, TasksListSubtasksResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, VelocityConfigGetVelocityConfigData, VelocityConfigGetVelocityConfigResponse, VelocityConfigUpdateVelocityConfigData, VelocityConfigUpdateVelocityConfigResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspacesSwitchWorkspaceModeData, WorkspacesSwitchWorkspaceModeResponse } from './types.gen';
 
 export class ActivityLogsService {
     /**
@@ -211,6 +211,50 @@ export class AuditLogsService {
             url: '/api/v1/cards/{card_id}/audit-logs',
             path: {
                 card_id: data.cardId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class BacklogService {
+    /**
+     * Get Backlog
+     * Return all tasks not assigned to a sprint (backlog).
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Backlog_backlogGetBacklog(data: BacklogGetBacklogData): CancelablePromise<BacklogGetBacklogResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/backlog',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Workspace Backlog
+     * Return backlog tasks for the primary project of a workspace.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Backlog_backlogGetWorkspaceBacklog(data: BacklogGetWorkspaceBacklogData): CancelablePromise<BacklogGetWorkspaceBacklogResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/backlog',
+            path: {
+                workspace_id: data.workspaceId
             },
             errors: {
                 422: 'Validation Error'
@@ -985,6 +1029,178 @@ export class CustomStatusesService {
     }
 }
 
+export class EpicsService {
+    /**
+     * Create Epic
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns EpicPublic Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsCreateEpic(data: EpicsCreateEpicData): CancelablePromise<EpicsCreateEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/epics',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Epics
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns EpicPublic Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsListEpics(data: EpicsListEpicsData): CancelablePromise<EpicsListEpicsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/epics',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Epic
+     * @param data The data for the request.
+     * @param data.epicId
+     * @returns EpicWithTasksPublic Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsGetEpic(data: EpicsGetEpicData): CancelablePromise<EpicsGetEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/epics/{epic_id}',
+            path: {
+                epic_id: data.epicId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Epic
+     * @param data The data for the request.
+     * @param data.epicId
+     * @param data.requestBody
+     * @returns EpicPublic Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsUpdateEpic(data: EpicsUpdateEpicData): CancelablePromise<EpicsUpdateEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/epics/{epic_id}',
+            path: {
+                epic_id: data.epicId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Epic
+     * @param data The data for the request.
+     * @param data.epicId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsDeleteEpic(data: EpicsDeleteEpicData): CancelablePromise<EpicsDeleteEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/epics/{epic_id}',
+            path: {
+                epic_id: data.epicId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Epic Progress
+     * @param data The data for the request.
+     * @param data.epicId
+     * @returns EpicProgressPublic Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsGetEpicProgress(data: EpicsGetEpicProgressData): CancelablePromise<EpicsGetEpicProgressResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/epics/{epic_id}/progress',
+            path: {
+                epic_id: data.epicId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Add Task To Epic
+     * @param data The data for the request.
+     * @param data.epicId
+     * @param data.taskId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsAddTaskToEpic(data: EpicsAddTaskToEpicData): CancelablePromise<EpicsAddTaskToEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/epics/{epic_id}/tasks/{task_id}',
+            path: {
+                epic_id: data.epicId,
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Task From Epic
+     * @param data The data for the request.
+     * @param data.epicId
+     * @param data.taskId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Epics_epicsRemoveTaskFromEpic(data: EpicsRemoveTaskFromEpicData): CancelablePromise<EpicsRemoveTaskFromEpicResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/epics/{epic_id}/tasks/{task_id}',
+            path: {
+                epic_id: data.epicId,
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class ListsService {
     /**
      * @deprecated
@@ -1277,6 +1493,31 @@ export class OrganizationsService {
 
 export class ProjectMembersService {
     /**
+     * Search Members
+     * Search ACTIVE project members by name or email (case-insensitive substring).
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.q Search query for name or email
+     * @returns ProjectMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static ProjectMembers_projectMembersSearchMembers(data: ProjectMembersSearchMembersData): CancelablePromise<ProjectMembersSearchMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/members/search',
+            path: {
+                project_id: data.projectId
+            },
+            query: {
+                q: data.q
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Add Member
      * @param data The data for the request.
      * @param data.projectId
@@ -1437,7 +1678,14 @@ export class ProjectsService {
             }
         });
     }
-
+    
+    /**
+     * Get Project
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ProjectPublic Successful Response
+     * @throws ApiError
+     */
     public static Projects_projectsGetProject(data: ProjectsGetProjectData): CancelablePromise<ProjectsGetProjectResponse> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -1452,7 +1700,291 @@ export class ProjectsService {
     }
 }
 
+export class SprintsService {
+    /**
+     * Create Sprint
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsCreateSprint(data: SprintsCreateSprintData): CancelablePromise<SprintsCreateSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/sprints',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Sprints
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns SprintWithTasks Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsListSprints(data: SprintsListSprintsData): CancelablePromise<SprintsListSprintsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/sprints',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsGetSprint(data: SprintsGetSprintData): CancelablePromise<SprintsGetSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/sprints/{sprint_id}',
+            path: {
+                sprint_id: data.sprintId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @param data.requestBody
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsUpdateSprint(data: SprintsUpdateSprintData): CancelablePromise<SprintsUpdateSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/sprints/{sprint_id}',
+            path: {
+                sprint_id: data.sprintId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsDeleteSprint(data: SprintsDeleteSprintData): CancelablePromise<SprintsDeleteSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/sprints/{sprint_id}',
+            path: {
+                sprint_id: data.sprintId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Start Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @param data.requestBody
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsStartSprint(data: SprintsStartSprintData): CancelablePromise<SprintsStartSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/sprints/{sprint_id}/start',
+            path: {
+                sprint_id: data.sprintId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Complete Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @param data.requestBody
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsCompleteSprint(data: SprintsCompleteSprintData): CancelablePromise<SprintsCompleteSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/sprints/{sprint_id}/complete',
+            path: {
+                sprint_id: data.sprintId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Add Task To Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @param data.taskId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsAddTaskToSprint(data: SprintsAddTaskToSprintData): CancelablePromise<SprintsAddTaskToSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/sprints/{sprint_id}/tasks/{task_id}',
+            path: {
+                sprint_id: data.sprintId,
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Task From Sprint
+     * @param data The data for the request.
+     * @param data.sprintId
+     * @param data.taskId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsRemoveTaskFromSprint(data: SprintsRemoveTaskFromSprintData): CancelablePromise<SprintsRemoveTaskFromSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/sprints/{sprint_id}/tasks/{task_id}',
+            path: {
+                sprint_id: data.sprintId,
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Sprint Insights
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.sprintId
+     * @returns SprintInsights Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsGetSprintInsights(data: SprintsGetSprintInsightsData): CancelablePromise<SprintsGetSprintInsightsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/sprints/{sprint_id}/insights',
+            path: {
+                project_id: data.projectId,
+                sprint_id: data.sprintId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Workspace Sprints
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns SprintWithTasks Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsListWorkspaceSprints(data: SprintsListWorkspaceSprintsData): CancelablePromise<SprintsListWorkspaceSprintsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/sprints',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Workspace Sprint
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns SprintPublic Successful Response
+     * @throws ApiError
+     */
+    public static Sprints_sprintsCreateWorkspaceSprint(data: SprintsCreateWorkspaceSprintData): CancelablePromise<SprintsCreateWorkspaceSprintResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/sprints',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class TasksService {
+    /**
+     * Get Task
+     * Fetch a single Task by id; raises HTTP 404 if not found.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksGetTask(data: TasksGetTaskData): CancelablePromise<TasksGetTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/{task_id}',
+            path: {
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
     /**
      * Update Task
      * Apply a partial update to a Task; raises HTTP 404 if not found.
@@ -1521,6 +2053,51 @@ export class TasksService {
             }
         });
     }
+    
+    /**
+     * Update Story Point
+     * Update the story point estimate for a task.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @param data.requestBody
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksUpdateStoryPoint(data: TasksUpdateStoryPointData): CancelablePromise<TasksUpdateStoryPointResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/tasks/{task_id}/story-point',
+            path: {
+                task_id: data.taskId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Subtasks
+     * Return all direct subtasks of a task.
+     * @param data The data for the request.
+     * @param data.taskId
+     * @returns TaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static Tasks_tasksListSubtasks(data: TasksListSubtasksData): CancelablePromise<TasksListSubtasksResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/{task_id}/subtasks',
+            path: {
+                task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class UsersService {
@@ -1557,6 +2134,53 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/users/me'
+        });
+    }
+}
+
+export class VelocityConfigService {
+    /**
+     * Get Velocity Config
+     * Return the velocity config for a workspace. Creates a default (4 h/point) if none exists.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns VelocityConfigPublic Successful Response
+     * @throws ApiError
+     */
+    public static VelocityConfig_velocityConfigGetVelocityConfig(data: VelocityConfigGetVelocityConfigData): CancelablePromise<VelocityConfigGetVelocityConfigResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/velocity-config',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Velocity Config
+     * Update hours_per_point for a workspace's velocity config. Requires workspace ADMIN.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns VelocityConfigPublic Successful Response
+     * @throws ApiError
+     */
+    public static VelocityConfig_velocityConfigUpdateVelocityConfig(data: VelocityConfigUpdateVelocityConfigData): CancelablePromise<VelocityConfigUpdateVelocityConfigResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workspaces/{workspace_id}/velocity-config',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
         });
     }
 }
@@ -1646,29 +2270,7 @@ export class WorkspaceMembersService {
             }
         });
     }
-
-    /**
-     * Remove Member
-     * @param data The data for the request.
-     * @param data.workspaceId
-     * @param data.userId
-     * @returns void Successful Response
-     * @throws ApiError
-     */
-    public static WorkspaceMembers_workspaceMembersRemoveMember(data: WorkspaceMembersRemoveMemberData): CancelablePromise<WorkspaceMembersRemoveMemberResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/workspaces/{workspace_id}/members/{user_id}',
-            path: {
-                workspace_id: data.workspaceId,
-                user_id: data.userId,
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-
+    
     /**
      * List Invitations
      * @param data The data for the request.
@@ -1683,6 +2285,54 @@ export class WorkspaceMembersService {
             query: {
                 type: data.type
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Member
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.userId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static WorkspaceMembers_workspaceMembersRemoveMember(data: WorkspaceMembersRemoveMemberData): CancelablePromise<WorkspaceMembersRemoveMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workspaces/{workspace_id}/members/{user_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class WorkspacesService {
+    /**
+     * Switch Workspace Mode
+     * Switch workspace mode between TRELLO and JIRA. OWNER only.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns OrganizationPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workspaces_workspacesSwitchWorkspaceMode(data: WorkspacesSwitchWorkspaceModeData): CancelablePromise<WorkspacesSwitchWorkspaceModeResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workspaces/{workspace_id}/mode',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }

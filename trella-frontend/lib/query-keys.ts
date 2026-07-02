@@ -64,6 +64,18 @@ export const queryKeys = {
 
   /** The current user's unread-notification badge count. */
   notificationsUnreadCount: () => ["notifications", "unread-count"] as const,
+
+  /** Sprints list for a project (includes tasks). */
+  projectSprints: (projectId: string) =>
+    ["project-sprints", projectId] as const,
+
+  /** Backlog tasks for a project (tasks with no sprint). */
+  projectBacklog: (projectId: string) =>
+    ["project-backlog", projectId] as const,
+
+  /** Sprint insights for a specific sprint in a project. */
+  sprintInsights: (projectId: string, sprintId: string) =>
+    ["sprint-insights", projectId, sprintId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

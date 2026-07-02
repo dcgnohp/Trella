@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import timedelta
 from typing import Any, Protocol
 
 from fastapi import HTTPException, status
@@ -10,9 +11,11 @@ from app.core.rbac import Action, RBACService
 from app.models.enums import ActivityAction, NotificationType, UserAccountStatus
 from app.models.tasks_model import Task
 from app.models.users_model import User
+from app.repositories.board_columns_repository import BoardColumnsRepository
 from app.repositories.custom_statuses_repository import CustomStatusesRepository
 from app.repositories.project_members_repository import ProjectMembersRepository
 from app.repositories.tasks_repository import TasksRepository
+from app.repositories.velocity_config_repository import VelocityConfigRepository
 from app.services.activity_logs_service import ActivityLogsService
 from app.services.notifications_service import NotificationService
 
@@ -24,6 +27,7 @@ _UPDATABLE_FIELDS = frozenset(
         "description",
         "priority",
         "due_date",
+        "assignee_id",
         "custom_status_id",
         "column_id",
         # Jira-mode fields
@@ -31,6 +35,7 @@ _UPDATABLE_FIELDS = frozenset(
         "story_point",
         "sprint_id",
         "epic_id",
+        "parent_id",
     }
 )
 
@@ -48,6 +53,7 @@ class TasksService:
         rbac_service: RBACService | None = None,
         activity_logs_service: ActivityLogsService | None = None,
         notification_service: NotificationService | None = None,
+        velocity_config_repo: VelocityConfigRepository | None = None,
     ) -> None:
         self.repo = repo or TasksRepository()
         self.custom_statuses_repo = custom_statuses_repo or CustomStatusesRepository()
@@ -55,6 +61,8 @@ class TasksService:
         self.rbac_service = rbac_service or RBACService()
         self.activity_logs_service = activity_logs_service or ActivityLogsService()
         self.notification_service = notification_service or NotificationService()
+        self.velocity_config_repo = velocity_config_repo or VelocityConfigRepository()
+        self.board_columns_repo = BoardColumnsRepository()
 
     # ------------------------------------------------------------------ #
     # Internal helpers                                                   #
@@ -157,6 +165,21 @@ class TasksService:
         except Exception:  # noqa: BLE001 — never fail the caller on a push.
             logger.warning("realtime push failed for task %s", task.id, exc_info=True)
 
+    def _compute_due_date_from_story_point(
+        self,
+        session: Session,
+        workspace_id: uuid.UUID,
+        task: Task,
+        story_point: int,
+    ) -> None:
+        """Set task.due_date based on story_point * hours_per_point / 8 days from task.created_at."""
+        config = self.velocity_config_repo.get_by_workspace(session, workspace_id)
+        hours_per_point = config.hours_per_point if config is not None else 4.0
+        days = story_point * hours_per_point / 8.0
+        from app.core.base import utcnow
+        base = task.created_at if task.created_at else utcnow()
+        task.due_date = base + timedelta(days=days)
+
     # ------------------------------------------------------------------ #
     # update_task                                                        #
     # ------------------------------------------------------------------ #
@@ -186,6 +209,20 @@ class TasksService:
         for field, value in updates.items():
             if field in _UPDATABLE_FIELDS:
                 setattr(task, field, value)
+
+        # When custom_status_id changes, find the matching board column and update column_id.
+        if "custom_status_id" in updates and updates["custom_status_id"] is not None:
+            new_status = self.custom_statuses_repo.get(session, updates["custom_status_id"])
+            if new_status and new_status.canonical_status and task.board_id:
+                canonical = new_status.canonical_status.upper()
+                columns = self.board_columns_repo.list_by_board(session, task.board_id)
+                match = next((c for c in columns if c.status_key.upper() == canonical), None)
+                if match:
+                    task.column_id = match.id
+
+        # Auto-calculate due_date when story_point is set and due_date not explicitly provided.
+        if "story_point" in updates and updates["story_point"] is not None and "due_date" not in updates:
+            self._compute_due_date_from_story_point(session, workspace_id, task, updates["story_point"])
 
         status_changed = task.custom_status_id != old_custom_status_id
         priority_changed = "priority" in updates and task.priority != old_priority
@@ -380,11 +417,12 @@ class TasksService:
         story_point: int,
         user: User,
     ) -> Task:
-        """Set story_point on a task. Requires MANAGE_TASK."""
+        """Set story_point on a task and auto-calculate due_date. Requires MANAGE_TASK."""
         task = self._load(session, task_id)
         project_id, workspace_id = self._resolve_scope(session, task)
         self.rbac_service.check(session, Action.MANAGE_TASK, user=user, project_id=project_id)
         task.story_point = story_point
+        self._compute_due_date_from_story_point(session, workspace_id, task, story_point)
         try:
             task = self.repo.update(session, task)
             session.commit()
@@ -402,6 +440,17 @@ class TasksService:
             session, Action.VIEW_PROJECT_RESOURCE, user=user, project_id=project_id
         )
         return self.repo.list_backlog(session, project_id)
+
+    def list_subtasks(
+        self, session: Session, task_id: uuid.UUID, user: User
+    ) -> list[Task]:
+        """Return direct subtasks of a task. Requires VIEW_PROJECT_RESOURCE."""
+        task = self._load(session, task_id)
+        project_id, _workspace_id = self._resolve_scope(session, task)
+        self.rbac_service.check(
+            session, Action.VIEW_PROJECT_RESOURCE, user=user, project_id=project_id
+        )
+        return self.repo.list_subtasks(session, task_id)
 
     def unset_assignee(
         self,

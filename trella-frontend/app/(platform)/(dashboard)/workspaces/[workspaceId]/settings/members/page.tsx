@@ -1,7 +1,7 @@
 import { WorkspaceMembersScreen } from "./_components/workspace-members-screen";
 
 export const metadata = {
-  title: "Workspace Members",
+  title: "Users",
 };
 
 const WorkspaceMembersPage = ({

@@ -91,3 +91,24 @@ class ProjectMembersRepository:
             )
         )
         return session.exec(statement).first()
+
+    def search_active(
+        self, session: Session, project_id: uuid.UUID, query: str
+    ) -> list[ProjectMember]:
+        """Return ACTIVE members whose user name or email contains ``query`` (case-insensitive)."""
+        from sqlalchemy import or_
+        q = f"%{query.lower()}%"
+        statement = (
+            select(ProjectMember)
+            .join(User, User.id == ProjectMember.user_id)
+            .where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.status == MemberStatus.ACTIVE.value,
+                or_(
+                    func.lower(User.full_name).like(q),
+                    func.lower(User.email).like(q),
+                ),
+            )
+            .order_by(col(ProjectMember.created_at))
+        )
+        return list(session.exec(statement).all())

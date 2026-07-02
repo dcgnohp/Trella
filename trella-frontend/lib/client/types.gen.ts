@@ -263,6 +263,72 @@ export type CustomStatusUpdate = {
     canonicalStatus?: (CanonicalStatus | null);
 };
 
+export type EpicCreate = {
+    title: string;
+    description?: (string | null);
+    priority?: (string | null);
+    dueDate?: (string | null);
+    storyPoint?: (number | null);
+};
+
+export type EpicProgressPublic = {
+    epicId: string;
+    totalTasks: number;
+    completedTasks: number;
+    storyPointsTotal: number;
+    storyPointsCompleted: number;
+    completionPercentage: number;
+};
+
+export type EpicPublic = {
+    id: string;
+    projectId: string;
+    boardId: string;
+    columnId: string;
+    title: string;
+    description: (string | null);
+    priority: string;
+    dueDate: (string | null);
+    assigneeId: (string | null);
+    customStatusId: (string | null);
+    position: number;
+    type: string;
+    storyPoint: (number | null);
+    sprintId: (string | null);
+    epicId: (string | null);
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type EpicUpdate = {
+    title?: (string | null);
+    description?: (string | null);
+    priority?: (string | null);
+    dueDate?: (string | null);
+    storyPoint?: (number | null);
+};
+
+export type EpicWithTasksPublic = {
+    id: string;
+    projectId: string;
+    boardId: string;
+    columnId: string;
+    title: string;
+    description: (string | null);
+    priority: string;
+    dueDate: (string | null);
+    assigneeId: (string | null);
+    customStatusId: (string | null);
+    position: number;
+    type: string;
+    storyPoint: (number | null);
+    sprintId: (string | null);
+    epicId: (string | null);
+    createdAt: string;
+    updatedAt: string;
+    childTasks?: Array<TaskPublic>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -391,8 +457,82 @@ export type ProjectPublic = {
     updatedAt: string;
 };
 
+export type SprintComplete = {
+    moveOpenTo?: string;
+};
+
+export type SprintCreate = {
+    name?: (string | null);
+    goal?: (string | null);
+    startDate?: (string | null);
+    endDate?: (string | null);
+};
+
+export type SprintInsights = {
+    commitment: {
+        [key: string]: unknown;
+    };
+    workTypes: {
+        [key: string]: unknown;
+    };
+};
+
+export type SprintPublic = {
+    id: string;
+    projectId: string;
+    name: string;
+    goal: (string | null);
+    status: string;
+    startDate: (string | null);
+    endDate: (string | null);
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type SprintStart = {
+    name?: (string | null);
+    goal?: (string | null);
+    startDate: string;
+    endDate: string;
+};
+
+export type SprintUpdate = {
+    name?: (string | null);
+    goal?: (string | null);
+    startDate?: (string | null);
+    endDate?: (string | null);
+};
+
+/**
+ * Sprint list item — includes tasks + kanban status counts.
+ */
+export type SprintWithTasks = {
+    id: string;
+    projectId: string;
+    name: string;
+    goal: (string | null);
+    status: string;
+    startDate: (string | null);
+    endDate: (string | null);
+    createdAt: string;
+    updatedAt: string;
+    tasks?: Array<TaskPublic>;
+    todoCount?: number;
+    inProgressCount?: number;
+    doneCount?: number;
+};
+
+export type StoryPointUpdate = {
+    storyPoint: number;
+};
+
 export type TaskCreate = {
     title: string;
+    type?: (string | null);
+    parentId?: (string | null);
+    dueDate?: (string | null);
+    assigneeId?: (string | null);
+    storyPoint?: (number | null);
 };
 
 export type TaskPublic = {
@@ -408,6 +548,12 @@ export type TaskPublic = {
     customStatusId: (string | null);
     customStatus?: (CustomStatusEmbed | null);
     position: number;
+    type?: string;
+    storyPoint?: (number | null);
+    sprintId?: (string | null);
+    epicId?: (string | null);
+    parentId?: (string | null);
+    issueKey?: (string | null);
     createdAt: string;
     updatedAt: string;
 };
@@ -420,8 +566,14 @@ export type TaskUpdate = {
     description?: (string | null);
     priority?: (string | null);
     dueDate?: (string | null);
+    assigneeId?: (string | null);
     customStatusId?: (string | null);
     columnId?: (string | null);
+    type?: (string | null);
+    storyPoint?: (number | null);
+    sprintId?: (string | null);
+    epicId?: (string | null);
+    parentId?: (string | null);
 };
 
 /**
@@ -468,6 +620,16 @@ export type ValidationError = {
     };
 };
 
+export type VelocityConfigPublic = {
+    id: string;
+    workspaceId: string;
+    hoursPerPoint: number;
+};
+
+export type VelocityConfigUpdate = {
+    hoursPerPoint: number;
+};
+
 export type WorkspaceInvite = {
     email: string;
     role: string;
@@ -478,12 +640,16 @@ export type WorkspaceMemberPublic = {
     workspaceId: string;
     userId: string;
     email: string;
-    fullName: (string | null);
+    fullName?: (string | null);
     role: string;
     status: string;
     invitedBy?: (string | null);
     createdAt: string;
     updatedAt: string;
+};
+
+export type WorkspaceModeUpdate = {
+    mode: string;
 };
 
 export type ActivityLogsListTaskActivityData = {
@@ -548,6 +714,18 @@ export type AuditLogsListCardAuditLogsData = {
 };
 
 export type AuditLogsListCardAuditLogsResponse = (Array<AuditLogPublic>);
+
+export type BacklogGetBacklogData = {
+    projectId: string;
+};
+
+export type BacklogGetBacklogResponse = (Array<TaskPublic>);
+
+export type BacklogGetWorkspaceBacklogData = {
+    workspaceId: string;
+};
+
+export type BacklogGetWorkspaceBacklogResponse = (Array<TaskPublic>);
 
 export type BoardMembersAddMemberData = {
     boardId: string;
@@ -777,6 +955,60 @@ export type CustomStatusesSetCustomStatusMappingData = {
 
 export type CustomStatusesSetCustomStatusMappingResponse = (CustomStatusPublic);
 
+export type EpicsCreateEpicData = {
+    projectId: string;
+    requestBody: EpicCreate;
+};
+
+export type EpicsCreateEpicResponse = (EpicPublic);
+
+export type EpicsListEpicsData = {
+    projectId: string;
+};
+
+export type EpicsListEpicsResponse = (Array<EpicPublic>);
+
+export type EpicsGetEpicData = {
+    epicId: string;
+};
+
+export type EpicsGetEpicResponse = (EpicWithTasksPublic);
+
+export type EpicsUpdateEpicData = {
+    epicId: string;
+    requestBody: EpicUpdate;
+};
+
+export type EpicsUpdateEpicResponse = (EpicPublic);
+
+export type EpicsDeleteEpicData = {
+    epicId: string;
+};
+
+export type EpicsDeleteEpicResponse = (void);
+
+export type EpicsGetEpicProgressData = {
+    epicId: string;
+};
+
+export type EpicsGetEpicProgressResponse = (EpicProgressPublic);
+
+export type EpicsAddTaskToEpicData = {
+    epicId: string;
+    taskId: string;
+};
+
+export type EpicsAddTaskToEpicResponse = ({
+    [key: string]: unknown;
+});
+
+export type EpicsRemoveTaskFromEpicData = {
+    epicId: string;
+    taskId: string;
+};
+
+export type EpicsRemoveTaskFromEpicResponse = (void);
+
 export type ListsCreateListData = {
     requestBody: ListCreate;
 };
@@ -854,6 +1086,16 @@ export type OrganizationsDeleteOrganizationData = {
 
 export type OrganizationsDeleteOrganizationResponse = (void);
 
+export type ProjectMembersSearchMembersData = {
+    projectId: string;
+    /**
+     * Search query for name or email
+     */
+    q?: string;
+};
+
+export type ProjectMembersSearchMembersResponse = (Array<ProjectMemberPublic>);
+
 export type ProjectMembersAddMemberData = {
     projectId: string;
     requestBody: MemberAdd;
@@ -909,6 +1151,94 @@ export type ProjectsGetProjectData = {
 
 export type ProjectsGetProjectResponse = (ProjectPublic);
 
+export type SprintsCreateSprintData = {
+    projectId: string;
+    requestBody: SprintCreate;
+};
+
+export type SprintsCreateSprintResponse = (SprintPublic);
+
+export type SprintsListSprintsData = {
+    projectId: string;
+};
+
+export type SprintsListSprintsResponse = (Array<SprintWithTasks>);
+
+export type SprintsGetSprintData = {
+    sprintId: string;
+};
+
+export type SprintsGetSprintResponse = (SprintPublic);
+
+export type SprintsUpdateSprintData = {
+    requestBody: SprintUpdate;
+    sprintId: string;
+};
+
+export type SprintsUpdateSprintResponse = (SprintPublic);
+
+export type SprintsDeleteSprintData = {
+    sprintId: string;
+};
+
+export type SprintsDeleteSprintResponse = (void);
+
+export type SprintsStartSprintData = {
+    requestBody: SprintStart;
+    sprintId: string;
+};
+
+export type SprintsStartSprintResponse = (SprintPublic);
+
+export type SprintsCompleteSprintData = {
+    requestBody: SprintComplete;
+    sprintId: string;
+};
+
+export type SprintsCompleteSprintResponse = (SprintPublic);
+
+export type SprintsAddTaskToSprintData = {
+    sprintId: string;
+    taskId: string;
+};
+
+export type SprintsAddTaskToSprintResponse = ({
+    [key: string]: unknown;
+});
+
+export type SprintsRemoveTaskFromSprintData = {
+    sprintId: string;
+    taskId: string;
+};
+
+export type SprintsRemoveTaskFromSprintResponse = (void);
+
+export type SprintsGetSprintInsightsData = {
+    projectId: string;
+    sprintId: string;
+};
+
+export type SprintsGetSprintInsightsResponse = (SprintInsights);
+
+export type SprintsListWorkspaceSprintsData = {
+    workspaceId: string;
+};
+
+export type SprintsListWorkspaceSprintsResponse = (Array<SprintWithTasks>);
+
+export type SprintsCreateWorkspaceSprintData = {
+    requestBody: SprintCreate;
+    workspaceId: string;
+};
+
+export type SprintsCreateWorkspaceSprintResponse = (SprintPublic);
+
+export type TasksGetTaskData = {
+    taskId: string;
+};
+
+export type TasksGetTaskResponse = (TaskPublic);
+
 export type TasksUpdateTaskData = {
     requestBody: TaskUpdate;
     taskId: string;
@@ -929,6 +1259,19 @@ export type TasksUnsetAssigneeData = {
 
 export type TasksUnsetAssigneeResponse = (TaskPublic);
 
+export type TasksUpdateStoryPointData = {
+    requestBody: StoryPointUpdate;
+    taskId: string;
+};
+
+export type TasksUpdateStoryPointResponse = (TaskPublic);
+
+export type TasksListSubtasksData = {
+    taskId: string;
+};
+
+export type TasksListSubtasksResponse = (Array<TaskPublic>);
+
 export type UsersSignupData = {
     requestBody: UserRegister;
 };
@@ -936,6 +1279,19 @@ export type UsersSignupData = {
 export type UsersSignupResponse = (UserPublic);
 
 export type UsersReadCurrentUserResponse = (UserPublic);
+
+export type VelocityConfigGetVelocityConfigData = {
+    workspaceId: string;
+};
+
+export type VelocityConfigGetVelocityConfigResponse = (VelocityConfigPublic);
+
+export type VelocityConfigUpdateVelocityConfigData = {
+    requestBody: VelocityConfigUpdate;
+    workspaceId: string;
+};
+
+export type VelocityConfigUpdateVelocityConfigResponse = (VelocityConfigPublic);
 
 export type WorkspaceMembersInviteMemberData = {
     requestBody: WorkspaceInvite;
@@ -964,15 +1320,22 @@ export type WorkspaceMembersDeclineInvitationResponse = ({
     [key: string]: (boolean);
 });
 
-export type WorkspaceMembersRemoveMemberData = {
-    workspaceId: string;
-    userId: string;
-};
-
-export type WorkspaceMembersRemoveMemberResponse = void;
-
 export type WorkspaceMembersListInvitationsData = {
     type?: string;
 };
 
 export type WorkspaceMembersListInvitationsResponse = (Array<InvitationPublic>);
+
+export type WorkspaceMembersRemoveMemberData = {
+    userId: string;
+    workspaceId: string;
+};
+
+export type WorkspaceMembersRemoveMemberResponse = (void);
+
+export type WorkspacesSwitchWorkspaceModeData = {
+    requestBody: WorkspaceModeUpdate;
+    workspaceId: string;
+};
+
+export type WorkspacesSwitchWorkspaceModeResponse = (OrganizationPublic);

@@ -11,6 +11,7 @@ from app.repositories.projects_repository import ProjectsRepository
 from app.repositories.tasks_repository import (
     TasksRepository,
 )
+from app.repositories.velocity_config_repository import VelocityConfigRepository
 from app.schemas.board_columns_schema import (
     ColumnCreate,
     ColumnPublic,
@@ -31,6 +32,7 @@ _projects_repo = ProjectsRepository()
 _tasks_repo = TasksRepository()
 _activity_service = ActivityLogsService()
 _org_member_service = OrganizationMemberService()
+_velocity_config_repo = VelocityConfigRepository()
 
 
 @router.get("", response_model=list[ColumnPublic])
@@ -123,6 +125,27 @@ def create_task(
         raise HTTPException(status_code=500, detail="Owning project not found")
     _org_member_service.assert_member(session, project.workspace_id, current_user.id)
     position = _tasks_repo.max_position(session, column_id) + 1
+
+    # Auto-compute due_date from story_point if not explicitly provided.
+    computed_due_date = data.due_date
+    if data.story_point is not None and computed_due_date is None:
+        from datetime import timedelta
+        from app.core.base import utcnow
+        config = _velocity_config_repo.get_by_workspace(session, project.workspace_id)
+        hours_per_point = config.hours_per_point if config is not None else 4.0
+        days = data.story_point * hours_per_point / 8.0
+        computed_due_date = utcnow() + timedelta(days=days)
+
+    # Atomically increment project.task_counter and build issue_key
+    from sqlalchemy import text as sa_text
+    session.exec(  # type: ignore[call-overload]
+        sa_text("UPDATE projects SET task_counter = task_counter + 1 WHERE id = :pid"),
+        params={"pid": str(project.id)},
+    )
+    session.flush()
+    session.refresh(project)
+    issue_key = f"{project.key}-{project.task_counter}"
+
     try:
         task = _tasks_repo.create(
             session,
@@ -133,6 +156,12 @@ def create_task(
                 title=data.title,
                 priority=DEFAULT_TASK_PRIORITY,
                 position=position,
+                type=(data.type or "TASK").upper(),
+                parent_id=data.parent_id,
+                due_date=computed_due_date,
+                assignee_id=data.assignee_id,
+                story_point=data.story_point,
+                issue_key=issue_key,
             ),
         )
         _activity_service.record(
@@ -183,6 +212,12 @@ def create_task(
         custom_status_id=task.custom_status_id,
         custom_status=custom_status_embed,
         position=task.position,
+        type=getattr(task, "type", "TASK") or "TASK",
+        story_point=getattr(task, "story_point", None),
+        sprint_id=getattr(task, "sprint_id", None),
+        epic_id=getattr(task, "epic_id", None),
+        parent_id=getattr(task, "parent_id", None),
+        issue_key=getattr(task, "issue_key", None),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )

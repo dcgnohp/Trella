@@ -23,6 +23,7 @@ import BoardIcon from '@atlaskit/icon/core/board';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import ArrowRightIcon from '@atlaskit/icon/core/arrow-right';
 import LinkExternalIcon from '@atlaskit/icon/core/link-external';
+import SpeedIcon from '@atlaskit/icon/core/chart-trend-up';
 
 const S = {
   bg: '#FFFFFF',
@@ -226,13 +227,22 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
           ))
         )}
 
-        {/* Board + Status Mapping links when in a workspace */}
+        {/* Board + Settings links when in a workspace */}
         {workspaceId && (
           <NavItem
             href={`/workspaces/${workspaceId}/boards`}
             icon={<BoardIcon label="Board" size="small" />}
             label="Board"
             isActive={pathname.includes('/boards')}
+            collapsed={collapsed}
+          />
+        )}
+        {workspaceId && (
+          <NavItem
+            href={`/workspaces/${workspaceId}/settings/velocity`}
+            icon={<SpeedIcon label="Velocity" size="small" />}
+            label="Velocity"
+            isActive={pathname.includes('/settings/velocity')}
             collapsed={collapsed}
           />
         )}
