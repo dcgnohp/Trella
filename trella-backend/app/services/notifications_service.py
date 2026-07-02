@@ -4,11 +4,7 @@ from typing import Any
 from fastapi import HTTPException, status
 from sqlmodel import Session
 
-from app.core.notification_delivery import (
-    CompositeDelivery,
-    InAppDelivery,
-    NotificationDelivery,
-)
+from app.core.notification_delivery import InAppDelivery
 from app.models.enums import NotificationType
 from app.models.notifications_model import Notification
 from app.repositories.notifications_repository import (
@@ -21,12 +17,10 @@ from app.repositories.notifications_repository import (
 class NotificationService:
     def __init__(
         self,
-        delivery: NotificationDelivery | None = None,
+        delivery: InAppDelivery | None = None,
         repo: NotificationsRepository | None = None,
     ) -> None:
-        self.delivery: NotificationDelivery = delivery or CompositeDelivery(
-            [InAppDelivery()]
-        )
+        self.delivery = delivery or InAppDelivery()
         self.repo = repo or NotificationsRepository()
 
     def emit(

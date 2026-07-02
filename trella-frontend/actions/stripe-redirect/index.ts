@@ -1,10 +1,12 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/auth";
-import { createSafeAction } from "@/lib/create-safe-action";
 
 import { StripeRedirect } from "./schema";
-import { InputType, ReturnType } from "./types";
+import { z } from "zod";
+
+type InputType = z.infer<typeof StripeRedirect>;
+type ReturnType = ActionState<InputType, string>;
 
 const handler = async (_data: InputType): Promise<ReturnType> => {
   const user = await getCurrentUser();

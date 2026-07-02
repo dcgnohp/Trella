@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_, or_
 from sqlmodel import Session, col, select
 
+from app.core.pagination import clamp_limit
 from app.models.activity_logs_model import ActivityLog
 
 DEFAULT_LIMIT = 50
@@ -11,15 +12,6 @@ MAX_LIMIT = 200
 
 # A cursor is the ``(created_at, id)`` of the last row of the previous page.
 Cursor = tuple[datetime, uuid.UUID]
-
-
-def _clamp_limit(limit: int) -> int:
-    """Clamp a requested page size into the allowed [1, MAX_LIMIT] range."""
-    if limit < 1:
-        return 1
-    if limit > MAX_LIMIT:
-        return MAX_LIMIT
-    return limit
 
 
 class ActivityLogsRepository:
@@ -45,7 +37,7 @@ class ActivityLogsRepository:
         statement = statement.order_by(
             ActivityLog.created_at.desc(),  # type: ignore[attr-defined]
             ActivityLog.id.desc(),  # type: ignore[attr-defined]
-        ).limit(_clamp_limit(limit))
+        ).limit(clamp_limit(limit, MAX_LIMIT))
         return list(session.exec(statement).all())
 
     def list_for_project(
@@ -62,7 +54,7 @@ class ActivityLogsRepository:
         statement = statement.order_by(
             ActivityLog.created_at.desc(),  # type: ignore[attr-defined]
             ActivityLog.id.desc(),  # type: ignore[attr-defined]
-        ).limit(_clamp_limit(limit))
+        ).limit(clamp_limit(limit, MAX_LIMIT))
         return list(session.exec(statement).all())
 
     @staticmethod

@@ -66,19 +66,19 @@ class ActivityLogsService:
         """Stage and commit an ActivityLog; swallow all failures so the caller is never affected."""
         action_value = action.value if isinstance(action, ActivityAction) else action
         try:
-            activity_log = ActivityLog(
+            log = self.record(
+                session,
                 workspace_id=workspace_id,
                 project_id=project_id,
                 task_id=task_id,
-                actor_id=actor.id,
-                action=action_value,
+                actor=actor,
+                action=action,
                 old_value=old_value,
                 new_value=new_value,
             )
-            self.repo.create(session, activity_log)
             session.commit()
-            session.refresh(activity_log)
-            return activity_log
+            session.refresh(log)
+            return log
         except Exception:  # noqa: BLE001 — best-effort: swallow every failure.
             session.rollback()
             logger.warning(

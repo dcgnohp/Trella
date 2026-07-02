@@ -1,7 +1,7 @@
 import logging
 import uuid
 from datetime import timedelta
-from typing import Any, Protocol
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -18,6 +18,7 @@ from app.repositories.tasks_repository import TasksRepository
 from app.repositories.velocity_config_repository import VelocityConfigRepository
 from app.services.activity_logs_service import ActivityLogsService
 from app.services.notifications_service import NotificationService
+from app.schemas.tasks_schema import TaskUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +39,6 @@ _UPDATABLE_FIELDS = frozenset(
         "parent_id",
     }
 )
-
-
-class TaskUpdateData(Protocol):
-    def model_dump(self, *, exclude_unset: bool = ...) -> dict[str, Any]: ...
 
 
 class TasksService:
@@ -187,7 +184,7 @@ class TasksService:
         self,
         session: Session,
         task_id: uuid.UUID,
-        data: TaskUpdateData,
+        data: TaskUpdate,
         user: User,
     ) -> Task:
         """Apply a partial update to a Task. Requires MANAGE_TASK."""

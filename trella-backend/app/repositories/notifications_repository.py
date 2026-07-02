@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_, or_, update
 from sqlmodel import Session, col, func, select
 
+from app.core.pagination import clamp_limit
 from app.models.notifications_model import Notification
 
 DEFAULT_LIMIT = 20
@@ -11,15 +12,6 @@ MAX_LIMIT = 100
 
 # A cursor is the ``(created_at, id)`` of the last row of the previous page.
 Cursor = tuple[datetime, uuid.UUID]
-
-
-def _clamp_limit(limit: int) -> int:
-    """Clamp a requested page size into the allowed [1, MAX_LIMIT] range."""
-    if limit < 1:
-        return 1
-    if limit > MAX_LIMIT:
-        return MAX_LIMIT
-    return limit
 
 
 class NotificationsRepository:
@@ -50,7 +42,7 @@ class NotificationsRepository:
         statement = statement.order_by(
             Notification.created_at.desc(),  # type: ignore[attr-defined]
             Notification.id.desc(),  # type: ignore[attr-defined]
-        ).limit(_clamp_limit(limit))
+        ).limit(clamp_limit(limit, MAX_LIMIT))
         return list(session.exec(statement).all())
 
     def unread_count(self, session: Session, user_id: uuid.UUID) -> int:

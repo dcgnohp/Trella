@@ -6,11 +6,14 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getCurrentOrgId } from "@/lib/current-org";
 import { BoardsService } from "@/lib/client";
-import { createSafeAction } from "@/lib/create-safe-action";
+import { createSafeAction, ActionState } from "@/lib/create-safe-action";
 import { getApiErrorMessage } from "@/lib/action-error";
 
 import { DeleteBoard } from "./schema";
-import { InputType, ReturnType } from "./types";
+import { z } from "zod";
+
+type InputType = z.infer<typeof DeleteBoard>;
+type ReturnType = ActionState<InputType, void>;
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const user = await getCurrentUser();

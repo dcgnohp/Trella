@@ -1,19 +1,10 @@
 import logging
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
 # Forward-ref placeholder for app.models.notifications_model.Notification.
 Notification = Any
 
 logger = logging.getLogger(__name__)
-
-
-@runtime_checkable
-class NotificationDelivery(Protocol):
-    """Strategy for delivering an already-persisted Notification."""
-
-    def deliver(self, notification: Notification) -> None:
-        """Deliver notification over this channel. Never raises."""
-        ...
 
 
 class InAppDelivery:
@@ -57,31 +48,3 @@ class InAppDelivery:
         except Exception:  # noqa: BLE001 — module not present yet is expected
             return None
         return ws_manager
-
-
-class CompositeDelivery:
-    """Fan-out delivery across multiple channels. One failing channel never blocks the others."""
-
-    def __init__(self, channels: list[NotificationDelivery] | None = None) -> None:
-        self.channels: list[NotificationDelivery] = (
-            channels if channels is not None else [InAppDelivery()]
-        )
-
-    def deliver(self, notification: Notification) -> None:
-        """Deliver notification via every channel, each best-effort."""
-        for channel in self.channels:
-            try:
-                channel.deliver(notification)
-            except Exception:  # noqa: BLE001 — one channel must not block others
-                logger.warning(
-                    "CompositeDelivery: channel %s failed to deliver "
-                    "notification %s; continuing with remaining channels.",
-                    type(channel).__name__,
-                    getattr(notification, "id", "<unknown>"),
-                    exc_info=True,
-                )
-
-
-def default_delivery() -> CompositeDelivery:
-    """Return the default delivery stack (in-app only)."""
-    return CompositeDelivery([InAppDelivery()])
