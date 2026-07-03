@@ -211,6 +211,7 @@ def _add_workspace_member(
     status: MemberStatus = MemberStatus.ACTIVE,
 ) -> None:
     from app.models.workspace_members_model import WorkspaceMember
+
     session.add(
         WorkspaceMember(
             workspace_id=workspace_id,
@@ -453,7 +454,10 @@ def test_set_assignee_rejects_non_active_workspace_member(session: Session) -> N
     with pytest.raises(HTTPException) as exc:
         service.set_assignee(session, task.id, outsider.id, user)
     assert exc.value.status_code == 400
-    assert exc.value.detail == "Assignee must be an active member of the workspace/organization"
+    assert (
+        exc.value.detail
+        == "Assignee must be an active member of the workspace/organization"
+    )
     reloaded = session.get(Task, task.id)
     assert reloaded is not None
     assert reloaded.assignee_id is None

@@ -4,10 +4,10 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
 from app.core.rbac import Action, RBACService
+from app.models.enums import MemberStatus
 from app.models.users_model import User
 from app.models.velocity_config_model import VelocityConfig
 from app.models.workspace_members_model import WorkspaceMember
-from app.models.enums import MemberStatus
 from app.repositories.velocity_config_repository import VelocityConfigRepository
 
 

@@ -11,17 +11,23 @@ from app.endpoints.boards_router import router as boards_router
 from app.endpoints.canonical_statuses_router import router as canonical_statuses_router
 from app.endpoints.comments_router import router as comments_router
 from app.endpoints.custom_statuses_router import router as custom_statuses_router
+from app.endpoints.epics_router import router as epics_router
 from app.endpoints.notifications_router import router as notifications_router
-from app.endpoints.organizations_router import router as organizations_router, workspaces_router
+from app.endpoints.organizations_router import (
+    router as organizations_router,
+)
+from app.endpoints.organizations_router import (
+    workspaces_router,
+)
 from app.endpoints.project_members_router import router as project_members_router
 from app.endpoints.projects_router import router as projects_router
-from app.endpoints.task_cards_router import router as task_cards_router
-from app.endpoints.tasks_router import backlog_router, router as tasks_router
-from app.endpoints.users_router import router as users_router
-from app.endpoints.epics_router import router as epics_router
 from app.endpoints.sprints_router import router as sprints_router
-from app.endpoints.workspace_members_router import router as workspace_members_router
+from app.endpoints.task_cards_router import router as task_cards_router
+from app.endpoints.tasks_router import backlog_router
+from app.endpoints.tasks_router import router as tasks_router
+from app.endpoints.users_router import router as users_router
 from app.endpoints.velocity_config_router import router as velocity_config_router
+from app.endpoints.workspace_members_router import router as workspace_members_router
 
 api_router = APIRouter()
 

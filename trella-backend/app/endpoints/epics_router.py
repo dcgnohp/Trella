@@ -21,7 +21,7 @@ _service = EpicsService()
 _custom_statuses_repo = CustomStatusesRepository()
 
 
-def _task_to_epic_public(session: SessionDep, task: Task) -> EpicPublic:
+def _task_to_epic_public(_session: SessionDep, task: Task) -> EpicPublic:
     return EpicPublic(
         id=task.id,
         project_id=task.project_id,

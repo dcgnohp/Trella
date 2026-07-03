@@ -4,12 +4,13 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from app.core.deps import CurrentUser, SessionDep
-from app.models.tasks_model import Task
 from app.models.projects_model import Project
+from app.models.tasks_model import Task
 from app.repositories.custom_statuses_repository import CustomStatusesRepository
 from app.schemas.tasks_schema import (
     AssigneeUpdate,
     CustomStatusEmbed,
+    ParentUpdate,
     StoryPointUpdate,
     TaskPublic,
     TaskUpdate,
@@ -64,8 +65,8 @@ def get_task(
     task_id: uuid.UUID,
     current_user: CurrentUser,
 ) -> TaskPublic:
-    """Fetch a single Task by id; raises HTTP 404 if not found."""
-    task = _service._load(session, task_id)
+    """Fetch a single Task by id. Requires VIEW_PROJECT_RESOURCE."""
+    task = _service.get_task(session, task_id, current_user)
     return _to_public(session, task)
 
 
@@ -104,6 +105,18 @@ def unset_assignee(
     return _to_public(session, task)
 
 
+@router.put("/{task_id}/parent", response_model=TaskPublic)
+def set_parent(
+    session: SessionDep,
+    task_id: uuid.UUID,
+    data: ParentUpdate,
+    current_user: CurrentUser,
+) -> TaskPublic:
+    """Set or clear a Task's parent. Validates same-project, non-self, no cycle."""
+    task = _service.set_parent(session, task_id, data.parent_id, current_user)
+    return _to_public(session, task)
+
+
 @router.patch("/{task_id}/story-point", response_model=TaskPublic)
 def update_story_point(
     session: SessionDep,
@@ -130,10 +143,18 @@ def list_subtasks(
 backlog_router = APIRouter(tags=["backlog"])
 
 
-def _resolve_project_from_workspace(session: SessionDep, workspace_id: uuid.UUID) -> uuid.UUID:
-    project = session.exec(select(Project).where(Project.workspace_id == workspace_id)).first()
+def _resolve_project_from_workspace(
+    session: SessionDep, workspace_id: uuid.UUID
+) -> uuid.UUID:
+    project = session.exec(
+        select(Project)
+        .where(Project.workspace_id == workspace_id)
+        .order_by(Project.created_at)
+    ).first()
     if not project:
-        raise HTTPException(status_code=404, detail="No project found for this workspace")
+        raise HTTPException(
+            status_code=404, detail="No project found for this workspace"
+        )
     return project.id
 
 
@@ -148,7 +169,9 @@ def get_backlog(
     return [_to_public(session, t) for t in tasks]
 
 
-@backlog_router.get("/workspaces/{workspace_id}/backlog", response_model=list[TaskPublic])
+@backlog_router.get(
+    "/workspaces/{workspace_id}/backlog", response_model=list[TaskPublic]
+)
 def get_workspace_backlog(
     session: SessionDep,
     workspace_id: uuid.UUID,

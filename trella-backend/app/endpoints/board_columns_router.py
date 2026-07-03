@@ -130,7 +130,9 @@ def create_task(
     computed_due_date = data.due_date
     if data.story_point is not None and computed_due_date is None:
         from datetime import timedelta
+
         from app.core.base import utcnow
+
         config = _velocity_config_repo.get_by_workspace(session, project.workspace_id)
         hours_per_point = config.hours_per_point if config is not None else 4.0
         days = data.story_point * hours_per_point / 8.0
@@ -138,6 +140,7 @@ def create_task(
 
     # Atomically increment project.task_counter and build issue_key
     from sqlalchemy import text as sa_text
+
     session.exec(  # type: ignore[call-overload]
         sa_text("UPDATE projects SET task_counter = task_counter + 1 WHERE id = :pid"),
         params={"pid": str(project.id)},

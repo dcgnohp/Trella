@@ -3,10 +3,15 @@ import uuid
 from fastapi import APIRouter
 
 from app.core.deps import CurrentUser, SessionDep
-from app.schemas.velocity_config_schema import VelocityConfigPublic, VelocityConfigUpdate
+from app.schemas.velocity_config_schema import (
+    VelocityConfigPublic,
+    VelocityConfigUpdate,
+)
 from app.services.velocity_config_service import VelocityConfigService
 
-router = APIRouter(prefix="/workspaces/{workspace_id}/velocity-config", tags=["velocity-config"])
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/velocity-config", tags=["velocity-config"]
+)
 
 _service = VelocityConfigService()
 

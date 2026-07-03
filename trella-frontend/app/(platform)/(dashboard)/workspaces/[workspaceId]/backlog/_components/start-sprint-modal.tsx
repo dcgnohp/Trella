@@ -14,10 +14,11 @@ import { queryKeys } from '@/lib/query-keys';
 interface StartSprintModalProps {
   sprint: SprintWithTasks;
   projectId: string;
+  workspaceId: string;
   onClose: () => void;
 }
 
-export function StartSprintModal({ sprint, projectId, onClose }: StartSprintModalProps) {
+export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: StartSprintModalProps) {
   const queryClient = useQueryClient();
   const today = new Date();
   const twoWeeks = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
@@ -35,6 +36,7 @@ export function StartSprintModal({ sprint, projectId, onClose }: StartSprintModa
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
       toast.success(`${name} started`);
       onClose();
     },

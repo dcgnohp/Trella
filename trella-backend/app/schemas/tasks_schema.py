@@ -42,6 +42,10 @@ class AssigneeUpdate(CamelModel):
     assignee_id: uuid.UUID
 
 
+class ParentUpdate(CamelModel):
+    parent_id: uuid.UUID | None
+
+
 class StoryPointUpdate(CamelModel):
     story_point: int
 

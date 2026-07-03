@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, datetime
-from typing import Optional
 
 from app.core.base import CamelModel
 from app.schemas.tasks_schema import TaskPublic

@@ -21,6 +21,7 @@ interface SprintSectionProps {
   sprint: SprintWithTasks;
   allSprints: SprintWithTasks[];
   projectId: string;
+  workspaceId: string;
   members: ProjectMemberPublic[];
   customStatuses: CustomStatusPublic[];
   onTaskClick: (taskId: string) => void;
@@ -28,7 +29,7 @@ interface SprintSectionProps {
 
 type SprintMenu = 'rename' | 'edit-dates' | 'delete' | null;
 
-export function SprintSection({ sprint, allSprints, projectId, members, customStatuses, onTaskClick }: SprintSectionProps) {
+export function SprintSection({ sprint, allSprints, projectId, workspaceId, members, customStatuses, onTaskClick }: SprintSectionProps) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
   const [showStartModal, setShowStartModal] = useState(false);
@@ -48,6 +49,7 @@ export function SprintSection({ sprint, allSprints, projectId, members, customSt
       SprintsService.Sprints_sprintsUpdateSprint({ sprintId: sprint.id, requestBody: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
       toast.success('Sprint updated');
       setActiveDialog(null);
     },
@@ -58,6 +60,8 @@ export function SprintSection({ sprint, allSprints, projectId, members, customSt
     mutationFn: () => SprintsService.Sprints_sprintsDeleteSprint({ sprintId: sprint.id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
       toast.success('Sprint deleted');
       setActiveDialog(null);
     },
@@ -218,6 +222,7 @@ export function SprintSection({ sprint, allSprints, projectId, members, customSt
                       customStatuses={customStatuses}
                       onTaskClick={t => onTaskClick(t.id)}
                       projectId={projectId}
+                      workspaceId={workspaceId}
                     />
                   ))
                 )}
@@ -230,10 +235,10 @@ export function SprintSection({ sprint, allSprints, projectId, members, customSt
 
       {/* Modals */}
       {showStartModal && (
-        <StartSprintModal sprint={sprint} projectId={projectId} onClose={() => setShowStartModal(false)} />
+        <StartSprintModal sprint={sprint} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowStartModal(false)} />
       )}
       {showCompleteModal && (
-        <CompleteSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} onClose={() => setShowCompleteModal(false)} />
+        <CompleteSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowCompleteModal(false)} />
       )}
 
       {activeDialog === 'rename' && (

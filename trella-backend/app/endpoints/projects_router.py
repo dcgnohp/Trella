@@ -32,9 +32,11 @@ def create_project(
 def get_project(
     session: SessionDep,
     project_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> ProjectPublic:
     project = _repo.get(session, project_id)
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
     return ProjectPublic.model_validate(project)

@@ -76,6 +76,14 @@ export const queryKeys = {
   /** Sprint insights for a specific sprint in a project. */
   sprintInsights: (projectId: string, sprintId: string) =>
     ["sprint-insights", projectId, sprintId] as const,
+
+  /** Sprints list for a workspace-scoped backlog page (workspace → primary project). */
+  workspaceSprints: (workspaceId: string) =>
+    ["workspace-sprints", workspaceId] as const,
+
+  /** Backlog tasks for a workspace-scoped backlog page (workspace → primary project). */
+  workspaceBacklog: (workspaceId: string) =>
+    ["workspace-backlog", workspaceId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

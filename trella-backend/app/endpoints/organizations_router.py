@@ -2,10 +2,10 @@ import uuid
 
 from fastapi import APIRouter, status
 
+from app.core.base import CamelModel
 from app.core.deps import CurrentUser, SessionDep
 from app.schemas.organizations_schema import OrganizationCreate, OrganizationPublic
 from app.services.organizations_service import OrganizationsService
-from app.core.base import CamelModel
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 workspaces_router = APIRouter(prefix="/workspaces", tags=["workspaces"])

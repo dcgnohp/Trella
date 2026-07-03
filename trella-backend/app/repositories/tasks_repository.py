@@ -88,5 +88,7 @@ class TasksRepository:
 
     def list_subtasks(self, session: Session, parent_id: uuid.UUID) -> list[Task]:
         """Return all direct children (subtasks) of a task, ordered by position."""
-        statement = select(Task).where(Task.parent_id == parent_id).order_by(col(Task.position))
+        statement = (
+            select(Task).where(Task.parent_id == parent_id).order_by(col(Task.position))
+        )
         return list(session.exec(statement).all())

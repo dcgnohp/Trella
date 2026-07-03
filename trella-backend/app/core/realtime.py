@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import uuid
 from typing import Any
 
 from fastapi import WebSocket
@@ -72,11 +71,11 @@ class ConnectionManager:
 
     # -- push (callable from sync code) ------------------------------------
 
-    def push_to_user(
-        self, user_id: Any, event: str, payload: dict[str, Any]
-    ) -> None:
+    def push_to_user(self, user_id: Any, event: str, payload: dict[str, Any]) -> None:
         """Schedule a frame to every socket on a user channel. Never raises."""
-        self._schedule(self._user_channels.get(_key(user_id)), event, payload, user_id=user_id)
+        self._schedule(
+            self._user_channels.get(_key(user_id)), event, payload, user_id=user_id
+        )
 
     def push_to_project(
         self, project_id: Any, event: str, payload: dict[str, Any]
@@ -112,11 +111,11 @@ class ConnectionManager:
                 self._broadcast(targets, frame), self._loop
             )
         except Exception:  # noqa: BLE001 — best-effort; persistence already done
-            logger.warning("ws push failed to schedule for event %s", event, exc_info=True)
+            logger.warning(
+                "ws push failed to schedule for event %s", event, exc_info=True
+            )
 
-    async def _broadcast(
-        self, sockets: list[WebSocket], frame: dict[str, Any]
-    ) -> None:
+    async def _broadcast(self, sockets: list[WebSocket], frame: dict[str, Any]) -> None:
         for socket in sockets:
             try:
                 await socket.send_json(frame)

@@ -4,7 +4,6 @@ from fastapi import HTTPException, status
 from sqlmodel import Session
 
 from app.models.audit_logs_model import AuditAction, EntityType
-from app.models.board_columns_model import BoardColumn
 from app.models.boards_model import Board
 from app.models.users_model import User
 from app.repositories.board_lists_repository import BoardListsRepository
@@ -113,7 +112,7 @@ class BoardsService:
                 user,
                 org_id=data.org_id,
             )
-            
+
             # Auto-assign creator as BOARD_ADMIN
             from app.models.board_members_model import BoardMember
             from app.models.enums import BoardRole, MemberStatus

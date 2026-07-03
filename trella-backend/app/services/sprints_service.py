@@ -3,7 +3,8 @@ import uuid
 from typing import Any, Protocol
 
 from fastapi import HTTPException, status
-from sqlmodel import Session, select as sq_select
+from sqlmodel import Session
+from sqlmodel import select as sq_select
 
 from app.core.rbac import Action, RBACService
 from app.models.enums import SprintStatus
@@ -61,7 +62,9 @@ class SprintsService:
             )
         return project
 
-    def _resolve_workspace_id(self, session: Session, project_id: uuid.UUID) -> uuid.UUID:
+    def _resolve_workspace_id(
+        self, session: Session, project_id: uuid.UUID
+    ) -> uuid.UUID:
         return self._resolve_project(session, project_id).workspace_id
 
     @staticmethod
@@ -75,7 +78,9 @@ class SprintsService:
                 {"sprint_id": str(sprint.id), "project_id": str(sprint.project_id)},
             )
         except Exception:  # noqa: BLE001
-            logger.warning("realtime push failed for sprint %s", sprint.id, exc_info=True)
+            logger.warning(
+                "realtime push failed for sprint %s", sprint.id, exc_info=True
+            )
 
     def _is_task_done(self, session: Session, task: Task) -> bool:
         """Return True if the task's custom_status maps to DONE canonical status."""
@@ -167,10 +172,8 @@ class SprintsService:
         self, session: Session, project_id: uuid.UUID, user: User
     ) -> list[dict]:
         """Return sprints with their tasks and TODO/IN_PROGRESS/DONE counts."""
-        from app.models.custom_statuses_model import CustomStatus
         from app.models.enums import CanonicalStatus
         from app.repositories.custom_statuses_repository import CustomStatusesRepository
-        from app.repositories.projects_repository import ProjectsRepository
 
         self.rbac_service.check(
             session,
@@ -192,13 +195,23 @@ class SprintsService:
                 return cs_map[task.custom_status_id].canonical_status
             return None
 
-        result = []
-        for sprint in sprints:
-            tasks = list(
+        # Batch-load all tasks for these sprints in a single IN query instead of N queries
+        sprint_ids = [s.id for s in sprints]
+        if sprint_ids:
+            all_tasks = list(
                 session.exec(
-                    sq_select(Task).where(Task.sprint_id == sprint.id)
+                    sq_select(Task).where(Task.sprint_id.in_(sprint_ids))
                 ).all()
             )
+        else:
+            all_tasks = []
+        tasks_by_sprint: dict = {}
+        for t in all_tasks:
+            tasks_by_sprint.setdefault(t.sprint_id, []).append(t)
+
+        result = []
+        for sprint in sprints:
+            tasks = tasks_by_sprint.get(sprint.id, [])
             todo_count = 0
             in_progress_count = 0
             done_count = 0
@@ -211,13 +224,15 @@ class SprintsService:
                 else:
                     todo_count += 1
 
-            result.append({
-                "sprint": sprint,
-                "tasks": tasks,
-                "todo_count": todo_count,
-                "in_progress_count": in_progress_count,
-                "done_count": done_count,
-            })
+            result.append(
+                {
+                    "sprint": sprint,
+                    "tasks": tasks,
+                    "todo_count": todo_count,
+                    "in_progress_count": in_progress_count,
+                    "done_count": done_count,
+                }
+            )
         return result
 
     def update_sprint(
@@ -246,9 +261,7 @@ class SprintsService:
         session.refresh(sprint)
         return sprint
 
-    def delete_sprint(
-        self, session: Session, sprint_id: uuid.UUID, user: User
-    ) -> None:
+    def delete_sprint(self, session: Session, sprint_id: uuid.UUID, user: User) -> None:
         sprint = self._load(session, sprint_id)
         self.rbac_service.check(
             session,
@@ -256,21 +269,20 @@ class SprintsService:
             user=user,
             project_id=sprint.project_id,
         )
-        # Only PLANNED sprints with no tasks can be deleted
         if sprint.status != SprintStatus.PLANNED.value:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only PLANNED sprints can be deleted",
             )
+        # Auto-detach tasks back to the backlog before deleting
         tasks = list(
             session.exec(sq_select(Task).where(Task.sprint_id == sprint_id)).all()
         )
-        if tasks:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot delete a sprint that still has tasks — move tasks to backlog first",
-            )
+        for task in tasks:
+            task.sprint_id = None
+            session.add(task)
         try:
+            session.flush()
             self.repo.delete(session, sprint)
             session.commit()
         except Exception:
@@ -363,7 +375,11 @@ class SprintsService:
 
         move_open_to: str = "backlog"
         if data is not None:
-            fields = data.model_dump(exclude_unset=True) if hasattr(data, "model_dump") else {}
+            fields = (
+                data.model_dump(exclude_unset=True)
+                if hasattr(data, "model_dump")
+                else {}
+            )
             move_open_to = fields.get("move_open_to", "backlog")
 
         target_sprint_id: uuid.UUID | None = None
@@ -375,12 +391,22 @@ class SprintsService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="move_open_to must be 'backlog' or a valid sprint UUID",
                 )
-            # Validate target sprint exists in same project
+            # Validate target sprint exists in same project, is PLANNED, and is not self
             target_sprint = self.repo.get_by_id(session, target_sprint_id)
             if target_sprint is None or target_sprint.project_id != sprint.project_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Target sprint not found in this project",
+                )
+            if target_sprint.id == sprint.id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot move open tasks to the sprint being completed",
+                )
+            if target_sprint.status != SprintStatus.PLANNED.value:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Target sprint must be in PLANNED status",
                 )
 
         all_tasks = list(
@@ -495,7 +521,6 @@ class SprintsService:
         """Return commitment and work_type breakdown for a sprint."""
         from app.models.enums import CanonicalStatus
         from app.repositories.custom_statuses_repository import CustomStatusesRepository
-        from app.repositories.projects_repository import ProjectsRepository
 
         self.rbac_service.check(
             session,

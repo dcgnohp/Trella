@@ -18,12 +18,12 @@ import uuid
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from jwt.exceptions import InvalidTokenError
+from sqlmodel import Session
 
 from app.core import security
 from app.core.db import engine
 from app.core.rbac import RBACService
 from app.core.realtime import ws_manager
-from sqlmodel import Session
 
 router = APIRouter()
 

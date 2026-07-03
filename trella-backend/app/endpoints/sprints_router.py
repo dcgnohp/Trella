@@ -197,10 +197,19 @@ def get_sprint_insights(
     )
 
 
-def _resolve_project_from_workspace(session: SessionDep, workspace_id: uuid.UUID) -> uuid.UUID:
-    project = session.exec(select(Project).where(Project.workspace_id == workspace_id)).first()
+def _resolve_project_from_workspace(
+    session: SessionDep, workspace_id: uuid.UUID
+) -> uuid.UUID:
+    project = session.exec(
+        select(Project)
+        .where(Project.workspace_id == workspace_id)
+        .order_by(Project.created_at)
+    ).first()
     if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No project found for this workspace")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No project found for this workspace",
+        )
     return project.id
 
 

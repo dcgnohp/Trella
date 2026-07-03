@@ -23,9 +23,7 @@ _repo = WorkspaceMembersRepository()
 _org_member_service = OrganizationMemberService()
 
 
-def _to_public(
-    session: Session, membership: WorkspaceMember
-) -> WorkspaceMemberPublic:
+def _to_public(session: Session, membership: WorkspaceMember) -> WorkspaceMemberPublic:
     """Build a WorkspaceMemberPublic, enriching with the user's email/full name."""
     user = session.get(User, membership.user_id)
     return WorkspaceMemberPublic(

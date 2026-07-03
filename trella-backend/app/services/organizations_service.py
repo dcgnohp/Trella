@@ -172,7 +172,10 @@ class OrganizationsService:
         if old_mode == new_mode:
             return org
 
-        if old_mode == WorkspaceMode.TRELLO.value and new_mode == WorkspaceMode.JIRA.value:
+        if (
+            old_mode == WorkspaceMode.TRELLO.value
+            and new_mode == WorkspaceMode.JIRA.value
+        ):
             self._migrate_trello_to_jira(session, workspace_id)
 
         org.mode = new_mode
@@ -197,7 +200,9 @@ class OrganizationsService:
         from app.models.tasks_model import Task
 
         projects = list(
-            session.exec(select(Project).where(Project.workspace_id == workspace_id)).all()
+            session.exec(
+                select(Project).where(Project.workspace_id == workspace_id)
+            ).all()
         )
         for project in projects:
             # Create default Sprint 1 if none exists

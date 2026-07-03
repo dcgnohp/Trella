@@ -12,6 +12,7 @@ from app.models.projects_model import Project
 from app.services.organizations_service import OrganizationsService
 from app.services.organization_members_service import OrganizationMemberService
 
+
 def _user(session: Session, email: str) -> User:
     user = User(
         email=email,
@@ -24,6 +25,7 @@ def _user(session: Session, email: str) -> User:
     session.refresh(user)
     return user
 
+
 def test_delete_organization_cascade_and_roles(session: Session) -> None:
     service = OrganizationsService()
     member_service = OrganizationMemberService()
@@ -34,6 +36,7 @@ def test_delete_organization_cascade_and_roles(session: Session) -> None:
 
     # 2. Create organization (owner creates it)
     from app.schemas.organizations_schema import OrganizationCreate
+
     org = service.create_org(session, OrganizationCreate(name="My Org"), owner)
 
     # Confirm default custom statuses are seeded
@@ -43,9 +46,7 @@ def test_delete_organization_cascade_and_roles(session: Session) -> None:
     assert len(statuses) == 4
 
     # Confirm default project is seeded
-    projects = session.exec(
-        select(Project).where(Project.workspace_id == org.id)
-    ).all()
+    projects = session.exec(select(Project).where(Project.workspace_id == org.id)).all()
     assert len(projects) == 1
     project = projects[0]
 
@@ -57,7 +58,7 @@ def test_delete_organization_cascade_and_roles(session: Session) -> None:
             user_id=non_owner.id,
             role="MEMBER",
             status=MemberStatus.ACTIVE.value,
-        )
+        ),
     )
     session.commit()
 
@@ -81,9 +82,7 @@ def test_delete_organization_cascade_and_roles(session: Session) -> None:
     assert len(memberships) == 0
 
     # Confirm projects are deleted (cascade)
-    projs = session.exec(
-        select(Project).where(Project.workspace_id == org.id)
-    ).all()
+    projs = session.exec(select(Project).where(Project.workspace_id == org.id)).all()
     assert len(projs) == 0
 
     # Confirm custom statuses are deleted (cascade)

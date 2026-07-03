@@ -10,6 +10,7 @@ from app.models.tasks_model import Task
 from app.models.task_cards_model import Card
 from app.models.users_model import User
 
+
 def test_task_and_card_status_resolution(session: Session) -> None:
     # 1. Seed Workspace
     workspace = Workspace(name="Acme Corp")

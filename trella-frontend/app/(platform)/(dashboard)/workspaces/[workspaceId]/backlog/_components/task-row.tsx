@@ -47,9 +47,10 @@ interface TaskRowProps {
   customStatuses: CustomStatusPublic[];
   onTaskClick: (task: TaskPublic) => void;
   projectId: string;
+  workspaceId: string;
 }
 
-export function TaskRow({ task, index, droppableId, members, customStatuses, onTaskClick, projectId }: TaskRowProps) {
+export function TaskRow({ task, index, droppableId, members, customStatuses, onTaskClick, projectId, workspaceId }: TaskRowProps) {
   const queryClient = useQueryClient();
   const [hovered, setHovered] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
@@ -82,15 +83,27 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
         queryKeys.projectBacklog(projectId),
         old => old?.map(patchTask)
       );
+      queryClient.setQueryData<SprintWithTasks[]>(
+        queryKeys.workspaceSprints(workspaceId),
+        old => old?.map(s => ({ ...s, tasks: (s.tasks ?? []).map(patchTask) }))
+      );
+      queryClient.setQueryData<TaskPublic[]>(
+        queryKeys.workspaceBacklog(workspaceId),
+        old => old?.map(patchTask)
+      );
     },
     onError: () => {
       toast.error('Failed to update status');
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectBacklog(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectBacklog(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
     },
   });
 

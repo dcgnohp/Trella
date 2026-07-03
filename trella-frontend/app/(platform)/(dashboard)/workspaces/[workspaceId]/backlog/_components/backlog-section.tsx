@@ -15,13 +15,14 @@ import { TaskRow } from './task-row';
 interface BacklogSectionProps {
   tasks: TaskPublic[];
   projectId: string;
+  workspaceId: string;
   members: ProjectMemberPublic[];
   customStatuses: CustomStatusPublic[];
   onTaskClick: (taskId: string) => void;
   onCreateSprint: () => void;
 }
 
-export function BacklogSection({ tasks, projectId, members, customStatuses, onTaskClick, onCreateSprint }: BacklogSectionProps) {
+export function BacklogSection({ tasks, projectId, workspaceId, members, customStatuses, onTaskClick, onCreateSprint }: BacklogSectionProps) {
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -82,6 +83,7 @@ export function BacklogSection({ tasks, projectId, members, customStatuses, onTa
                     customStatuses={customStatuses}
                     onTaskClick={t => onTaskClick(t.id)}
                     projectId={projectId}
+                    workspaceId={workspaceId}
                   />
                 ))
               )}

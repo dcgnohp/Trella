@@ -97,6 +97,7 @@ class ProjectMembersRepository:
     ) -> list[ProjectMember]:
         """Return ACTIVE members whose user name or email contains ``query`` (case-insensitive)."""
         from sqlalchemy import or_
+
         q = f"%{query.lower()}%"
         statement = (
             select(ProjectMember)

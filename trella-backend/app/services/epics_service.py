@@ -3,7 +3,7 @@ import uuid
 from typing import Any, Protocol
 
 from fastapi import HTTPException, status
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, col, select
 
 from app.core.rbac import Action, RBACService
 from app.models.enums import CanonicalStatus, TaskType
@@ -53,7 +53,9 @@ class EpicsService:
             )
         return task
 
-    def _resolve_workspace_id(self, session: Session, project_id: uuid.UUID) -> uuid.UUID:
+    def _resolve_workspace_id(
+        self, session: Session, project_id: uuid.UUID
+    ) -> uuid.UUID:
         from app.models.projects_model import Project
 
         project = session.get(Project, project_id)
@@ -64,13 +66,17 @@ class EpicsService:
             )
         return project.workspace_id
 
-    def _get_default_column(self, session: Session, project_id: uuid.UUID) -> tuple[uuid.UUID, uuid.UUID]:
+    def _get_default_column(
+        self, session: Session, project_id: uuid.UUID
+    ) -> tuple[uuid.UUID, uuid.UUID]:
         """Return (board_id, column_id) for the first board/column of the project."""
         from app.models.board_columns_model import BoardColumn
         from app.models.boards_model import Board
 
         board = session.exec(
-            select(Board).where(Board.project_id == project_id).order_by(col(Board.created_at))
+            select(Board)
+            .where(Board.project_id == project_id)
+            .order_by(col(Board.created_at))
         ).first()
         if board is None:
             raise HTTPException(
@@ -143,9 +149,7 @@ class EpicsService:
         session.refresh(task)
         return task
 
-    def get_epic(
-        self, session: Session, epic_id: uuid.UUID, user: User
-    ) -> Task:
+    def get_epic(self, session: Session, epic_id: uuid.UUID, user: User) -> Task:
         epic = self._load_epic(session, epic_id)
         self.rbac_service.check(
             session,
@@ -164,10 +168,14 @@ class EpicsService:
             user=user,
             project_id=project_id,
         )
-        statement = select(Task).where(
-            Task.project_id == project_id,
-            Task.type == TaskType.EPIC.value,
-        ).order_by(col(Task.created_at))
+        statement = (
+            select(Task)
+            .where(
+                Task.project_id == project_id,
+                Task.type == TaskType.EPIC.value,
+            )
+            .order_by(col(Task.created_at))
+        )
         return list(session.exec(statement).all())
 
     def update_epic(
@@ -207,9 +215,7 @@ class EpicsService:
         session.refresh(epic)
         return epic
 
-    def delete_epic(
-        self, session: Session, epic_id: uuid.UUID, user: User
-    ) -> None:
+    def delete_epic(self, session: Session, epic_id: uuid.UUID, user: User) -> None:
         epic = self._load_epic(session, epic_id)
         workspace_id = self._resolve_workspace_id(session, epic.project_id)
         self.rbac_service.check(
@@ -254,9 +260,7 @@ class EpicsService:
             project_id=epic.project_id,
         )
         statement = (
-            select(Task)
-            .where(Task.epic_id == epic_id)
-            .order_by(col(Task.position))
+            select(Task).where(Task.epic_id == epic_id).order_by(col(Task.position))
         )
         children = list(session.exec(statement).all())
         return epic, children

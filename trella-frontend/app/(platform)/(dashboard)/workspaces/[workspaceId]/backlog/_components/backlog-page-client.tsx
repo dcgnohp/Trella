@@ -12,6 +12,8 @@ import {
   TasksService,
   ProjectMembersService,
   CustomStatusesService,
+  BoardsService,
+  ColumnsService,
 } from '@/lib/client';
 import type { SprintWithTasks, TaskPublic } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
@@ -34,12 +36,12 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
   const [memberFilter, setMemberFilter] = useState<string | null>(null);
 
   const sprintsQuery = useQuery({
-    queryKey: ['workspace-sprints', workspaceId],
+    queryKey: queryKeys.workspaceSprints(workspaceId),
     queryFn: () => SprintsService.Sprints_sprintsListWorkspaceSprints({ workspaceId }),
   });
 
   const backlogQuery = useQuery({
-    queryKey: ['workspace-backlog', workspaceId],
+    queryKey: queryKeys.workspaceBacklog(workspaceId),
     queryFn: () => BacklogService.Backlog_backlogGetWorkspaceBacklog({ workspaceId }),
   });
 
@@ -57,10 +59,22 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     queryFn: () => CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({ workspaceId }),
   });
 
+  const boardsQuery = useQuery({
+    queryKey: queryKeys.workspaceBoards(workspaceId),
+    queryFn: () => BoardsService.Boards_boardsListBoards({ orgId: workspaceId }),
+  });
+  const firstBoardId = boardsQuery.data?.[0]?.id ?? null;
+  const columnsQuery = useQuery({
+    queryKey: queryKeys.boardColumns(firstBoardId ?? ''),
+    queryFn: () => ColumnsService.Columns_columnsListColumns({ boardId: firstBoardId! }),
+    enabled: !!firstBoardId,
+  });
+
   const sprints: SprintWithTasks[] = sprintsQuery.data ?? [];
   const backlogTasks: TaskPublic[] = backlogQuery.data ?? [];
   const members = membersQuery.data ?? [];
   const customStatuses = customStatusesQuery.data ?? [];
+  const columns = columnsQuery.data ?? [];
 
   const filterTask = (t: TaskPublic) => {
     if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
@@ -86,7 +100,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
   const createSprintMutation = useMutation({
     mutationFn: () => SprintsService.Sprints_sprintsCreateWorkspaceSprint({ workspaceId, requestBody: {} }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
       toast.success('Sprint created');
     },
     onError: () => toast.error('Failed to create sprint'),
@@ -96,13 +110,13 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     mutationFn: ({ taskId, sprintId }: { taskId: string; sprintId: string | null }) =>
       TasksService.Tasks_tasksUpdateTask({ taskId, requestBody: { sprintId } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-backlog', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
     },
     onError: () => {
       toast.error('Failed to move task');
-      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-backlog', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
     },
   });
 
@@ -114,7 +128,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     const destId = destination.droppableId;
     const newSprintId = destId === 'backlog' ? null : destId.replace('sprint:', '');
 
-    queryClient.setQueryData<SprintWithTasks[]>(['workspace-sprints', workspaceId], old => {
+    queryClient.setQueryData<SprintWithTasks[]>(queryKeys.workspaceSprints(workspaceId), old => {
       if (!old) return old;
       let movedTask: TaskPublic | undefined;
       const next = old.map(s => {
@@ -138,7 +152,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     if (!newSprintId) {
       const task = sprints.flatMap(s => s.tasks ?? []).find(t => t.id === draggableId);
       if (task) {
-        queryClient.setQueryData<TaskPublic[]>(['workspace-backlog', workspaceId], old => {
+        queryClient.setQueryData<TaskPublic[]>(queryKeys.workspaceBacklog(workspaceId), old => {
           if (!old) return [task];
           const filtered = old.filter(t => t.id !== draggableId);
           return [...filtered.slice(0, destination.index), task, ...filtered.slice(destination.index)];
@@ -146,7 +160,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
       }
     } else {
       queryClient.setQueryData<TaskPublic[]>(
-        ['workspace-backlog', workspaceId],
+        queryKeys.workspaceBacklog(workspaceId),
         old => old?.filter(t => t.id !== draggableId)
       );
     }
@@ -210,9 +224,9 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
           <DragDropContext onDragEnd={onDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {filteredSprints.map(sprint => (
-                <SprintSection key={sprint.id} sprint={sprint} allSprints={sprints} projectId={sprint.projectId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} />
+                <SprintSection key={sprint.id} sprint={sprint} allSprints={sprints} projectId={sprint.projectId} workspaceId={workspaceId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} />
               ))}
-              <BacklogSection tasks={filteredBacklog} projectId={resolvedProjectId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} onCreateSprint={() => createSprintMutation.mutate()} />
+              <BacklogSection tasks={filteredBacklog} projectId={resolvedProjectId} workspaceId={workspaceId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} onCreateSprint={() => createSprintMutation.mutate()} />
             </div>
           </DragDropContext>
         )}
@@ -222,7 +236,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
         <InsightsPanel projectId={resolvedProjectId} sprints={sprints} onClose={() => setShowInsights(false)} />
       )}
 
-      <TaskDetailDrawer open={!!selectedTaskId} onClose={() => setSelectedTaskId(null)} task={selectedTask ?? null} workspaceId={workspaceId} projectMembers={members} />
+      <TaskDetailDrawer open={!!selectedTaskId} onClose={() => setSelectedTaskId(null)} task={selectedTask ?? null} workspaceId={workspaceId} projectMembers={members} columns={columns} />
     </div>
   );
 }

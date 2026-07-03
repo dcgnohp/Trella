@@ -63,18 +63,19 @@ def resolve_card_project_and_board(_mapper, _connection, target: Card) -> None:
             if board:
                 if target.project_id is None:
                     target.project_id = board.project_id
-                
+
                 # Auto resolve custom status based on column's status_key
                 if target.custom_status_id is None and column.status_key:
                     from sqlmodel import select
-                    from app.models.projects_model import Project
+
                     from app.models.custom_statuses_model import CustomStatus
+                    from app.models.projects_model import Project
 
                     project = session.get(Project, board.project_id)
                     if project:
                         stmt = select(CustomStatus).where(
                             CustomStatus.workspace_id == project.workspace_id,
-                            CustomStatus.canonical_status == column.status_key.upper()
+                            CustomStatus.canonical_status == column.status_key.upper(),
                         )
                         cs = session.exec(stmt).first()
                         if cs:
@@ -86,7 +87,8 @@ def resolve_card_custom_status_on_update(_mapper, _connection, target: Card) -> 
     session = object_session(target)
     if session is not None:
         from sqlalchemy.orm.attributes import get_history
-        history = get_history(target, 'list_id')
+
+        history = get_history(target, "list_id")
         if history.has_changes():
             from app.models.board_columns_model import BoardColumn
             from app.models.boards_model import Board
@@ -97,17 +99,19 @@ def resolve_card_custom_status_on_update(_mapper, _connection, target: Card) -> 
                 board = session.get(Board, column.board_id)
                 if board:
                     target.project_id = board.project_id
-                    
+
                     if column.status_key:
                         from sqlmodel import select
-                        from app.models.projects_model import Project
+
                         from app.models.custom_statuses_model import CustomStatus
+                        from app.models.projects_model import Project
 
                         project = session.get(Project, board.project_id)
                         if project:
                             stmt = select(CustomStatus).where(
                                 CustomStatus.workspace_id == project.workspace_id,
-                                CustomStatus.canonical_status == column.status_key.upper()
+                                CustomStatus.canonical_status
+                                == column.status_key.upper(),
                             )
                             cs = session.exec(stmt).first()
                             if cs:

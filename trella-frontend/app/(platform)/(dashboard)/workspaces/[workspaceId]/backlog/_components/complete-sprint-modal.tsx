@@ -14,10 +14,11 @@ interface CompleteSprintModalProps {
   sprint: SprintWithTasks;
   allSprints: SprintWithTasks[];
   projectId: string;
+  workspaceId: string;
   onClose: () => void;
 }
 
-export function CompleteSprintModal({ sprint, allSprints, projectId, onClose }: CompleteSprintModalProps) {
+export function CompleteSprintModal({ sprint, allSprints, projectId, workspaceId, onClose }: CompleteSprintModalProps) {
   const queryClient = useQueryClient();
   const openCount = (sprint.tasks ?? []).filter(t => (t.customStatus?.canonicalStatus ?? 'TODO') !== 'DONE').length;
   const doneCount = sprint.doneCount;
@@ -38,6 +39,8 @@ export function CompleteSprintModal({ sprint, allSprints, projectId, onClose }: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectBacklog(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
       toast.success(`${sprint.name} completed`);
       onClose();
     },
