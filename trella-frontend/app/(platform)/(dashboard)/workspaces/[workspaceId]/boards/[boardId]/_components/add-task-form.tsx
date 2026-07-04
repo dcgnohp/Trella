@@ -25,7 +25,7 @@ const WORK_TYPES = [
   { key: "STORY", label: "Story", icon: <StoryIcon label="Story" size="small" />, color: "#64BA3B" },
   { key: "TASK", label: "Task", icon: <TaskIcon label="Task" size="small" />, color: "#0052CC" },
   { key: "BUG", label: "Bug", icon: <BugIcon label="Bug" size="small" />, color: "#FF5630" },
-  { key: "SUBTASK", label: "Subtask", icon: <SubtasksIcon label="Subtask" size="small" />, color: "#7A869A" },
+  { key: "SUBTASK", label: "Subtask", icon: <SubtasksIcon label="Subtask" size="small" />, color: "var(--trella-text-subtlest)" },
 ];
 
 export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [] }: AddTaskFormProps) => {
@@ -82,10 +82,10 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
         style={{
           display: "flex", width: "100%", alignItems: "center", gap: 6,
           borderRadius: 4, padding: "6px 8px", background: "none", border: "none",
-          fontSize: 13, color: "#97A0AF", cursor: "pointer", transition: "color 0.1s",
+          fontSize: 13, color: "var(--trella-text-subtlest)", cursor: "pointer", transition: "color 0.1s",
         }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#172B4D")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#97A0AF")}
+        onMouseEnter={e => (e.currentTarget.style.color = "var(--trella-text)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "var(--trella-text-subtlest)")}
       >
         <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
         Add task
@@ -95,7 +95,7 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      <div style={{ border: "2px solid #0052CC", borderRadius: 6, background: "#FFFFFF", overflow: "visible" }}>
+      <div style={{ border: "2px solid #0052CC", borderRadius: 6, background: "var(--trella-surface)", overflow: "visible" }}>
         <input
           ref={inputRef}
           value={title}
@@ -109,7 +109,7 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
           style={{
             display: "block", width: "100%", padding: "10px 12px",
             border: "none", outline: "none", background: "none",
-            color: "#172B4D", fontSize: 13, boxSizing: "border-box",
+            color: "var(--trella-text)", fontSize: 13, boxSizing: "border-box",
           }}
         />
 
@@ -124,12 +124,12 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
               title={`Work type: ${currentType.label}`}
               style={{
                 display: "flex", alignItems: "center", gap: 4, height: 28, padding: "0 8px",
-                border: "1px solid #DFE1E6", borderRadius: 4, background: "none", cursor: "pointer",
+                border: "1px solid var(--trella-border)", borderRadius: 4, background: "none", cursor: "pointer",
                 color: currentType.color, fontSize: 12, fontWeight: 500,
               }}
             >
               <span style={{ display: "flex", alignItems: "center", color: currentType.color }}>{currentType.icon}</span>
-              <span style={{ display: "flex", alignItems: "center", color: "#5E6C84" }}><ChevronUpIcon label="" size="small" /></span>
+              <span style={{ display: "flex", alignItems: "center", color: "var(--trella-text-subtle)" }}><ChevronUpIcon label="" size="small" /></span>
             </button>
             {typeMenuOpen && (
               <>
@@ -170,8 +170,8 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
               style={{
                 display: "flex", alignItems: "center", height: 28,
                 width: dueDate ? "auto" : 28, padding: dueDate ? "0 8px" : 0,
-                border: "1px solid #DFE1E6", borderRadius: 4, background: "none", cursor: "pointer",
-                justifyContent: "center", color: dueDate ? "#0052CC" : "#5E6C84", fontSize: 12, gap: 4,
+                border: "1px solid var(--trella-border)", borderRadius: 4, background: "none", cursor: "pointer",
+                justifyContent: "center", color: dueDate ? "#0052CC" : "var(--trella-text-subtle)", fontSize: 12, gap: 4,
               }}
               onClick={() => setShowDatePicker(v => !v)}>
               <CalendarIcon label="Due date" size="small" />
@@ -180,12 +180,12 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
             {showDatePicker && (
               <div style={{
                 position: "absolute", bottom: "100%", left: 0, zIndex: 310,
-                background: "#fff", border: "1px solid #DFE1E6", borderRadius: 6,
+                background: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6,
                 padding: 8, boxShadow: "0 4px 16px rgba(9,30,66,0.18)", marginBottom: 4,
               }}>
                 <input type="date" value={dueDate}
                   onChange={e => { setDueDate(e.target.value); setShowDatePicker(false); }}
-                  style={{ fontSize: 13, border: "1px solid #DFE1E6", borderRadius: 4, padding: "4px 8px", outline: "none" }} />
+                  style={{ fontSize: 13, border: "1px solid var(--trella-border)", borderRadius: 4, padding: "4px 8px", outline: "none" }} />
                 {dueDate && (
                   <button type="button" onClick={() => { setDueDate(""); setShowDatePicker(false); }}
                     style={{ display: "block", marginTop: 4, width: "100%", fontSize: 12, color: "#FF5630", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
@@ -203,8 +203,8 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
               style={{
                 display: "flex", alignItems: "center", height: 28,
                 width: assignee ? "auto" : 28, padding: assignee ? "0 8px" : 0,
-                border: "1px solid #DFE1E6", borderRadius: 4, background: "none", cursor: "pointer",
-                justifyContent: "center", color: assignee ? "#172B4D" : "#5E6C84", fontSize: 12, gap: 4,
+                border: "1px solid var(--trella-border)", borderRadius: 4, background: "none", cursor: "pointer",
+                justifyContent: "center", color: assignee ? "var(--trella-text)" : "var(--trella-text-subtle)", fontSize: 12, gap: 4,
               }}
               onClick={() => setAssigneeDrop(v => !v)}>
               {assignee ? (
@@ -221,20 +221,20 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
                 <div style={{ position: "fixed", inset: 0, zIndex: 309 }} onClick={() => setAssigneeDrop(false)} />
                 <div style={{
                   position: "absolute", bottom: "calc(100% + 4px)", left: 0, zIndex: 310,
-                  background: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6,
+                  background: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6,
                   minWidth: 180, boxShadow: "0 4px 16px rgba(9,30,66,0.18)", overflow: "hidden",
                 }}>
                   {projectMembers.length === 0 && (
-                    <div style={{ padding: "8px 12px", fontSize: 13, color: "#97A0AF" }}>No members</div>
+                    <div style={{ padding: "8px 12px", fontSize: 13, color: "var(--trella-text-subtlest)" }}>No members</div>
                   )}
                   {projectMembers.map(m => (
                     <button key={m.id} type="button" onClick={() => { setAssigneeId(m.userId); setAssigneeDrop(false); }}
                       style={{
                         display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px",
-                        background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#172B4D",
+                        background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)",
                         textAlign: "left", fontWeight: assigneeId === m.userId ? 600 : 400,
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                       <div style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#0052CC,#6554C0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "white", flexShrink: 0 }}>
                         {initials(m.fullName ?? m.email)}
@@ -244,10 +244,10 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
                   ))}
                   {assigneeId && (
                     <>
-                      <div style={{ height: 1, backgroundColor: "#DFE1E6" }} />
+                      <div style={{ height: 1, backgroundColor: "var(--trella-border)" }} />
                       <button type="button" onClick={() => { setAssigneeId(null); setAssigneeDrop(false); }}
                         style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#FF5630", textAlign: "left" }}
-                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                         Remove assignee
                       </button>
@@ -264,9 +264,9 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
           <button type="submit" disabled={!title.trim() || createTask.isPending} title="Create task (Enter)"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
-              height: 28, width: 28, border: "1px solid #DFE1E6", borderRadius: 4, background: "none",
+              height: 28, width: 28, border: "1px solid var(--trella-border)", borderRadius: 4, background: "none",
               cursor: (!title.trim() || createTask.isPending) ? "not-allowed" : "pointer",
-              color: (!title.trim() || createTask.isPending) ? "#DFE1E6" : "#0052CC",
+              color: (!title.trim() || createTask.isPending) ? "var(--trella-border)" : "#0052CC",
               fontSize: 14, fontWeight: 600,
             }}>
             ↵
@@ -278,7 +278,7 @@ export const AddTaskForm = ({ column, boardId, onTaskCreated, projectMembers = [
       <div style={{ paddingTop: 4 }}>
         <button type="button"
           onClick={() => { setIsEditing(false); setTitle(""); setAssigneeId(null); setDueDate(""); }}
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#97A0AF", padding: 0 }}>
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--trella-text-subtlest)", padding: 0 }}>
           Cancel (Esc)
         </button>
       </div>

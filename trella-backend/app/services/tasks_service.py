@@ -239,16 +239,22 @@ class TasksService:
                 setattr(task, field, value)
 
         # When custom_status_id changes, find the matching board column and update column_id.
-        if "custom_status_id" in updates and updates["custom_status_id"] is not None:
+        if "custom_status_id" in updates and updates["custom_status_id"] is not None and "column_id" not in updates:
             new_status = self.custom_statuses_repo.get(
                 session, updates["custom_status_id"]
             )
-            if new_status and new_status.canonical_status and task.board_id:
-                canonical = new_status.canonical_status.upper()
+            if new_status and task.board_id:
                 columns = self.board_columns_repo.list_by_board(session, task.board_id)
+                # 1. Match by name (case-insensitive)
                 match = next(
-                    (c for c in columns if c.status_key.upper() == canonical), None
+                    (c for c in columns if c.name.lower() == new_status.name.lower()), None
                 )
+                if not match and new_status.canonical_status:
+                    # 2. Fall back to matching by canonical_status
+                    canonical = new_status.canonical_status.upper()
+                    match = next(
+                        (c for c in columns if c.status_key.upper() == canonical), None
+                    )
                 if match:
                     task.column_id = match.id
 
@@ -461,6 +467,55 @@ class TasksService:
                 recipient_id=assignee_id,
                 notification_type=NotificationType.TASK_ASSIGNED,
                 title="You have been assigned a task",
+                task=task,
+            )
+        self._push_task_event(task, "task.updated")
+        return task
+
+    def unset_assignee(
+        self,
+        session: Session,
+        task_id: uuid.UUID,
+        user: User,
+    ) -> Task:
+        """Unassign a Task (set assignee_id to None). Requires ASSIGN_TASK."""
+        task = self._load(session, task_id)
+        project_id, workspace_id = self._resolve_scope(session, task)
+        self.rbac_service.check(
+            session,
+            Action.ASSIGN_TASK,
+            user=user,
+            project_id=project_id,
+        )
+
+        old_assignee_id = task.assignee_id
+        if old_assignee_id is None:
+            return task
+
+        task.assignee_id = None
+        try:
+            task = self.repo.update(session, task)
+            self.activity_logs_service.record(
+                session,
+                workspace_id=workspace_id,
+                project_id=project_id,
+                task_id=task.id,
+                actor=user,
+                action=ActivityAction.TASK_UNASSIGNED,
+                old_value={"assignee_id": str(old_assignee_id)},
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(task)
+
+        if self._is_notifiable_recipient(session, old_assignee_id, user):
+            self._emit_best_effort(
+                session,
+                recipient_id=old_assignee_id,
+                notification_type=NotificationType.TASK_UNASSIGNED,
+                title="You have been unassigned from a task",
                 task=task,
             )
         self._push_task_event(task, "task.updated")

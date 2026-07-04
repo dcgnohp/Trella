@@ -17,7 +17,7 @@ const TB_BTN: React.CSSProperties = {
   height: 26, minWidth: 26, padding: "0 6px",
   border: "none", borderRadius: 3, background: "none",
   cursor: "pointer", fontSize: 12, fontWeight: 600,
-  color: "#5E6C84", transition: "background 0.1s",
+  color: "var(--trella-text-subtle)", transition: "background 0.1s",
 };
 
 export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditorProps) {
@@ -28,14 +28,14 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Link.configure({ openOnClick: false, HTMLAttributes: { style: "color:#0052CC;text-decoration:underline;cursor:pointer;" } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { style: "color:var(--trella-brand);text-decoration:underline;cursor:pointer;" } }),
       Placeholder.configure({ placeholder: "Add a description…" }),
     ],
     content: value ?? "",
     editable: !disabled,
     editorProps: {
       attributes: {
-        style: "outline:none;min-height:80px;font-size:14px;color:#172B4D;line-height:1.6;padding:10px 12px;",
+        style: "outline:none;min-height:80px;font-size:14px;color:var(--trella-text);line-height:1.6;padding:10px 12px;",
       },
     },
   });
@@ -70,12 +70,12 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
 
   return (
     <div>
-      <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "#172B4D" }}>Description</p>
+      <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Description</p>
 
       <div
         style={{
           border: editing ? "1px solid #0052CC" : "1px solid transparent",
-          borderRadius: 6, background: editing ? "#FFFFFF" : "transparent",
+          borderRadius: 6, background: editing ? "var(--trella-surface)" : "transparent",
           transition: "border-color 0.15s",
           cursor: editing ? "text" : "pointer",
         }}
@@ -85,7 +85,7 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
         {editing && editor && (
           <div style={{
             display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
-            padding: "6px 8px", borderBottom: "1px solid #DFE1E6",
+            padding: "6px 8px", borderBottom: "1px solid var(--trella-border)",
           }}>
             <ToolBtn
               title="Bold (Ctrl+B)"
@@ -173,12 +173,12 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
         <div
           style={{
             minHeight: editing ? 100 : 40,
-            color: (!value && !editing) ? "#97A0AF" : "#172B4D",
+            color: (!value && !editing) ? "var(--trella-text-subtlest)" : "var(--trella-text)",
           }}
           onClick={() => { if (!editing && !disabled) { setEditing(true); setTimeout(() => editor?.commands.focus("end"), 0); } }}
         >
           {(!editing && !value) ? (
-            <p style={{ margin: 0, padding: "10px 12px", fontSize: 14, color: "#97A0AF" }}>
+            <p style={{ margin: 0, padding: "10px 12px", fontSize: 14, color: "var(--trella-text-subtlest)" }}>
               Add a description…
             </p>
           ) : (
@@ -194,7 +194,7 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
             onClick={handleSave}
             style={{
               height: 32, padding: "0 16px", borderRadius: 4, border: "none",
-              background: "#0052CC", color: "#FFFFFF", fontSize: 13, fontWeight: 600,
+              background: "var(--trella-brand)", color: "var(--trella-surface)", fontSize: 13, fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -204,7 +204,7 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
             onClick={handleCancel}
             style={{
               height: 32, padding: "0 14px", borderRadius: 4, border: "none",
-              background: "none", color: "#5E6C84", fontSize: 13, cursor: "pointer",
+              background: "none", color: "var(--trella-text-subtle)", fontSize: 13, cursor: "pointer",
             }}
           >
             Cancel
@@ -218,10 +218,10 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
           <div style={{ position: "fixed", inset: 0, zIndex: 499 }} onClick={() => setLinkDialogOpen(false)} />
           <div style={{
             position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-            zIndex: 500, background: "#FFFFFF", borderRadius: 8, padding: "20px 24px",
-            boxShadow: "0 8px 32px rgba(9,30,66,0.25)", width: 360, border: "1px solid #DFE1E6",
+            zIndex: 500, background: "var(--trella-surface)", borderRadius: 8, padding: "20px 24px",
+            boxShadow: "var(--trella-shadow-overlay)", width: 360, border: "1px solid var(--trella-border)",
           }}>
-            <p style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 600, color: "#172B4D" }}>Add link</p>
+            <p style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 600, color: "var(--trella-text)" }}>Add link</p>
             <input
               autoFocus
               value={linkUrl}
@@ -230,21 +230,21 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
               onKeyDown={e => { if (e.key === "Enter") applyLink(); if (e.key === "Escape") setLinkDialogOpen(false); }}
               style={{
                 width: "100%", height: 36, padding: "0 10px",
-                border: "1px solid #DFE1E6", borderRadius: 4,
-                fontSize: 13, color: "#172B4D", outline: "none",
+                border: "1px solid var(--trella-border)", borderRadius: 4,
+                fontSize: 13, color: "var(--trella-text)", outline: "none",
                 boxSizing: "border-box", marginBottom: 12,
               }}
             />
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button
                 onClick={() => setLinkDialogOpen(false)}
-                style={{ height: 32, padding: "0 14px", border: "1px solid #DFE1E6", borderRadius: 4, background: "#FFFFFF", color: "#5E6C84", fontSize: 13, cursor: "pointer" }}
+                style={{ height: 32, padding: "0 14px", border: "1px solid var(--trella-border)", borderRadius: 4, background: "var(--trella-surface)", color: "var(--trella-text-subtle)", fontSize: 13, cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
                 onClick={applyLink}
-                style={{ height: 32, padding: "0 14px", border: "none", borderRadius: 4, background: "#0052CC", color: "#FFFFFF", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                style={{ height: 32, padding: "0 14px", border: "none", borderRadius: 4, background: "var(--trella-brand)", color: "var(--trella-surface)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
                 Apply
               </button>
@@ -257,14 +257,14 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
       <style>{`
         .tiptap p { margin: 0 0 4px; }
         .tiptap ul, .tiptap ol { margin: 4px 0 4px 20px; padding: 0; }
-        .tiptap h2 { font-size: 18px; font-weight: 700; margin: 8px 0 4px; color: #172B4D; }
-        .tiptap h3 { font-size: 15px; font-weight: 600; margin: 6px 0 4px; color: #172B4D; }
-        .tiptap code { background: #F4F5F7; border-radius: 3px; padding: 1px 5px; font-size: 12px; font-family: monospace; }
-        .tiptap pre { background: #172B4D; color: #FFFFFF; border-radius: 6px; padding: 12px 16px; margin: 8px 0; overflow-x: auto; }
+        .tiptap h2 { font-size: 18px; font-weight: 700; margin: 8px 0 4px; color: var(--trella-text); }
+        .tiptap h3 { font-size: 15px; font-weight: 600; margin: 6px 0 4px; color: var(--trella-text); }
+        .tiptap code { background: var(--trella-surface-sunken); border-radius: 3px; padding: 1px 5px; font-size: 12px; font-family: monospace; color: var(--trella-text); }
+        .tiptap pre { background: var(--trella-surface-sunken); color: var(--trella-text); border-radius: 6px; padding: 12px 16px; margin: 8px 0; overflow-x: auto; }
         .tiptap pre code { background: none; padding: 0; color: inherit; }
-        .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #97A0AF; pointer-events: none; float: left; height: 0; }
-        .tiptap a { color: #0052CC; text-decoration: underline; cursor: pointer; }
-        .tiptap a:hover { color: #0747A6; }
+        .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--trella-text-subtlest); pointer-events: none; float: left; height: 0; }
+        .tiptap a { color: var(--trella-brand); text-decoration: underline; cursor: pointer; }
+        .tiptap a:hover { color: var(--trella-brand-hover); }
       `}</style>
     </div>
   );
@@ -285,7 +285,7 @@ function ToolBtn({
         ...TB_BTN,
         ...extraStyle,
         background: active ? "rgba(0,82,204,0.12)" : "none",
-        color: active ? "#0052CC" : "#5E6C84",
+        color: active ? "var(--trella-brand)" : "var(--trella-text-subtle)",
       }}
     >
       {children}
@@ -294,5 +294,5 @@ function ToolBtn({
 }
 
 function Sep() {
-  return <div style={{ width: 1, height: 18, background: "#DFE1E6", margin: "0 2px" }} />;
+  return <div style={{ width: 1, height: 18, background: "var(--trella-border)", margin: "0 2px" }} />;
 }

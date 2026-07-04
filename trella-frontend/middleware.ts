@@ -45,7 +45,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
-  return NextResponse.next()
+  // Pass pathname to server components via header for route guards
+  const response = NextResponse.next()
+  response.headers.set("x-pathname", pathname)
+  return response
 }
 
 export const config = {

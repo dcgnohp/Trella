@@ -22,6 +22,7 @@ from app.endpoints.organizations_router import (
 from app.endpoints.project_members_router import router as project_members_router
 from app.endpoints.projects_router import router as projects_router
 from app.endpoints.sprints_router import router as sprints_router
+from app.endpoints.summary_router import router as summary_router
 from app.endpoints.task_cards_router import router as task_cards_router
 from app.endpoints.tasks_router import backlog_router
 from app.endpoints.tasks_router import router as tasks_router
@@ -58,6 +59,7 @@ api_router.include_router(epics_router)
 api_router.include_router(backlog_router)
 api_router.include_router(workspaces_router)
 api_router.include_router(velocity_config_router)
+api_router.include_router(summary_router)
 
 # --- LEGACY deprecated aliases (no behavior change, OpenAPI-flagged) ---
 api_router.include_router(organizations_router, deprecated=True)

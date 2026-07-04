@@ -26,24 +26,24 @@ const CANONICAL_ORDER: Record<string, number> = {
 };
 
 const CANONICAL_COLORS: Record<string, { bg: string; text: string }> = {
-  PENDING: { bg: "#FFAB00", text: "#172B4D" },
-  TODO: { bg: "#DFE1E6", text: "#172B4D" },
-  IN_PROGRESS: { bg: "#0052CC", text: "#FFFFFF" },
-  DONE: { bg: "#36B37E", text: "#FFFFFF" },
+  PENDING: { bg: "#FFAB00", text: "var(--trella-text)" },
+  TODO: { bg: "var(--trella-border)", text: "var(--trella-text)" },
+  IN_PROGRESS: { bg: "#0052CC", text: "var(--trella-surface)" },
+  DONE: { bg: "#36B37E", text: "var(--trella-surface)" },
 };
 
 function getStatusColor(status: CustomStatusEmbed): { bg: string; text: string } {
   if (status.canonicalStatus && CANONICAL_COLORS[status.canonicalStatus]) {
     return CANONICAL_COLORS[status.canonicalStatus];
   }
-  const bg = status.color ?? "#DFE1E6";
+  const bg = status.color ?? "var(--trella-border)";
   // simple luminance check: use dark text for light bg
   const hex = bg.replace("#", "");
   const r = parseInt(hex.slice(0, 2), 16);
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return { bg, text: luminance > 0.55 ? "#172B4D" : "#FFFFFF" };
+  return { bg, text: luminance > 0.55 ? "var(--trella-text)" : "var(--trella-surface)" };
 }
 
 function sortStatuses(statuses: CustomStatusEmbed[]): CustomStatusEmbed[] {
@@ -84,7 +84,7 @@ function WorkflowDiagram({ statuses, showLabels, zoom }: WorkflowDiagramProps) {
       <svg width={svgWidth} height={SVG_H} style={{ display: "block" }}>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#97A0AF" />
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--trella-text-subtlest)" />
           </marker>
         </defs>
 
@@ -95,7 +95,7 @@ function WorkflowDiagram({ statuses, showLabels, zoom }: WorkflowDiagramProps) {
             y1={START_CY}
             x2={nodeXs[0]}
             y2={START_CY}
-            stroke="#97A0AF"
+            stroke="var(--trella-text-subtlest)"
             strokeWidth={1.5}
             markerEnd="url(#arrow)"
           />
@@ -108,9 +108,9 @@ function WorkflowDiagram({ statuses, showLabels, zoom }: WorkflowDiagramProps) {
           const my = START_CY;
           return (
             <g key={`arrow-${i}`}>
-              <line x1={x1} y1={my} x2={x2} y2={my} stroke="#97A0AF" strokeWidth={1.5} markerEnd="url(#arrow)" />
+              <line x1={x1} y1={my} x2={x2} y2={my} stroke="var(--trella-text-subtlest)" strokeWidth={1.5} markerEnd="url(#arrow)" />
               {showLabels && (
-                <text x={(x1 + x2) / 2} y={my - 8} textAnchor="middle" fontSize={9} fill="#97A0AF">
+                <text x={(x1 + x2) / 2} y={my - 8} textAnchor="middle" fontSize={9} fill="var(--trella-text-subtlest)">
                   {"->"}
                 </text>
               )}
@@ -119,8 +119,8 @@ function WorkflowDiagram({ statuses, showLabels, zoom }: WorkflowDiagramProps) {
         })}
 
         {/* START circle */}
-        <circle cx={START_CX} cy={START_CY} r={START_R} fill="white" stroke="#5E6C84" strokeWidth={1.5} />
-        <text x={START_CX} y={START_CY + 4} textAnchor="middle" fontSize={10} fill="#5E6C84" fontWeight={600}>
+        <circle cx={START_CX} cy={START_CY} r={START_R} fill="white" stroke="var(--trella-text-subtle)" strokeWidth={1.5} />
+        <text x={START_CX} y={START_CY + 4} textAnchor="middle" fontSize={10} fill="var(--trella-text-subtle)" fontWeight={600}>
           START
         </text>
 
@@ -138,8 +138,8 @@ function WorkflowDiagram({ statuses, showLabels, zoom }: WorkflowDiagramProps) {
                 {label}
               </text>
               {/* "Any" bubble */}
-              <circle cx={anyX} cy={anyY} r={14} fill="white" stroke="#97A0AF" strokeWidth={1} />
-              <text x={anyX} y={anyY + 4} textAnchor="middle" fontSize={9} fill="#97A0AF">
+              <circle cx={anyX} cy={anyY} r={14} fill="white" stroke="var(--trella-text-subtlest)" strokeWidth={1} />
+              <text x={anyX} y={anyY + 4} textAnchor="middle" fontSize={9} fill="var(--trella-text-subtlest)">
                 Any
               </text>
             </g>
@@ -168,13 +168,13 @@ function MinimapSvg({ statuses }: { statuses: CustomStatusEmbed[] }) {
             <g key={s.id}>
               <rect x={x} y={0} width={bw} height={14} rx={3} fill={bg} opacity={0.8} />
               {i < sorted.length - 1 && (
-                <line x1={x + bw} y1={7} x2={x + bw + gap} y2={7} stroke="#97A0AF" strokeWidth={1} />
+                <line x1={x + bw} y1={7} x2={x + bw + gap} y2={7} stroke="var(--trella-text-subtlest)" strokeWidth={1} />
               )}
             </g>
           );
         })}
       </g>
-      <text x={80} y={68} textAnchor="middle" fontSize={8} fill="#97A0AF">
+      <text x={80} y={68} textAnchor="middle" fontSize={8} fill="var(--trella-text-subtlest)">
         Minimap
       </text>
     </svg>
@@ -192,12 +192,12 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
 
   const toolbarBtnBase: React.CSSProperties = {
     height: 32,
-    border: "1px solid #DFE1E6",
+    border: "1px solid var(--trella-border)",
     borderRadius: 4,
     padding: "0 12px",
     fontSize: 13,
-    color: "#5E6C84",
-    background: "#FFFFFF",
+    color: "var(--trella-text-subtle)",
+    background: "var(--trella-surface)",
     cursor: "pointer",
     display: "inline-flex",
     alignItems: "center",
@@ -211,8 +211,8 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
     fontSize: 13,
     border: "none",
     cursor: "pointer",
-    background: activeTab === tab ? "#0052CC" : "#F4F5F7",
-    color: activeTab === tab ? "#FFFFFF" : "#5E6C84",
+    background: activeTab === tab ? "#0052CC" : "var(--trella-surface-sunken)",
+    color: activeTab === tab ? "var(--trella-surface)" : "var(--trella-text-subtle)",
   });
 
   return (
@@ -223,14 +223,14 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "var(--trella-surface)",
       }}
     >
       {/* Header */}
       <div
         style={{
           height: 56,
-          borderBottom: "1px solid #DFE1E6",
+          borderBottom: "1px solid var(--trella-border)",
           display: "flex",
           alignItems: "center",
           padding: "0 20px",
@@ -239,8 +239,8 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 13, color: "#5E6C84" }}>Workflow for </span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "#172B4D" }}>{boardName}</span>
+          <span style={{ fontSize: 13, color: "var(--trella-text-subtle)" }}>Workflow for </span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--trella-text)" }}>{boardName}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <TaskIcon label="Task" size="small" />
@@ -253,9 +253,9 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
           disabled
           style={{
             height: 32,
-            border: "1px solid #DFE1E6",
-            background: "#F4F5F7",
-            color: "#97A0AF",
+            border: "1px solid var(--trella-border)",
+            background: "var(--trella-surface-sunken)",
+            color: "var(--trella-text-subtlest)",
             borderRadius: 4,
             padding: "0 12px",
             fontSize: 13,
@@ -268,9 +268,9 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
           onClick={onClose}
           style={{
             height: 32,
-            border: "1px solid #DFE1E6",
-            background: "#FFFFFF",
-            color: "#172B4D",
+            border: "1px solid var(--trella-border)",
+            background: "var(--trella-surface)",
+            color: "var(--trella-text)",
             borderRadius: 4,
             padding: "0 12px",
             fontSize: 13,
@@ -285,7 +285,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
       <div
         style={{
           height: 44,
-          borderBottom: "1px solid #DFE1E6",
+          borderBottom: "1px solid var(--trella-border)",
           display: "flex",
           alignItems: "center",
           padding: "0 16px",
@@ -299,7 +299,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
         <button style={toolbarBtnBase} onClick={() => toast.info("Coming soon")}>
           <AddIcon label="Add" size="small" /> Add transition
         </button>
-        <div style={{ width: 1, height: 20, background: "#DFE1E6" }} />
+        <div style={{ width: 1, height: 20, background: "var(--trella-border)" }} />
         <button style={tabBtn("diagram")} onClick={() => setActiveTab("diagram")}>
           Diagram
         </button>
@@ -307,7 +307,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
           Text
         </button>
         <div style={{ flex: 1 }} />
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#5E6C84", cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--trella-text-subtle)", cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={showLabels}
@@ -321,7 +321,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
       {/* Body */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* Canvas */}
-        <div style={{ flex: 1, overflow: "auto", background: "#F8F9FA", position: "relative" }}>
+        <div style={{ flex: 1, overflow: "auto", background: "var(--trella-surface-hover)", position: "relative" }}>
           {activeTab === "diagram" ? (
             <WorkflowDiagram statuses={customStatuses} showLabels={showLabels} zoom={zoom} />
           ) : (
@@ -330,7 +330,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
                 const { bg, text: textColor } = getStatusColor(s);
                 return (
                   <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <span style={{ fontSize: 12, color: "#97A0AF", minWidth: 20 }}>{i + 1}.</span>
+                    <span style={{ fontSize: 12, color: "var(--trella-text-subtlest)", minWidth: 20 }}>{i + 1}.</span>
                     <span
                       style={{
                         display: "inline-block",
@@ -345,7 +345,7 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
                       {s.name}
                     </span>
                     {s.canonicalStatus && (
-                      <span style={{ fontSize: 11, color: "#97A0AF" }}>{s.canonicalStatus}</span>
+                      <span style={{ fontSize: 11, color: "var(--trella-text-subtlest)" }}>{s.canonicalStatus}</span>
                     )}
                   </div>
                 );
@@ -361,8 +361,8 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
               right: 16,
               width: 160,
               height: 100,
-              background: "#FFFFFF",
-              border: "1px solid #DFE1E6",
+              background: "var(--trella-surface)",
+              border: "1px solid var(--trella-border)",
               borderRadius: 4,
               overflow: "hidden",
               display: "flex",
@@ -383,14 +383,14 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
               display: "flex",
               alignItems: "center",
               gap: 8,
-              background: "#FFFFFF",
-              border: "1px solid #DFE1E6",
+              background: "var(--trella-surface)",
+              border: "1px solid var(--trella-border)",
               borderRadius: 4,
               padding: "4px 12px",
             }}
           >
             <button
-              style={{ border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", color: "#172B4D" }}
+              style={{ border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--trella-text)" }}
               onClick={() => setZoom((z) => Math.max(0.25, +(z - 0.1).toFixed(2)))}
               aria-label="Zoom out"
             >
@@ -406,13 +406,13 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
               style={{ width: 80 }}
             />
             <button
-              style={{ border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", color: "#172B4D" }}
+              style={{ border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--trella-text)" }}
               onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)))}
               aria-label="Zoom in"
             >
               <AddIcon label="Zoom in" size="small" />
             </button>
-            <span style={{ fontSize: 12, color: "#5E6C84", minWidth: 36, textAlign: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--trella-text-subtle)", minWidth: 36, textAlign: "center" }}>
               {Math.round(zoom * 100)}%
             </span>
           </div>
@@ -422,17 +422,17 @@ export function ManageWorkflowModal({ open, onClose, boardName, customStatuses }
         <div
           style={{
             width: 280,
-            borderLeft: "1px solid #DFE1E6",
+            borderLeft: "1px solid var(--trella-border)",
             overflowY: "auto",
             padding: 20,
-            background: "#FFFFFF",
+            background: "var(--trella-surface)",
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 600, color: "#172B4D", marginBottom: 12 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--trella-text)", marginBottom: 12 }}>
             Power up your team with the right workflow
           </div>
-          <p style={{ fontSize: 13, color: "#5E6C84", lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--trella-text-subtle)", lineHeight: 1.6, margin: 0 }}>
             Before you map your workflow here, spend some time with your team. Learn what&apos;s
             effective, what&apos;s not, and how to help your team be their best.
           </p>

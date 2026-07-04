@@ -19,7 +19,7 @@ const WORK_TYPE_ICON: Record<string, React.ReactNode> = {
   TASK: <span style={{ color: '#0052CC' }}><TaskIcon label="Task" size="small" /></span>,
   BUG: <span style={{ color: '#FF5630' }}><BugIcon label="Bug" size="small" /></span>,
   STORY: <span style={{ color: '#64BA3B' }}><StoryIcon label="Story" size="small" /></span>,
-  SUBTASK: <span style={{ color: '#7A869A' }}><SubtasksIcon label="Subtask" size="small" /></span>,
+  SUBTASK: <span style={{ color: 'var(--trella-text-subtlest)' }}><SubtasksIcon label="Subtask" size="small" /></span>,
 };
 
 function getWorkTypeIcon(task: TaskPublic) {
@@ -126,15 +126,15 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
           top: dropdownPos.top,
           left: dropdownPos.left,
           zIndex: 9999,
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #DFE1E6',
+          backgroundColor: 'var(--trella-surface)',
+          border: '1px solid var(--trella-border)',
           borderRadius: 4,
           boxShadow: '0 4px 16px rgba(9,30,66,0.18)',
           minWidth: 160,
           padding: '4px 0',
         }}
       >
-        <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 700, color: '#97A0AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Change status
         </div>
         {customStatuses.map(cs => {
@@ -147,11 +147,11 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '7px 12px', cursor: 'pointer', fontSize: 12,
-                color: '#172B4D',
+                color: 'var(--trella-text)',
                 fontWeight: isSelected ? 600 : 400,
                 backgroundColor: isSelected ? '#DEEBFF' : 'transparent',
               }}
-              onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(9,30,66,0.06)'; }}
+              onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-selected)'; }}
               onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
             >
               <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: sc.bg, flexShrink: 0 }} />
@@ -181,8 +181,8 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
               alignItems: 'center',
               gap: 8,
               padding: '6px 12px',
-              borderBottom: '1px solid #DFE1E6',
-              backgroundColor: snapshot.isDragging ? '#DEEBFF' : hovered ? '#F4F5F7' : '#FFFFFF',
+              borderBottom: '1px solid var(--trella-border)',
+              backgroundColor: snapshot.isDragging ? '#DEEBFF' : hovered ? 'var(--trella-surface-sunken)' : 'var(--trella-surface)',
               cursor: snapshot.isDragging ? 'grabbing' : 'pointer',
               userSelect: 'none',
               ...provided.draggableProps.style,
@@ -195,12 +195,12 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
             </span>
 
             {task.issueKey && (
-              <span style={{ fontSize: 11, color: '#97A0AF', flexShrink: 0, fontWeight: 500, minWidth: 60 }}>
+              <span style={{ fontSize: 11, color: 'var(--trella-text-subtlest)', flexShrink: 0, fontWeight: 500, minWidth: 60 }}>
                 {task.issueKey}
               </span>
             )}
 
-            <span style={{ flex: 1, fontSize: 13, color: '#172B4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+            <span style={{ flex: 1, fontSize: 13, color: 'var(--trella-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
               {task.title}
             </span>
 
@@ -222,7 +222,7 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
                 <span style={{ fontSize: 9, opacity: 0.8 }}>▾</span>
               </span>
 
-              <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: isOverdue ? '#FF5630' : '#97A0AF', width: 52, justifyContent: 'flex-end' }}>
+              <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: isOverdue ? '#FF5630' : 'var(--trella-text-subtlest)', width: 52, justifyContent: 'flex-end' }}>
                 {dueDateLabel ? <><CalendarIcon label="" size="small" />{dueDateLabel}</> : null}
               </span>
 
@@ -233,11 +233,12 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
                     style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: '#0052CC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 600 }}
                   >
                     {assignee.avatarUrl
+                      // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={assignee.avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
                       : initials(assignee.fullName ?? assignee.email)}
                   </div>
                 ) : (
-                  <div title="Unassigned" style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: '#F4F5F7', border: '1px dashed #DFE1E6' }} />
+                  <div title="Unassigned" style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'var(--trella-surface-sunken)', border: '1px dashed var(--trella-border)' }} />
                 )}
               </span>
             </div>

@@ -4,6 +4,7 @@ import './globals.css'
 
 import { siteConfig } from '@/config/site'
 import AdsProvider from '@/components/ads-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,9 +28,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AdsProvider>{children}</AdsProvider>
+        <ThemeProvider>
+          <AdsProvider>{children}</AdsProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

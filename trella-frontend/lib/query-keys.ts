@@ -84,6 +84,14 @@ export const queryKeys = {
   /** Backlog tasks for a workspace-scoped backlog page (workspace → primary project). */
   workspaceBacklog: (workspaceId: string) =>
     ["workspace-backlog", workspaceId] as const,
+
+  /** Summary stats for a workspace. */
+  summaryStats: (workspaceId: string) => ["summary-stats", workspaceId] as const,
+  summaryStatusOverview: (workspaceId: string) => ["summary-status-overview", workspaceId] as const,
+  summaryActivity: (workspaceId: string) => ["summary-activity", workspaceId] as const,
+  summaryPriorityBreakdown: (workspaceId: string) => ["summary-priority", workspaceId] as const,
+  summaryWorkTypes: (workspaceId: string) => ["summary-work-types", workspaceId] as const,
+  summaryTeamWorkload: (workspaceId: string) => ["summary-team-workload", workspaceId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

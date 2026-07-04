@@ -32,7 +32,7 @@ const WORK_TYPE_ICON: Record<string, React.ReactNode> = {
   task: <span style={{ color: '#0052CC' }}><TaskIcon label="Task" size="small" /></span>,
   bug: <span style={{ color: '#FF5630' }}><BugIcon label="Bug" size="small" /></span>,
   story: <span style={{ color: '#64BA3B' }}><StoryIcon label="Story" size="small" /></span>,
-  subtask: <span style={{ color: '#7A869A' }}><SubtasksIcon label="Subtask" size="small" /></span>,
+  subtask: <span style={{ color: 'var(--trella-text-subtlest)' }}><SubtasksIcon label="Subtask" size="small" /></span>,
   feature: <span style={{ color: '#6554C0' }}><TaskIcon label="Feature" size="small" /></span>,
   request: <span style={{ color: '#FFAB00' }}><TaskIcon label="Request" size="small" /></span>,
 };
@@ -51,7 +51,7 @@ function initials(name?: string | null) {
 const STATUS_DOT: Record<string, string> = {
   DONE: '#36B37E',
   IN_PROGRESS: '#0052CC',
-  TODO: '#97A0AF',
+  TODO: 'var(--trella-text-subtlest)',
   PENDING: '#FFAB00',
 };
 
@@ -101,10 +101,10 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
           position: 'relative',
           borderRadius: '6px',
           backgroundColor: hovered && interactive
-            ? (isSubtask ? '#F0F1F3' : '#F8F9FA')
-            : (isSubtask ? '#FAFBFC' : '#FFFFFF'),
-          border: '1px solid #DFE1E6',
-          borderLeft: isSubtask ? '3px solid #97A0AF' : '1px solid #DFE1E6',
+            ? 'var(--trella-surface-hover)'
+            : (isSubtask ? 'var(--trella-surface-raised)' : 'var(--trella-surface)'),
+          border: '1px solid var(--trella-border)',
+          borderLeft: isSubtask ? '3px solid var(--trella-text-subtlest)' : '1px solid var(--trella-border)',
           padding: isSubtask ? '7px 12px 7px 10px' : '10px 12px',
           cursor: interactive ? 'pointer' : 'default',
           transition: 'background 0.1s ease',
@@ -116,10 +116,10 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
         {/* Subtask label */}
         {isSubtask && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-            <span style={{ color: '#7A869A', display: 'flex', alignItems: 'center' }}>
+            <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center' }}>
               <SubtasksIcon label="" size="small" />
             </span>
-            <span style={{ fontSize: 10, color: '#7A869A', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <span style={{ fontSize: 10, color: 'var(--trella-text-subtlest)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Subtask
             </span>
           </div>
@@ -128,7 +128,7 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: isSubtask ? 4 : 8 }}>
           {dragHandleProps && (
-            <div {...dragHandleProps} style={{ cursor: 'grab', flexShrink: 0, paddingTop: 1, color: '#97A0AF', display: 'flex', alignItems: 'center' }}>
+            <div {...dragHandleProps} style={{ cursor: 'grab', flexShrink: 0, paddingTop: 1, color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center' }}>
               <DragHandleVerticalIcon label="Drag" size="small" />
             </div>
           )}
@@ -136,7 +136,7 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
             margin: 0,
             fontSize: isSubtask ? 12 : 13,
             lineHeight: 1.5,
-            color: isDone ? '#97A0AF' : (isSubtask ? '#344563' : '#172B4D'),
+            color: isDone ? 'var(--trella-text-subtlest)' : (isSubtask ? '#344563' : 'var(--trella-text)'),
             textDecoration: isDone ? 'line-through' : 'none',
             flex: 1,
           }}>
@@ -150,10 +150,10 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             {dueDate ? (
               <>
-                <span style={{ color: overdue ? '#FF5630' : '#97A0AF', display: 'flex', alignItems: 'center' }}>
+                <span style={{ color: overdue ? '#FF5630' : 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center' }}>
                   <CalendarIcon label="" size="small" />
                 </span>
-                <span style={{ fontSize: 12, color: overdue ? '#FF5630' : '#7A869A' }}>
+                <span style={{ fontSize: 12, color: overdue ? '#FF5630' : 'var(--trella-text-subtlest)' }}>
                   {format(dueDate, 'MMM d, yyyy')}
                 </span>
               </>
@@ -173,8 +173,8 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
                   style={{
                     position: 'relative',
                     display: 'inline-flex', alignItems: 'center', gap: 2,
-                    fontSize: 11, color: '#5E6C84',
-                    backgroundColor: '#DFE1E6', padding: '1px 5px', borderRadius: 3,
+                    fontSize: 11, color: 'var(--trella-text-subtle)',
+                    backgroundColor: 'var(--trella-border)', padding: '1px 5px', borderRadius: 3,
                     cursor: 'default',
                   }}
                 >
@@ -192,8 +192,8 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
                       left: popoverPos.left,
                       transform: 'translateX(-100%)',
                       zIndex: 9999,
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #DFE1E6',
+                      backgroundColor: 'var(--trella-surface)',
+                      border: '1px solid var(--trella-border)',
                       borderRadius: 6,
                       boxShadow: '0 4px 20px rgba(9,30,66,0.18)',
                       width: 260,
@@ -202,12 +202,12 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
                       padding: '6px 0',
                     }}
                   >
-                    <p style={{ margin: 0, padding: '4px 12px 6px', fontSize: 11, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <p style={{ margin: 0, padding: '4px 12px 6px', fontSize: 11, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Subtasks ({subtaskCount})
                     </p>
                     {subtasks.map((sub) => {
                       const sc = (sub.customStatus?.canonicalStatus ?? 'TODO').toUpperCase();
-                      const dotColor = STATUS_DOT[sc] ?? '#97A0AF';
+                      const dotColor = STATUS_DOT[sc] ?? 'var(--trella-text-subtlest)';
                       const subDone = sc === 'DONE';
                       return (
                         <button
@@ -220,11 +220,11 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
                             cursor: onSubtaskClick ? 'pointer' : 'default',
                             textAlign: 'left',
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#F4F5F7'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--trella-surface-sunken)'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                         >
                           <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0, marginTop: 4 }} />
-                          <span style={{ fontSize: 12, color: subDone ? '#97A0AF' : '#172B4D', textDecoration: subDone ? 'line-through' : 'none', lineHeight: 1.5, flex: 1 }}>
+                          <span style={{ fontSize: 12, color: subDone ? 'var(--trella-text-subtlest)' : 'var(--trella-text)', textDecoration: subDone ? 'line-through' : 'none', lineHeight: 1.5, flex: 1 }}>
                             {sub.title}
                           </span>
                         </button>
@@ -243,13 +243,14 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
             )}
 
             {(task as TaskPublic & { issueKey?: string }).issueKey && (
-              <span style={{ fontSize: 11, color: '#5E6C84', fontWeight: 500 }}>
+              <span style={{ fontSize: 11, color: 'var(--trella-text-subtle)', fontWeight: 500 }}>
                 {(task as TaskPublic & { issueKey?: string }).issueKey}
               </span>
             )}
 
             {assignee ? (
               assignee.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={assignee.avatarUrl}
                   alt={assignee.fullName ?? ''}
@@ -274,7 +275,7 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
                 width: isSubtask ? 20 : 24, height: isSubtask ? 20 : 24,
                 borderRadius: '50%', border: '1px dashed #97A0AF',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, color: '#97A0AF',
+                flexShrink: 0, color: 'var(--trella-text-subtlest)',
               }}>
                 <PersonAvatarIcon label="" size="small" />
               </div>
@@ -290,9 +291,9 @@ TaskCard.displayName = 'TaskCard';
 
 export function TaskCardSkeleton() {
   return (
-    <div style={{ padding: 12, backgroundColor: '#FFFFFF', borderRadius: 6, border: '1px solid #DFE1E6' }}>
-      <div style={{ height: 13, width: '80%', borderRadius: 4, backgroundColor: '#DFE1E6', marginBottom: 8 }} />
-      <div style={{ height: 11, width: '40%', borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+    <div style={{ padding: 12, backgroundColor: 'var(--trella-surface)', borderRadius: 6, border: '1px solid var(--trella-border)' }}>
+      <div style={{ height: 13, width: '80%', borderRadius: 4, backgroundColor: 'var(--trella-border)', marginBottom: 8 }} />
+      <div style={{ height: 11, width: '40%', borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
     </div>
   );
 }

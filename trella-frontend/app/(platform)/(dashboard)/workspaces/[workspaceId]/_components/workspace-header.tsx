@@ -10,12 +10,23 @@ import { queryKeys } from '@/lib/query-keys';
 
 const TABS_SCRUM = [
   { label: 'Summary', segment: 'summary' },
-  { label: 'Backlog', segment: 'backlog' },
+  { label: 'List', segment: 'list' },
   { label: 'Board', segment: 'boards' },
+  { label: 'Backlog', segment: 'backlog' },
+  { label: 'Development', segment: 'development' },
+  { label: 'Forms', segment: 'forms' },
   { label: 'Timeline', segment: 'timeline' },
+  { label: 'Docs', segment: 'docs' },
+  { label: 'Reports', segment: 'reports' },
 ];
 const TABS_KANBAN = [
+  { label: 'Summary', segment: 'summary' },
+  { label: 'List', segment: 'list' },
   { label: 'Board', segment: 'boards' },
+  { label: 'Forms', segment: 'forms' },
+  { label: 'Development', segment: 'development' },
+  { label: 'Timeline', segment: 'timeline' },
+  { label: 'Reports', segment: 'reports' },
 ];
 
 interface WorkspaceHeaderProps {
@@ -29,16 +40,23 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
 
   const [projectType, setProjectType] = React.useState<'kanban' | 'scrum' | null>(null);
   const [spaceName, setSpaceName] = React.useState<string | null>(null);
+  const [workspaceMode, setWorkspaceMode] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setProjectType(window.localStorage.getItem(`trella:projectType:${workspaceId}`) as 'kanban' | 'scrum' | null);
+    const stored = window.localStorage.getItem(`trella:projectType:${workspaceId}`) as 'kanban' | 'scrum' | null;
+    setProjectType(stored);
     try {
       const raw = window.localStorage.getItem(`trella:onboarding:${workspaceId}`);
       if (raw) setSpaceName(JSON.parse(raw).name as string);
     } catch { /* empty */ }
+    // Also fetch mode from API
+    fetch(`/api/workspaces/${workspaceId}`)
+      .then(r => r.json())
+      .then(d => { if (d?.mode) setWorkspaceMode(d.mode); })
+      .catch(() => {});
   }, [workspaceId]);
 
-  const isScrum = projectType === 'scrum';
+  const isScrum = workspaceMode === 'SCRUM' || projectType === 'scrum';
   const tabs = isScrum ? TABS_SCRUM : TABS_KANBAN;
 
   const boardsQuery = useQuery({
@@ -63,8 +81,8 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
 
   return (
     <div style={{
-      backgroundColor: '#FFFFFF',
-      borderBottom: '1px solid #DFE1E6',
+      backgroundColor: 'var(--trella-surface)',
+      borderBottom: '1px solid var(--trella-border)',
       flexShrink: 0,
     }}>
       {/* Project title row */}
@@ -80,8 +98,8 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
         }}>
           {displayName.charAt(0).toUpperCase()}
         </div>
-        <span style={{ fontSize: 16, fontWeight: 700, color: '#172B4D' }}>{displayName}</span>
-        <span style={{ color: '#97A0AF', display: 'flex', alignItems: 'center', marginLeft: 4, cursor: 'pointer' }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--trella-text)' }}>{displayName}</span>
+        <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center', marginLeft: 4, cursor: 'pointer' }}>
           <ShowMoreHorizontalIcon label="More" size="small" />
         </span>
       </div>
@@ -96,8 +114,8 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
                 padding: '8px 12px',
                 fontSize: 13,
                 fontWeight: active ? 500 : 400,
-                color: active ? '#172B4D' : '#5E6C84',
-                borderBottom: active ? '2px solid #0052CC' : '2px solid transparent',
+                color: active ? 'var(--trella-text)' : 'var(--trella-text-subtle)',
+                borderBottom: active ? '2px solid var(--trella-brand)' : '2px solid transparent',
                 marginBottom: -1,
                 cursor: 'pointer',
                 transition: 'color 0.12s',

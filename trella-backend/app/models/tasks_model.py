@@ -82,20 +82,28 @@ def resolve_task_custom_status_before_insert(
                 if target.project_id is None:
                     target.project_id = board.project_id
 
-                # Auto resolve custom status based on column's status_key
-                if target.custom_status_id is None and column.status_key:
-                    from sqlmodel import select
+                # Auto resolve custom status based on column name or status_key
+                if target.custom_status_id is None:
+                    from sqlmodel import select, func
 
                     from app.models.custom_statuses_model import CustomStatus
                     from app.models.projects_model import Project
 
                     project = session.get(Project, board.project_id)
                     if project:
-                        stmt = select(CustomStatus).where(
+                        # 1. Match by name (case-insensitive)
+                        stmt_name = select(CustomStatus).where(
                             CustomStatus.workspace_id == project.workspace_id,
-                            CustomStatus.canonical_status == column.status_key.upper(),
+                            func.lower(CustomStatus.name) == func.lower(column.name),
                         )
-                        cs = session.exec(stmt).first()
+                        cs = session.exec(stmt_name).first()
+                        if not cs and column.status_key:
+                            # 2. Fallback to canonical status mapping
+                            stmt_canonical = select(CustomStatus).where(
+                                CustomStatus.workspace_id == project.workspace_id,
+                                CustomStatus.canonical_status == column.status_key.upper(),
+                            )
+                            cs = session.exec(stmt_canonical).first()
                         if cs:
                             target.custom_status_id = cs.id
 
@@ -108,6 +116,10 @@ def resolve_task_custom_status_on_update(_mapper, _connection, target: Task) -> 
 
         history = get_history(target, "column_id")
         if history.has_changes():
+            cs_history = get_history(target, "custom_status_id")
+            if cs_history.has_changes():
+                return
+
             from app.models.board_columns_model import BoardColumn
             from app.models.boards_model import Board
 
@@ -118,21 +130,35 @@ def resolve_task_custom_status_on_update(_mapper, _connection, target: Task) -> 
                 if board:
                     target.project_id = board.project_id
 
-                    if column.status_key:
-                        from sqlmodel import select
+                    from sqlmodel import select, func
 
-                        from app.models.custom_statuses_model import CustomStatus
-                        from app.models.projects_model import Project
+                    from app.models.custom_statuses_model import CustomStatus
+                    from app.models.projects_model import Project
 
-                        project = session.get(Project, board.project_id)
-                        if project:
-                            stmt = select(CustomStatus).where(
+                    if target.custom_status_id is not None:
+                        current_cs = session.get(CustomStatus, target.custom_status_id)
+                        if (
+                            current_cs
+                            and current_cs.name.lower() == column.name.lower()
+                        ):
+                            return
+
+                    project = session.get(Project, board.project_id)
+                    if project:
+                        # 1. Match by name (case-insensitive)
+                        stmt_name = select(CustomStatus).where(
+                            CustomStatus.workspace_id == project.workspace_id,
+                            func.lower(CustomStatus.name) == func.lower(column.name),
+                        )
+                        cs = session.exec(stmt_name).first()
+                        if not cs and column.status_key:
+                            # 2. Fallback to canonical status mapping
+                            stmt_canonical = select(CustomStatus).where(
                                 CustomStatus.workspace_id == project.workspace_id,
-                                CustomStatus.canonical_status
-                                == column.status_key.upper(),
+                                CustomStatus.canonical_status == column.status_key.upper(),
                             )
-                            cs = session.exec(stmt).first()
-                            if cs:
-                                target.custom_status_id = cs.id
-                            else:
-                                target.custom_status_id = None
+                            cs = session.exec(stmt_canonical).first()
+                        if cs:
+                            target.custom_status_id = cs.id
+                        else:
+                            target.custom_status_id = None

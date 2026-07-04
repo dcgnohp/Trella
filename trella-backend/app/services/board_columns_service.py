@@ -112,6 +112,34 @@ class BoardColumnsService:
             else self.repo.max_position(session, board_id) + 1
         )
         try:
+            from app.models.custom_statuses_model import CustomStatus
+            from app.models.enums import CanonicalStatus
+            from sqlmodel import select, func
+
+            stmt = select(CustomStatus).where(
+                CustomStatus.workspace_id == workspace_id,
+                func.lower(CustomStatus.name) == func.lower(data.name),
+            )
+            existing_cs = session.exec(stmt).first()
+            if not existing_cs:
+                canonical_val = None
+                if data.status_key:
+                    try:
+                        canonical_val = CanonicalStatus(data.status_key.upper()).value
+                    except ValueError:
+                        canonical_val = None
+                else:
+                    canonical_val = None
+
+                new_cs = CustomStatus(
+                    workspace_id=workspace_id,
+                    name=data.name,
+                    color="#6b7280",
+                    canonical_status=canonical_val,
+                )
+                session.add(new_cs)
+                session.flush()
+
             column = self.repo.create(
                 session,
                 BoardColumn(
@@ -154,10 +182,53 @@ class BoardColumnsService:
         column = self._get_column_in_board(session, board_id, column_id)
         old_value = self._snapshot(column)
         updates = data.model_dump(exclude_unset=True)
+        new_cs_id = None
+        if "name" in updates and updates["name"] and updates["name"] != column.name:
+            from app.models.custom_statuses_model import CustomStatus
+            from app.models.enums import CanonicalStatus
+            from sqlmodel import select, func
+
+            new_name = updates["name"]
+            stmt = select(CustomStatus).where(
+                CustomStatus.workspace_id == workspace_id,
+                func.lower(CustomStatus.name) == func.lower(new_name),
+            )
+            existing_cs = session.exec(stmt).first()
+            if not existing_cs:
+                status_key = updates.get("status_key") or column.status_key
+                canonical_val = None
+                if status_key:
+                    try:
+                        canonical_val = CanonicalStatus(status_key.upper()).value
+                    except ValueError:
+                        canonical_val = None
+                else:
+                    canonical_val = None
+
+                new_cs = CustomStatus(
+                    workspace_id=workspace_id,
+                    name=new_name,
+                    color="#6b7280",
+                    canonical_status=canonical_val,
+                )
+                session.add(new_cs)
+                session.flush()
+                new_cs_id = new_cs.id
+            else:
+                new_cs_id = existing_cs.id
+
         for field, value in updates.items():
             setattr(column, field, value)
         try:
             column = self.repo.update(session, column)
+            if new_cs_id:
+                from app.models.tasks_model import Task
+                from sqlmodel import select
+                stmt_tasks = select(Task).where(Task.column_id == column.id)
+                tasks_in_col = session.exec(stmt_tasks).all()
+                for t in tasks_in_col:
+                    t.custom_status_id = new_cs_id
+
             self.activity_service.record(
                 session,
                 workspace_id=workspace_id,

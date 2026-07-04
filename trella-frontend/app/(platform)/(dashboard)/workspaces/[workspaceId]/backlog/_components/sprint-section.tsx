@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { TaskRow } from './task-row';
 import { StartSprintModal } from './start-sprint-modal';
 import { CompleteSprintModal } from './complete-sprint-modal';
+import { InlineCreateTask } from './inline-create-task';
 
 interface SprintSectionProps {
   sprint: SprintWithTasks;
@@ -25,11 +26,13 @@ interface SprintSectionProps {
   members: ProjectMemberPublic[];
   customStatuses: CustomStatusPublic[];
   onTaskClick: (taskId: string) => void;
+  boardId: string;
+  todoColumnId: string;
 }
 
 type SprintMenu = 'rename' | 'edit-dates' | 'delete' | null;
 
-export function SprintSection({ sprint, allSprints, projectId, workspaceId, members, customStatuses, onTaskClick }: SprintSectionProps) {
+export function SprintSection({ sprint, allSprints, projectId, workspaceId, members, customStatuses, onTaskClick, boardId, todoColumnId }: SprintSectionProps) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
   const [showStartModal, setShowStartModal] = useState(false);
@@ -79,7 +82,7 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
     <>
       <div
         style={{
-          border: `1px solid ${'#DFE1E6'}`,
+          border: `1px solid ${'var(--trella-border)'}`,
           borderRadius: 6,
           overflow: 'hidden',
           marginBottom: '16px',
@@ -89,7 +92,7 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
         <div
           style={{
             padding: '8px 12px',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--trella-surface)',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
@@ -97,14 +100,14 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
           }}
           onClick={() => setExpanded(e => !e)}
         >
-          <span style={{ display: 'flex', alignItems: 'center', color: '#97A0AF', flexShrink: 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--trella-text-subtlest)', flexShrink: 0 }}>
             {expanded ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
           </span>
-          <span style={{ fontWeight: 700, fontSize: 13, color: '#172B4D', whiteSpace: 'nowrap' }}>
+          <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--trella-text)', whiteSpace: 'nowrap' }}>
             {sprint.name}
           </span>
-          <span style={{ fontSize: 12, color: '#97A0AF', whiteSpace: 'nowrap' }}>{dateRange}</span>
-          <span style={{ fontSize: 12, color: '#97A0AF', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', whiteSpace: 'nowrap' }}>{dateRange}</span>
+          <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', whiteSpace: 'nowrap' }}>
             ({(sprint.tasks ?? []).length} work items)
           </span>
 
@@ -158,8 +161,8 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
                     right: 0,
                     top: '100%',
                     zIndex: 100,
-                    backgroundColor: '#FFFFFF',
-                    border: `1px solid ${'#DFE1E6'}`,
+                    backgroundColor: 'var(--trella-surface)',
+                    border: `1px solid ${'var(--trella-border)'}`,
                     borderRadius: 4,
                     boxShadow: '0 4px 16px rgba(9,30,66,0.18)',
                     minWidth: 160,
@@ -176,10 +179,10 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
                       style={{
                         padding: '8px 12px',
                         fontSize: 13,
-                        color: item.action === 'delete' ? '#FF5630' : '#172B4D',
+                        color: item.action === 'delete' ? '#FF5630' : 'var(--trella-text)',
                         cursor: 'pointer',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(9,30,66,0.06)'; }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-selected)'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
                     >
                       {item.label}
@@ -201,14 +204,14 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
                 style={{
                   backgroundColor: snapshot.isDraggingOver
                     ? '#CCE0FF'
-                    : '#FFFFFF',
+                    : 'var(--trella-surface)',
                   minHeight: 40,
                 }}
               >
                 {(sprint.tasks ?? []).length === 0 ? (
-                  <div style={{ padding: 16, textAlign: 'center', border: `2px dashed ${'#DFE1E6'}`, margin: 8, borderRadius: 3 }}>
-                    <span style={{ fontSize: 12, color: '#97A0AF' }}>
-                      Plan a sprint by dragging work items into it
+                  <div style={{ margin: '8px 12px', border: '2px dashed var(--trella-border)', borderRadius: 6, padding: '18px 16px', textAlign: 'center' }}>
+                    <span style={{ fontSize: 13, color: 'var(--trella-text-subtlest)' }}>
+                      Plan a sprint by dragging work items into it, or by dragging the sprint footer.
                     </span>
                   </div>
                 ) : (
@@ -230,6 +233,16 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
               </div>
             )}
           </Droppable>
+        )}
+        {expanded && (
+          <InlineCreateTask
+            boardId={boardId}
+            columnId={todoColumnId}
+            sprintId={sprint.id}
+            workspaceId={workspaceId}
+            projectId={projectId}
+            projectMembers={members}
+          />
         )}
       </div>
 

@@ -127,6 +127,9 @@ export function StatusFormDialog({
         mode === "create" ? "Custom status created" : "Custom status updated",
       )
       queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: ["custom-statuses", workspaceId] })
+      queryClient.invalidateQueries({ queryKey: ["board-tasks"] })
+      queryClient.invalidateQueries({ queryKey: ["task"] })
       onOpenChange(false)
     },
     onError: (error) => {

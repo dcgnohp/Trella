@@ -68,6 +68,16 @@ export const KanbanBoardScreen = ({
     staleTime: 5 * 60 * 1000,
   });
 
+  const workspaceModeQuery = useQuery({
+    queryKey: ["workspace-mode", workspaceId],
+    queryFn: async () => {
+      const res = await fetch(`/api/workspaces/${workspaceId}`, { cache: "no-store" });
+      if (!res.ok) return { mode: "KANBAN" };
+      return res.json() as Promise<{ mode: string }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const boardData = boardQuery.data;
   const projectId = boardData?.projectId;
 
@@ -141,7 +151,7 @@ export const KanbanBoardScreen = ({
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F4F5F7' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--trella-surface-sunken)' }}>
         <BoardHeaderSkeleton />
         <div style={{ flex: 1, padding: 24 }}>
           <KanbanBoardSkeleton />
@@ -152,10 +162,10 @@ export const KanbanBoardScreen = ({
 
   if (isError || !boardQuery.data) {
     return (
-      <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F5F7', padding: 24 }}>
+      <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--trella-surface-sunken)', padding: 24 }}>
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ fontSize: 20, fontWeight: 600, color: '#FF5630' }}>Error Loading Board</h2>
-          <p style={{ fontSize: 14, color: '#5E6C84', marginTop: 8 }}>
+          <p style={{ fontSize: 14, color: 'var(--trella-text-subtle)', marginTop: 8 }}>
             We couldn&apos;t retrieve the board. Please verify your permissions or try again.
           </p>
         </div>
@@ -168,8 +178,12 @@ export const KanbanBoardScreen = ({
   const customStatuses = customStatusesQuery.data ?? [];
   const members = projectMembersQuery.data ?? [];
 
+  const isScrum =
+    workspaceModeQuery.data?.mode === 'SCRUM' ||
+    (typeof window !== 'undefined' && window.localStorage.getItem(`trella:projectType:${workspaceId}`) === 'scrum');
+
   return (
-    <div style={{ display: "flex", height: "100%", backgroundColor: "#F4F5F7", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100%", backgroundColor: "var(--trella-surface-sunken)", overflow: "hidden" }}>
       {standupActive && (
         <StandupPanel members={members} onClose={() => setStandupActive(false)} />
       )}
@@ -196,6 +210,8 @@ export const KanbanBoardScreen = ({
             customStatuses={customStatuses}
             projectMembers={members}
             onTaskClick={(task) => setSelectedTaskId(task.id)}
+            isScrum={isScrum}
+            boardIsEmpty={(tasksQuery.data ?? []).length === 0}
           />
         </main>
       </div>
@@ -221,24 +237,24 @@ export const KanbanBoardScreen = ({
 };
 
 const BoardHeaderSkeleton = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #DFE1E6', padding: '10px 20px', backgroundColor: 'transparent' }}>
-    <div style={{ height: 24, width: 192, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
-    <div style={{ height: 32, width: 96, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--trella-border)', padding: '10px 20px', backgroundColor: 'transparent' }}>
+    <div style={{ height: 24, width: 192, borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
+    <div style={{ height: 32, width: 96, borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
   </div>
 );
 
 const KanbanBoardSkeleton = () => (
   <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
     {Array.from({ length: 3 }).map((_, colIndex) => (
-      <div key={colIndex} style={{ width: 272, flexShrink: 0, borderRadius: 6, backgroundColor: '#FFFFFF', padding: 14 }}>
+      <div key={colIndex} style={{ width: 272, flexShrink: 0, borderRadius: 6, backgroundColor: 'var(--trella-surface)', padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ height: 20, width: 96, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
-          <div style={{ height: 20, width: 20, borderRadius: '50%', backgroundColor: '#DFE1E6' }} />
+          <div style={{ height: 20, width: 96, borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
+          <div style={{ height: 20, width: 20, borderRadius: '50%', backgroundColor: 'var(--trella-border)' }} />
         </div>
         {Array.from({ length: 3 }).map((_, cardIndex) => (
-          <div key={cardIndex} style={{ borderRadius: 4, backgroundColor: '#F4F5F7', padding: 16, marginBottom: 8 }}>
-            <div style={{ height: 16, borderRadius: 4, backgroundColor: '#DFE1E6', marginBottom: 8 }} />
-            <div style={{ height: 14, width: '66%', borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+          <div key={cardIndex} style={{ borderRadius: 4, backgroundColor: 'var(--trella-surface-sunken)', padding: 16, marginBottom: 8 }}>
+            <div style={{ height: 16, borderRadius: 4, backgroundColor: 'var(--trella-border)', marginBottom: 8 }} />
+            <div style={{ height: 14, width: '66%', borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
           </div>
         ))}
       </div>

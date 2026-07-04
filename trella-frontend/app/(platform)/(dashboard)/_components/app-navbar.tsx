@@ -16,7 +16,8 @@ import StoreIcon from '@atlaskit/icon/core/app-switcher';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import CreditCardIcon from '@atlaskit/icon/core/credit-card';
 
-const NAV_BG = '#FFFFFF';
+import { ThemeToggle, ThemeMenu } from '@/components/theme-toggle';
+import { CreateTaskModal } from '@/components/create-task-modal';
 
 const SETTINGS_SECTIONS = [
   {
@@ -47,6 +48,7 @@ const SETTINGS_SECTIONS = [
 
 export function AppNavbar() {
   const [createOpen, setCreateOpen] = useState(false);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const params = useParams();
@@ -55,13 +57,13 @@ export function AppNavbar() {
   return (
     <div style={{
       height: 56,
-      backgroundColor: NAV_BG,
+      backgroundColor: 'var(--trella-surface)',
       display: 'flex',
       alignItems: 'center',
       padding: '0 12px',
       gap: 8,
       flexShrink: 0,
-      borderBottom: '1px solid #DFE1E6',
+      borderBottom: '1px solid var(--trella-border)',
       position: 'relative',
       zIndex: 40,
     }}>
@@ -74,21 +76,21 @@ export function AppNavbar() {
         }}>
           <span style={{ color: 'white', fontSize: 14, fontWeight: 700 }}>T</span>
         </div>
-        <span style={{ color: '#172B4D', fontSize: 15, fontWeight: 700 }}>Trella</span>
+        <span style={{ color: 'var(--trella-text)', fontSize: 15, fontWeight: 700 }}>Trella</span>
       </Link>
 
       {/* Search */}
       <div style={{ flex: 1, maxWidth: 480, position: 'relative' }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          backgroundColor: '#F4F5F7',
-          border: '1px solid #DFE1E6',
+          backgroundColor: 'var(--trella-surface-sunken)',
+          border: '1px solid var(--trella-border)',
           borderRadius: 4,
           padding: '0 12px',
           height: 32,
           cursor: 'text',
         }}>
-          <span style={{ color: '#97A0AF', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <SearchIcon label="Search" size="small" />
           </span>
           <input
@@ -97,10 +99,10 @@ export function AppNavbar() {
             placeholder="Search"
             style={{
               background: 'none', border: 'none', outline: 'none',
-              color: '#172B4D', fontSize: 13, flex: 1,
+              color: 'var(--trella-text)', fontSize: 13, flex: 1,
             }}
           />
-          <span style={{ color: '#97A0AF', fontSize: 11, fontFamily: 'monospace' }}>/</span>
+          <span style={{ color: 'var(--trella-text-subtlest)', fontSize: 11, fontFamily: 'monospace' }}>/</span>
         </div>
       </div>
 
@@ -111,7 +113,7 @@ export function AppNavbar() {
         <button
           onClick={() => setCreateOpen(v => !v)}
           style={{
-            background: '#0052CC', color: 'white', border: 'none', borderRadius: 4,
+            background: 'var(--trella-brand)', color: 'white', border: 'none', borderRadius: 4,
             padding: '0 14px', height: 32, fontSize: 13, fontWeight: 500, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}
@@ -123,18 +125,23 @@ export function AppNavbar() {
             <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setCreateOpen(false)} />
             <div style={{
               position: 'absolute', top: '100%', right: 0, marginTop: 6,
-              backgroundColor: '#FFFFFF', borderRadius: 6,
-              boxShadow: '0 8px 24px rgba(9,30,66,0.15)',
+              backgroundColor: 'var(--trella-surface-overlay)', borderRadius: 6,
+              boxShadow: 'var(--trella-shadow-raised)',
               padding: '8px 0', minWidth: 200, zIndex: 50,
-              border: '1px solid #DFE1E6',
+              border: '1px solid var(--trella-border)',
             }}>
-              <div style={{ padding: '4px 16px 8px', fontSize: 11, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Create</div>
-              <NavDropItem href="/select-org" label="New Board" onClose={() => setCreateOpen(false)} />
-              <NavDropItem href="/onboarding" label="New Project" onClose={() => setCreateOpen(false)} />
+              <div style={{ padding: '4px 16px 8px', fontSize: 11, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Create</div>
+              {workspaceId && (
+                <NavDropButton label="New Task" onClose={() => setCreateOpen(false)} onClick={() => { setCreateOpen(false); setCreateTaskOpen(true); }} />
+              )}
+              <NavDropItem href="/onboarding" label="New Workspace" onClose={() => setCreateOpen(false)} />
             </div>
           </>
         )}
       </div>
+
+      {/* Theme toggle */}
+      <ThemeToggle />
 
       {/* Notification */}
       <IconBtn title="Notifications">
@@ -152,27 +159,32 @@ export function AppNavbar() {
             <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setSettingsOpen(false)} />
             <div style={{
               position: 'absolute', top: '100%', right: 0, marginTop: 6,
-              backgroundColor: '#FFFFFF', borderRadius: 6,
-              boxShadow: '0 8px 32px rgba(9,30,66,0.18)',
+              backgroundColor: 'var(--trella-surface-overlay)', borderRadius: 6,
+              boxShadow: 'var(--trella-shadow-overlay)',
               padding: '12px 0', width: 420, zIndex: 50,
-              border: '1px solid #DFE1E6', maxHeight: '80vh', overflowY: 'auto',
+              border: '1px solid var(--trella-border)', maxHeight: '80vh', overflowY: 'auto',
             }}>
               {/* Search inside settings */}
-              <div style={{ padding: '0 16px 12px', borderBottom: '1px solid #DFE1E6', marginBottom: 8 }}>
+              <div style={{ padding: '0 16px 12px', borderBottom: '1px solid var(--trella-border)', marginBottom: 8 }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 8, height: 32,
-                  border: '1px solid #DFE1E6', borderRadius: 4, padding: '0 10px',
-                  backgroundColor: '#F4F5F7',
+                  border: '1px solid var(--trella-border)', borderRadius: 4, padding: '0 10px',
+                  backgroundColor: 'var(--trella-surface-sunken)',
                 }}>
-                  <span style={{ color: '#97A0AF', display: 'flex' }}><SearchIcon label="" size="small" /></span>
-                  <input placeholder="Search" style={{ background: 'none', border: 'none', outline: 'none', fontSize: 13, flex: 1, color: '#172B4D' }} />
-                  <span style={{ fontSize: 11, color: '#97A0AF', fontFamily: 'monospace' }}>Ctrl K</span>
+                  <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex' }}><SearchIcon label="" size="small" /></span>
+                  <input placeholder="Search" style={{ background: 'none', border: 'none', outline: 'none', fontSize: 13, flex: 1, color: 'var(--trella-text)' }} />
+                  <span style={{ fontSize: 11, color: 'var(--trella-text-subtlest)', fontFamily: 'monospace' }}>Ctrl K</span>
                 </div>
+              </div>
+
+              {/* Theme picker */}
+              <div style={{ borderBottom: '1px solid var(--trella-border)', marginBottom: 8, paddingBottom: 4 }}>
+                <ThemeMenu onSelect={() => setSettingsOpen(false)} />
               </div>
 
               {SETTINGS_SECTIONS.map(section => (
                 <div key={section.heading} style={{ marginBottom: 4 }}>
-                  <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {section.heading}
                   </div>
                   {section.items.map(item => {
@@ -206,6 +218,14 @@ export function AppNavbar() {
       }}>
         KS
       </div>
+
+      {workspaceId && (
+        <CreateTaskModal
+          workspaceId={workspaceId}
+          isOpen={createTaskOpen}
+          onClose={() => setCreateTaskOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -219,8 +239,8 @@ function IconBtn({ children, title, onClick }: { children: React.ReactNode; titl
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? 'rgba(9,30,66,0.06)' : 'none',
-        border: 'none', cursor: 'pointer', color: '#5E6C84',
+        background: hovered ? 'var(--trella-surface-hover)' : 'none',
+        border: 'none', cursor: 'pointer', color: 'var(--trella-text-subtle)',
         width: 32, height: 32, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.1s',
@@ -243,13 +263,13 @@ function SettingsMenuItem({ icon, label, sub, href, onClose }: {
       style={{
         display: 'flex', alignItems: 'flex-start', gap: 12,
         padding: '8px 16px', cursor: 'pointer',
-        backgroundColor: hovered ? 'rgba(9,30,66,0.04)' : 'transparent',
+        backgroundColor: hovered ? 'var(--trella-surface-hover)' : 'transparent',
       }}
     >
-      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 2, color: '#5E6C84' }}>{icon}</span>
+      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 2, color: 'var(--trella-text-subtle)' }}>{icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: '#172B4D' }}>{label}</div>
-        <div style={{ fontSize: 12, color: '#5E6C84', marginTop: 2, lineHeight: 1.4 }}>{sub}</div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--trella-text)' }}>{label}</div>
+        <div style={{ fontSize: 12, color: 'var(--trella-text-subtle)', marginTop: 2, lineHeight: 1.4 }}>{sub}</div>
       </div>
     </div>
   );
@@ -264,12 +284,28 @@ function NavDropItem({ href, label, onClose }: { href: string; label: string; on
   return (
     <Link href={href} onClick={onClose} style={{ textDecoration: 'none', display: 'block' }}>
       <div
-        style={{ padding: '8px 16px', fontSize: 14, color: '#172B4D', cursor: 'pointer' }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(9,30,66,0.04)'}
+        style={{ padding: '8px 16px', fontSize: 14, color: 'var(--trella-text)', cursor: 'pointer' }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-hover)'}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
       >
         {label}
       </div>
     </Link>
+  );
+}
+
+function NavDropButton({ label, onClose, onClick }: { label: string; onClose: () => void; onClick: () => void }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      style={{ padding: '8px 16px', fontSize: 14, color: 'var(--trella-text)', cursor: 'pointer' }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-hover)'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
+      onClick={() => { onClose(); onClick(); }}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+    >
+      {label}
+    </div>
   );
 }

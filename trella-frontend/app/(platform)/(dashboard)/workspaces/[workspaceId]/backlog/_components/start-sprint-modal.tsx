@@ -51,13 +51,13 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
       <ModalBody>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
               Sprint name *
             </label>
             <Textfield value={name} onChange={e => setName((e.target as HTMLInputElement).value)} />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
               Sprint Goal
             </label>
             <TextArea
@@ -70,19 +70,19 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 4 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
                 Start date *
               </label>
               <Textfield type="date" value={startDate} onChange={e => setStartDate((e.target as HTMLInputElement).value)} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 4 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
                 End date *
               </label>
               <Textfield type="date" value={endDate} onChange={e => setEndDate((e.target as HTMLInputElement).value)} />
             </div>
           </div>
-          <p style={{ fontSize: 12, color: '#97A0AF', margin: 0 }}>
+          <p style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', margin: 0 }}>
             {(sprint.tasks ?? []).length} work items will be included in this sprint.
           </p>
         </div>

@@ -12,7 +12,7 @@ interface BoardListProps {
 export const BoardList = ({ boards, isPro = false }: BoardListProps) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#5E6C84' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--trella-text-subtle)' }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
         </svg>
@@ -28,16 +28,16 @@ export const BoardList = ({ boards, isPro = false }: BoardListProps) => {
             style={{
               aspectRatio: '16/9',
               borderRadius: 6,
-              backgroundColor: '#F4F5F7',
-              border: '1px dashed #DFE1E6',
+              backgroundColor: 'var(--trella-surface-sunken)',
+              border: '1px dashed var(--trella-border)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 4, cursor: 'pointer', transition: 'background 0.12s',
             }}
-            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(9,30,66,0.08)'}
-            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F4F5F7'}
+            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--trella-surface-selected)'}
+            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--trella-surface-sunken)'}
           >
-            <span style={{ fontSize: 13, color: '#5E6C84' }}>Create new board</span>
-            <span style={{ fontSize: 11, color: '#97A0AF' }}>{isPro ? 'Unlimited' : 'Free workspace'}</span>
+            <span style={{ fontSize: 13, color: 'var(--trella-text-subtle)' }}>Create new board</span>
+            <span style={{ fontSize: 11, color: 'var(--trella-text-subtlest)' }}>{isPro ? 'Unlimited' : 'Free workspace'}</span>
           </div>
         </FormPopover>
       </div>
@@ -80,7 +80,7 @@ BoardList.Skeleton = function SkeletonBoardList() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} style={{ aspectRatio: '16/9', borderRadius: 6, backgroundColor: '#DFE1E6' }} />
+        <div key={i} style={{ aspectRatio: '16/9', borderRadius: 6, backgroundColor: 'var(--trella-border)' }} />
       ))}
     </div>
   );

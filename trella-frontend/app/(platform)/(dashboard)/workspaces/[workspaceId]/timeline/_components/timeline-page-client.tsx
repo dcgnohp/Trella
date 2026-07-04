@@ -215,11 +215,10 @@ export function TimelinePageClient({ workspaceId }: TimelinePageClientProps) {
     enabled: !!firstBoardId,
   });
 
-  const today = new Date();
-
   // ponytail: mock sprint from tasks since no sprint endpoint yet
   const mockSprints = useMemo((): Sprint[] => {
     const tasks = tasksQuery.data ?? [];
+    const today = new Date();
     return [{
       id: 'sprint-1',
       name: 'Sprint 1',
@@ -227,7 +226,7 @@ export function TimelinePageClient({ workspaceId }: TimelinePageClientProps) {
       endDate: new Date(today.getFullYear(), today.getMonth() + 1, 14).toISOString(),
       tasks: tasks.slice(0, 6).map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate })),
     }];
-  }, [tasksQuery.data, today]);
+  }, [tasksQuery.data]);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

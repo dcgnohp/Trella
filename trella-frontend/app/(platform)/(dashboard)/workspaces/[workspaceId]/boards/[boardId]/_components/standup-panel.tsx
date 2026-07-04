@@ -78,10 +78,10 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
     height: 28,
     minWidth: 28,
     padding: "0 8px",
-    border: "1px solid #DFE1E6",
+    border: "1px solid var(--trella-border)",
     borderRadius: 4,
-    background: "#FFFFFF",
-    color: "#172B4D",
+    background: "var(--trella-surface)",
+    color: "var(--trella-text)",
     cursor: "pointer",
     fontSize: 12,
     gap: 4,
@@ -94,8 +94,8 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        borderRight: "1px solid #DFE1E6",
-        background: "#FFFFFF",
+        borderRight: "1px solid var(--trella-border)",
+        background: "var(--trella-surface)",
         flexShrink: 0,
       }}
     >
@@ -103,15 +103,15 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
       <div
         style={{
           padding: "16px 16px 12px",
-          borderBottom: "1px solid #DFE1E6",
+          borderBottom: "1px solid var(--trella-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#172B4D" }}>Standup</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--trella-text)" }}>Standup</span>
         <button
-          style={{ ...btnBase, border: "none", background: "transparent", color: "#5E6C84" }}
+          style={{ ...btnBase, border: "none", background: "transparent", color: "var(--trella-text-subtle)" }}
           onClick={() => {}}
           aria-label="Settings"
         >
@@ -125,7 +125,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
           style={{
             fontSize: 32,
             fontFamily: "monospace",
-            color: "#172B4D",
+            color: "var(--trella-text)",
             fontWeight: 700,
             marginBottom: 12,
             letterSpacing: 2,
@@ -135,7 +135,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
-            style={{ ...btnBase, background: "#0052CC", border: "none", color: "#FFFFFF", borderRadius: "50%", width: 36, height: 36, minWidth: 36 }}
+            style={{ ...btnBase, background: "#0052CC", border: "none", color: "var(--trella-surface)", borderRadius: "50%", width: 36, height: 36, minWidth: 36 }}
             onClick={() => setIsRunning((r) => !r)}
             aria-label={isRunning ? "Pause" : "Play"}
           >
@@ -146,7 +146,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
             )}
           </button>
           <button
-            style={{ ...btnBase, background: "transparent", border: "none", color: "#5E6C84" }}
+            style={{ ...btnBase, background: "transparent", border: "none", color: "var(--trella-text-subtle)" }}
             aria-label="Volume"
           >
             <AudioIcon label="Volume" size="small" />
@@ -158,7 +158,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
       <div
         style={{
           padding: "0 16px 16px",
-          borderBottom: "1px solid #DFE1E6",
+          borderBottom: "1px solid var(--trella-border)",
           display: "flex",
           alignItems: "center",
           gap: 6,
@@ -215,7 +215,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#FFFFFF",
+                  color: "var(--trella-surface)",
                   fontSize: 11,
                   fontWeight: 700,
                   flexShrink: 0,
@@ -226,7 +226,7 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
               <span
                 style={{
                   fontSize: 13,
-                  color: isActive ? "#0052CC" : "#172B4D",
+                  color: isActive ? "#0052CC" : "var(--trella-text)",
                   fontWeight: isActive ? 600 : 400,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -241,13 +241,13 @@ export function StandupPanel({ members, onClose }: StandupPanelProps) {
       </div>
 
       {/* Footer */}
-      <div style={{ padding: 16, borderTop: "1px solid #DFE1E6" }}>
+      <div style={{ padding: 16, borderTop: "1px solid var(--trella-border)" }}>
         <button
           style={{
             width: "100%",
             height: 36,
             background: "#FF5630",
-            color: "#FFFFFF",
+            color: "var(--trella-surface)",
             border: "none",
             borderRadius: 4,
             fontSize: 13,

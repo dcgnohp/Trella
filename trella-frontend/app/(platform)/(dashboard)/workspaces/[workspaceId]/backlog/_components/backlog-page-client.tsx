@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
@@ -70,23 +70,23 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     enabled: !!firstBoardId,
   });
 
-  const sprints: SprintWithTasks[] = sprintsQuery.data ?? [];
-  const backlogTasks: TaskPublic[] = backlogQuery.data ?? [];
+  const sprints: SprintWithTasks[] = useMemo(() => sprintsQuery.data ?? [], [sprintsQuery.data]);
+  const backlogTasks: TaskPublic[] = useMemo(() => backlogQuery.data ?? [], [backlogQuery.data]);
   const members = membersQuery.data ?? [];
   const customStatuses = customStatusesQuery.data ?? [];
   const columns = columnsQuery.data ?? [];
 
-  const filterTask = (t: TaskPublic) => {
+  const filterTask = useCallback((t: TaskPublic) => {
     if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (memberFilter && t.assigneeId !== memberFilter) return false;
     return true;
-  };
+  }, [search, memberFilter]);
 
   const filteredSprints = useMemo(
     () => sprints.map(s => ({ ...s, tasks: (s.tasks ?? []).filter(filterTask) })),
-    [sprints, search, memberFilter]
+    [sprints, filterTask]
   );
-  const filteredBacklog = useMemo(() => backlogTasks.filter(filterTask), [backlogTasks, search, memberFilter]);
+  const filteredBacklog = useMemo(() => backlogTasks.filter(filterTask), [backlogTasks, filterTask]);
 
   const selectedTask = useMemo(() => {
     if (!selectedTaskId) return null;
@@ -174,10 +174,18 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
   // Fall back to first backlog task's projectId if no sprints yet
   const resolvedProjectId = projectId ?? backlogTasks[0]?.projectId ?? '';
 
+  // ponytail: for the "+ Create" buttons in Sprint/Backlog sections we need a target
+  // column on the underlying board. Prefer the first TODO column, else fall back to
+  // the first column present.
+  const todoColumnId =
+    columns.find(c => c.statusKey === 'TODO')?.id ??
+    columns[0]?.id ??
+    '';
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', position: 'relative' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px', paddingRight: showInsights ? 344 : 24, transition: 'padding-right 0.2s ease' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#172B4D', margin: '0 0 16px' }}>Backlog</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--trella-text)', margin: '0 0 16px' }}>Backlog</h1>
 
         <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ width: 220 }}>
@@ -197,6 +205,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
                   fontSize: 10, color: '#fff', fontWeight: 600, padding: 0,
                 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {m.avatarUrl ? <img src={m.avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} /> : (m.fullName ?? m.email).slice(0, 2).toUpperCase()}
               </button>
             ))}
@@ -208,10 +217,10 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
             title="Toggle Backlog Insights"
             style={{
               width: 32, height: 32, borderRadius: 4,
-              border: showInsights ? '1px solid #579DFF' : '1px solid #DFE1E6',
-              backgroundColor: showInsights ? 'rgba(29,122,252,0.1)' : '#FFFFFF',
+              border: showInsights ? '1px solid #579DFF' : '1px solid var(--trella-border)',
+              backgroundColor: showInsights ? 'rgba(29,122,252,0.1)' : 'var(--trella-surface)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: showInsights ? '#579DFF' : '#97A0AF',
+              color: showInsights ? '#579DFF' : 'var(--trella-text-subtlest)',
             }}
           >
             <GraphLineIcon label="insights" size="small" />
@@ -219,14 +228,35 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: 40, textAlign: 'center' }}><span style={{ fontSize: 13, color: '#97A0AF' }}>Loading...</span></div>
+          <div style={{ padding: 40, textAlign: 'center' }}><span style={{ fontSize: 13, color: 'var(--trella-text-subtlest)' }}>Loading...</span></div>
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {filteredSprints.map(sprint => (
-                <SprintSection key={sprint.id} sprint={sprint} allSprints={sprints} projectId={sprint.projectId} workspaceId={workspaceId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} />
+                <SprintSection
+                  key={sprint.id}
+                  sprint={sprint}
+                  allSprints={sprints}
+                  projectId={sprint.projectId}
+                  workspaceId={workspaceId}
+                  members={members}
+                  customStatuses={customStatuses}
+                  onTaskClick={id => setSelectedTaskId(id)}
+                  boardId={firstBoardId ?? ''}
+                  todoColumnId={todoColumnId}
+                />
               ))}
-              <BacklogSection tasks={filteredBacklog} projectId={resolvedProjectId} workspaceId={workspaceId} members={members} customStatuses={customStatuses} onTaskClick={id => setSelectedTaskId(id)} onCreateSprint={() => createSprintMutation.mutate()} />
+              <BacklogSection
+                tasks={filteredBacklog}
+                projectId={resolvedProjectId}
+                workspaceId={workspaceId}
+                members={members}
+                customStatuses={customStatuses}
+                onTaskClick={id => setSelectedTaskId(id)}
+                onCreateSprint={() => createSprintMutation.mutate()}
+                boardId={firstBoardId ?? ''}
+                todoColumnId={todoColumnId}
+              />
             </div>
           </DragDropContext>
         )}

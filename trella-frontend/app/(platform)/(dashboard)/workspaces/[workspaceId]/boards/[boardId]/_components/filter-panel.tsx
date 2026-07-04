@@ -33,7 +33,7 @@ interface FilterPanelProps {
 const TYPES = ["Task", "Bug", "Story", "Subtask"];
 
 const TYPE_COLORS: Record<string, string> = {
-  Task: "#0052CC", Bug: "#FF5630", Story: "#64BA3B", Subtask: "#7A869A",
+  Task: "#0052CC", Bug: "#FF5630", Story: "#64BA3B", Subtask: "var(--trella-text-subtlest)",
 };
 
 export function FilterPanel({ filters, onChange, projectMembers, customStatuses, currentUserId, onClose }: FilterPanelProps) {
@@ -57,15 +57,15 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
         top: "calc(100% + 6px)",
         left: 0,
         zIndex: 100,
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #DFE1E6",
+        backgroundColor: "var(--trella-surface)",
+        border: "1px solid var(--trella-border)",
         borderRadius: 6,
         boxShadow: "0 8px 24px rgba(9,30,66,0.15)",
         width: 280,
         padding: "12px 0",
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 10px", borderBottom: "1px solid #DFE1E6" }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#172B4D" }}>Filter</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px 10px", borderBottom: "1px solid var(--trella-border)" }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Filter</span>
           {active && (
             <button
               onClick={() => onChange(EMPTY_FILTERS)}
@@ -85,12 +85,12 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
               onChange={e => onChange({ ...filters, onlyMine: e.target.checked, assigneeId: e.target.checked ? null : filters.assigneeId })}
               style={{ accentColor: "#0052CC", width: 14, height: 14, cursor: "pointer" }}
             />
-            <span style={{ fontSize: 13, color: "#172B4D" }}>Only my issues</span>
+            <span style={{ fontSize: 13, color: "var(--trella-text)" }}>Only my issues</span>
           </label>
 
           {/* Assignee */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#7A869A", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--trella-text-subtlest)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
               Assignee
             </div>
             <select
@@ -98,8 +98,8 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
               disabled={filters.onlyMine}
               onChange={e => onChange({ ...filters, assigneeId: e.target.value || null })}
               style={{
-                width: "100%", height: 32, border: "1px solid #DFE1E6", borderRadius: 4,
-                padding: "0 8px", fontSize: 13, color: "#172B4D", background: filters.onlyMine ? "#F4F5F7" : "#FFFFFF",
+                width: "100%", height: 32, border: "1px solid var(--trella-border)", borderRadius: 4,
+                padding: "0 8px", fontSize: 13, color: "var(--trella-text)", background: filters.onlyMine ? "var(--trella-surface-sunken)" : "var(--trella-surface)",
                 cursor: filters.onlyMine ? "not-allowed" : "pointer", outline: "none",
               }}
             >
@@ -113,7 +113,7 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
           {/* Status */}
           {customStatuses.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#7A869A", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--trella-text-subtlest)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
                 Status
               </div>
               {customStatuses.map(s => (
@@ -126,9 +126,9 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
                   />
                   <span style={{
                     display: "inline-block", width: 10, height: 10, borderRadius: "50%",
-                    backgroundColor: s.color ?? "#DFE1E6", flexShrink: 0,
+                    backgroundColor: s.color ?? "var(--trella-border)", flexShrink: 0,
                   }} />
-                  <span style={{ fontSize: 13, color: "#172B4D" }}>{s.name}</span>
+                  <span style={{ fontSize: 13, color: "var(--trella-text)" }}>{s.name}</span>
                 </label>
               ))}
             </div>
@@ -136,7 +136,7 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
 
           {/* Type */}
           <div style={{ marginBottom: 4 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#7A869A", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--trella-text-subtlest)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
               Type
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -148,9 +148,9 @@ export function FilterPanel({ filters, onChange, projectMembers, customStatuses,
                     onClick={() => onChange({ ...filters, typeFilter: active ? null : t })}
                     style={{
                       height: 26, padding: "0 10px", borderRadius: 4, fontSize: 12, cursor: "pointer",
-                      border: `1px solid ${active ? TYPE_COLORS[t] : "#DFE1E6"}`,
-                      background: active ? TYPE_COLORS[t] + "18" : "#FFFFFF",
-                      color: active ? TYPE_COLORS[t] : "#5E6C84",
+                      border: `1px solid ${active ? TYPE_COLORS[t] : "var(--trella-border)"}`,
+                      background: active ? TYPE_COLORS[t] + "18" : "var(--trella-surface)",
+                      color: active ? TYPE_COLORS[t] : "var(--trella-text-subtle)",
                       fontWeight: active ? 600 : 400,
                     }}
                   >

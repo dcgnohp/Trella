@@ -26,6 +26,8 @@ interface KanbanBoardProps {
   customStatuses: CustomStatusEmbed[];
   projectMembers: ProjectMemberPublic[];
   onTaskClick: (task: TaskPublic) => void;
+  isScrum?: boolean;
+  boardIsEmpty?: boolean;
 }
 
 export const KanbanBoard = ({
@@ -37,6 +39,8 @@ export const KanbanBoard = ({
   customStatuses,
   projectMembers,
   onTaskClick,
+  isScrum,
+  boardIsEmpty,
 }: KanbanBoardProps) => {
   const queryClient = useQueryClient();
 
@@ -99,7 +103,7 @@ export const KanbanBoard = ({
     }: {
       taskId: string;
       columnId: string;
-      customStatusId: string | null;
+      customStatusId: string | undefined;
     }) =>
       TasksService.Tasks_tasksUpdateTask({
         taskId,
@@ -143,6 +147,12 @@ export const KanbanBoard = ({
       queryClient.invalidateQueries({
         queryKey: queryKeys.boardColumns(boardId),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.customStatuses(workspaceId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.boardTasks(boardId),
+      });
       setColumnName("");
       setIsAdding(false);
       toast.success("Column created successfully");
@@ -179,7 +189,7 @@ export const KanbanBoard = ({
       } else if (trimmed.toLowerCase() === "in progress") {
         statusKey = "IN_PROGRESS";
       } else {
-        statusKey = "TODO"; // Fallback
+        statusKey = "UNMAPPED"; // Fallback
       }
     }
 
@@ -212,14 +222,16 @@ export const KanbanBoard = ({
       const destColumn = columns.find((c) => c.id === destination.droppableId);
       if (!destColumn) return;
 
-      // Column-drives-status: match either by canonicalStatus key OR name (case-insensitive)
-      const matchingStatus = customStatuses.find(
-        (cs) =>
-          (cs.canonicalStatus && cs.canonicalStatus === destColumn.statusKey) ||
-          (cs.name &&
-            cs.name.toLowerCase() === destColumn.name.toLowerCase()),
-      );
-      const customStatusId = matchingStatus?.id ?? null;
+      // Column-drives-status: match by name first (covers unmapped and custom statuses matching the column name), then fallback to matching by canonicalStatus key
+      const matchingStatus =
+        customStatuses.find(
+          (cs) => cs.name && cs.name.toLowerCase() === destColumn.name.toLowerCase(),
+        ) ||
+        customStatuses.find(
+          (cs) => cs.canonicalStatus && cs.canonicalStatus === destColumn.statusKey,
+        );
+      // Only send customStatusId when we have a match; undefined leaves the field out of the request
+      const customStatusId = matchingStatus?.id ?? undefined;
 
       const taskId = result.draggableId;
 
@@ -233,7 +245,7 @@ export const KanbanBoard = ({
               ? {
                   ...t,
                   columnId: destination.droppableId,
-                  customStatusId,
+                  customStatusId: customStatusId ?? null,
                   customStatus: matchingStatus ?? null,
                 }
               : t,
@@ -287,10 +299,13 @@ export const KanbanBoard = ({
                       tasks={tasksByColumn.get(column.id) ?? []}
                       subtasksByParent={subtasksByParent}
                       boardId={boardId}
+                      workspaceId={workspaceId}
                       projectMembers={projectMembers}
                       dragHandleProps={dragProvided.dragHandleProps}
                       onTaskClick={onTaskClick}
                       onTaskCreated={handleTaskCreated}
+                      isScrum={isScrum}
+                      boardIsEmpty={boardIsEmpty}
                     />
                   </div>
                 )}
@@ -304,8 +319,8 @@ export const KanbanBoard = ({
               onSubmit={onSubmit}
               style={{
                 width: '100%', padding: 12, borderRadius: 6,
-                border: '1px solid #DFE1E6',
-                backgroundColor: '#FFFFFF',
+                border: '1px solid var(--trella-border)',
+                backgroundColor: 'var(--trella-surface)',
                 display: 'flex', flexDirection: 'column', gap: 10,
               }}
             >
@@ -318,9 +333,9 @@ export const KanbanBoard = ({
                   placeholder="Column name (e.g. In review)..."
                   style={{
                     width: '100%', height: 32, padding: '0 10px', borderRadius: 4,
-                    border: '1px solid #DFE1E6',
-                    backgroundColor: '#FAFBFC',
-                    color: '#172B4D', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                    border: '1px solid var(--trella-border)',
+                    backgroundColor: 'var(--trella-surface-raised)',
+                    color: 'var(--trella-text)', fontSize: 13, outline: 'none', boxSizing: 'border-box',
                   }}
                 />
 
@@ -329,12 +344,12 @@ export const KanbanBoard = ({
                   <div style={{
                     position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 50, marginTop: 4,
                     maxHeight: 192, overflowY: 'auto', borderRadius: 6,
-                    border: '1px solid #DFE1E6',
-                    backgroundColor: '#FFFFFF',
+                    border: '1px solid var(--trella-border)',
+                    backgroundColor: 'var(--trella-surface)',
                     padding: '4px 0',
                     boxShadow: '0 4px 16px rgba(9,30,66,0.15)',
                   }}>
-                    <p style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, color: '#7A869A', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                    <p style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                       Map to Workspace Status
                     </p>
                     {filteredSuggestions.map((cs) => (
@@ -349,16 +364,16 @@ export const KanbanBoard = ({
                         style={{
                           display: 'flex', width: '100%', alignItems: 'center', gap: 8,
                           padding: '6px 10px', background: 'none', border: 'none',
-                          cursor: 'pointer', fontSize: 12, color: '#172B4D', textAlign: 'left',
+                          cursor: 'pointer', fontSize: 12, color: 'var(--trella-text)', textAlign: 'left',
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(9,30,66,0.04)')}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--trella-surface-hover)')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         {cs.color && (
                           <span style={{ width: 12, height: 12, flexShrink: 0, borderRadius: 3, border: '1px solid rgba(0,0,0,0.1)', backgroundColor: cs.color, display: 'inline-block' }} />
                         )}
                         <span style={{ fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cs.name}</span>
-                        <span style={{ fontSize: 10, color: '#7A869A', textTransform: 'uppercase' }}>{cs.canonicalStatus}</span>
+                        <span style={{ fontSize: 10, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase' }}>{cs.canonicalStatus}</span>
                       </button>
                     ))}
                   </div>
@@ -380,8 +395,8 @@ export const KanbanBoard = ({
                   type="button"
                   onClick={() => { setIsAdding(false); setColumnName(""); }}
                   style={{
-                    height: 28, width: 28, borderRadius: 4, border: '1px solid #DFE1E6',
-                    backgroundColor: 'transparent', color: '#5E6C84', fontSize: 16, cursor: 'pointer',
+                    height: 28, width: 28, borderRadius: 4, border: '1px solid var(--trella-border)',
+                    backgroundColor: 'transparent', color: 'var(--trella-text-subtle)', fontSize: 16, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >
@@ -394,13 +409,13 @@ export const KanbanBoard = ({
               onClick={() => { setIsAdding(true); setTimeout(() => inputRef.current?.focus(), 0); }}
               style={{
                 display: 'flex', width: '100%', alignItems: 'center', gap: 8,
-                borderRadius: 6, border: '1px dashed #DFE1E6',
-                backgroundColor: '#F4F5F7', padding: 12,
-                fontSize: 13, color: '#97A0AF', cursor: 'pointer',
+                borderRadius: 6, border: '1px dashed var(--trella-border)',
+                backgroundColor: 'var(--trella-surface-sunken)', padding: 12,
+                fontSize: 13, color: 'var(--trella-text-subtlest)', cursor: 'pointer',
                 transition: 'background 0.12s, color 0.12s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(9,30,66,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = '#5E6C84'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F4F5F7'; (e.currentTarget as HTMLButtonElement).style.color = '#97A0AF'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--trella-surface-hover)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--trella-text-subtle)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--trella-surface-sunken)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--trella-text-subtlest)'; }}
             >
               <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
               Add column

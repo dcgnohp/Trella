@@ -8,4 +8,4 @@ class Workspace(UUIDMixin, TimestampMixin, table=True):
     __tablename__ = "workspaces"
 
     name: str = Field(max_length=255)
-    mode: str = Field(default=WorkspaceMode.TRELLO, max_length=20)
+    mode: str = Field(default=WorkspaceMode.KANBAN, max_length=20)

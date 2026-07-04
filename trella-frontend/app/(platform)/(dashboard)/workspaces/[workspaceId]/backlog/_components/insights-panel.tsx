@@ -18,7 +18,7 @@ const WORK_TYPE_COLORS: Record<string, string> = {
   STORY: '#64BA3B',
   BUG: '#FF5630',
   TASK: '#0052CC',
-  SUBTASK: '#7A869A',
+  SUBTASK: 'var(--trella-text-subtlest)',
 };
 
 export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProps) {
@@ -50,8 +50,8 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
         top: 0,
         bottom: 0,
         width: 320,
-        backgroundColor: '#FFFFFF',
-        borderLeft: `1px solid ${'#DFE1E6'}`,
+        backgroundColor: 'var(--trella-surface)',
+        borderLeft: `1px solid ${'var(--trella-border)'}`,
         boxShadow: '0 4px 16px rgba(9,30,66,0.18)',
         zIndex: 200,
         display: 'flex',
@@ -63,14 +63,14 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
       <div
         style={{
           padding: '12px 16px',
-          borderBottom: `1px solid ${'#DFE1E6'}`,
+          borderBottom: `1px solid ${'var(--trella-border)'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
         }}
       >
-        <span style={{ fontWeight: 700, fontSize: 14, color: '#172B4D' }}>Backlog Insights</span>
+        <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--trella-text)' }}>Backlog Insights</span>
         <button
           onClick={onClose}
           style={{
@@ -79,7 +79,7 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            color: '#97A0AF',
+            color: 'var(--trella-text-subtlest)',
             padding: 4,
             borderRadius: 3,
           }}
@@ -91,7 +91,7 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
       <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Sprint selector */}
         <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#97A0AF', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--trella-text-subtlest)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Sprint
           </label>
           <Select
@@ -105,7 +105,7 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
 
         {insightsQuery.isLoading && (
           <div style={{ textAlign: 'center', padding: 20 }}>
-            <span style={{ fontSize: 12, color: '#97A0AF' }}>Loading insights...</span>
+            <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)' }}>Loading insights...</span>
           </div>
         )}
 
@@ -119,23 +119,23 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
           <>
             {/* Sprint commitment */}
             <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 10 }}>
                 Sprint commitment
               </span>
               {commitment && (commitment.totalPoints ?? commitment.total ?? 0) > 0 ? (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: '#97A0AF' }}>
+                    <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)' }}>
                       {commitment.completedPoints ?? commitment.completed ?? 0} / {commitment.totalPoints ?? commitment.total ?? 0}
                       {commitment.totalPoints ? ' pts' : ' items'}
                     </span>
-                    <span style={{ fontSize: 12, color: '#97A0AF' }}>
+                    <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)' }}>
                       {(commitment.total ?? 0) > 0
                         ? Math.round(((commitment.completed ?? 0) / (commitment.total ?? 1)) * 100)
                         : 0}%
                     </span>
                   </div>
-                  <div style={{ height: 8, borderRadius: 4, backgroundColor: '#F4F5F7', overflow: 'hidden' }}>
+                  <div style={{ height: 8, borderRadius: 4, backgroundColor: 'var(--trella-surface-sunken)', overflow: 'hidden' }}>
                     <div
                       style={{
                         height: '100%',
@@ -148,7 +148,7 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
                   </div>
                 </div>
               ) : (
-                <p style={{ fontSize: 12, color: '#97A0AF', margin: 0, fontStyle: 'italic' }}>
+                <p style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', margin: 0, fontStyle: 'italic' }}>
                   No story point estimates found. Add estimates to track sprint commitment.
                 </p>
               )}
@@ -156,11 +156,11 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
 
             {/* Work type breakdown */}
             <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 10 }}>
                 Work type breakdown
               </span>
               {totalWorkTypes === 0 ? (
-                <p style={{ fontSize: 12, color: '#97A0AF', margin: 0, fontStyle: 'italic' }}>
+                <p style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', margin: 0, fontStyle: 'italic' }}>
                   No work items in this sprint.
                 </p>
               ) : (
@@ -175,12 +175,12 @@ export function InsightsPanel({ projectId, sprints, onClose }: InsightsPanelProp
                       return (
                         <div key={type}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                            <span style={{ fontSize: 12, color: '#172B4D', textTransform: 'capitalize' }}>
+                            <span style={{ fontSize: 12, color: 'var(--trella-text)', textTransform: 'capitalize' }}>
                               {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
                             </span>
-                            <span style={{ fontSize: 12, color: '#97A0AF' }}>{numCount}</span>
+                            <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)' }}>{numCount}</span>
                           </div>
-                          <div style={{ height: 6, borderRadius: 3, backgroundColor: '#F4F5F7', overflow: 'hidden' }}>
+                          <div style={{ height: 6, borderRadius: 3, backgroundColor: 'var(--trella-surface-sunken)', overflow: 'hidden' }}>
                             <div
                               style={{
                                 height: '100%',

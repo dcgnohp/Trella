@@ -7,7 +7,7 @@ body,
 :root {
   height: 100%;
 }
- 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -15,29 +15,25 @@ body,
 
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
- 
+
     --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
- 
+
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
- 
+
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
- 
+
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 9%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Status display tokens (Req 10.3/10.4): canonical PENDING uses warning,
-       IN_PROGRESS uses info. DONE reuses muted/muted-foreground (Req 10.2);
-       TODO/unmapped reuse foreground/background (Req 10.5/10.6). success is an
-       optional positive accent and is NOT used for DONE. */
     --warning: 45 80% 92%;
     --warning-foreground: 40 100% 29%;
     --info: 205 85% 93%;
@@ -48,52 +44,119 @@ body,
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
- 
+
     --radius: 0.5rem;
+
+    /* Trella theme tokens — inline styles reference these via var(--trella-*).
+       Keep hex values here so components can reference them directly without
+       going through Tailwind. Every var must have a .dark counterpart below. */
+    --trella-surface: #ffffff;
+    --trella-surface-raised: #ffffff;
+    --trella-surface-sunken: #f4f5f7;
+    --trella-surface-overlay: #ffffff;
+    --trella-surface-hover: #f1f2f4;
+    --trella-surface-selected: #e9ebee;
+
+    --trella-text: #172b4d;
+    --trella-text-subtle: #5e6c84;
+    --trella-text-subtlest: #7a869a;
+    --trella-text-disabled: #a5adba;
+    --trella-text-inverse: #ffffff;
+
+    --trella-border: #dfe1e6;
+    --trella-border-subtle: #ebecf0;
+    --trella-border-strong: #c1c7d0;
+
+    --trella-brand: #0052cc;
+    --trella-brand-hover: #0747a6;
+    --trella-brand-subtle: #deebff;
+
+    --trella-danger: #ff5630;
+    --trella-danger-subtle: #ffebe6;
+    --trella-warning: #ff991f;
+    --trella-warning-subtle: #fff0b3;
+    --trella-success: #36b37e;
+    --trella-success-subtle: #e3fcef;
+    --trella-info: #0065ff;
+    --trella-info-subtle: #deebff;
+
+    --trella-shadow-card: 0 1px 2px rgba(9, 30, 66, 0.08), 0 0 1px rgba(9, 30, 66, 0.13);
+    --trella-shadow-raised: 0 4px 16px rgba(9, 30, 66, 0.15);
+    --trella-shadow-overlay: 0 8px 24px rgba(9, 30, 66, 0.18);
   }
- 
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
- 
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
- 
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
- 
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
- 
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
- 
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
- 
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
- 
+    --background: 220 20% 10%;
+    --foreground: 210 20% 90%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 210 20% 90%;
+    --primary-foreground: 220 20% 10%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 15% 65%;
+
+    --accent: 220 15% 18%;
+    --accent-foreground: 210 20% 90%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
- 
-    /* Status display tokens (Req 10.3/10.4): canonical PENDING uses warning,
-       IN_PROGRESS uses info. DONE reuses muted/muted-foreground (Req 10.2);
-       TODO/unmapped reuse foreground/background (Req 10.5/10.6). success is an
-       optional positive accent and is NOT used for DONE. */
+
     --warning: 38 50% 18%;
     --warning-foreground: 41 96% 75%;
     --info: 205 60% 20%;
     --info-foreground: 205 90% 80%;
     --success: 125 30% 18%;
     --success-foreground: 125 50% 78%;
- 
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+
+    --border: 220 12% 22%;
+    --input: 220 12% 22%;
+    --ring: 210 20% 90%;
+
+    --trella-surface: #1d2231;
+    --trella-surface-raised: #232939;
+    --trella-surface-sunken: #161a24;
+    --trella-surface-overlay: #232939;
+    --trella-surface-hover: #2a3040;
+    --trella-surface-selected: #313849;
+
+    --trella-text: #e6e8ec;
+    --trella-text-subtle: #b3bac5;
+    --trella-text-subtlest: #8993a4;
+    --trella-text-disabled: #5e6c84;
+    --trella-text-inverse: #172b4d;
+
+    --trella-border: #313849;
+    --trella-border-subtle: #2a3040;
+    --trella-border-strong: #454c5f;
+
+    --trella-brand: #579dff;
+    --trella-brand-hover: #85b8ff;
+    --trella-brand-subtle: #1c2b41;
+
+    --trella-danger: #f87168;
+    --trella-danger-subtle: #40241f;
+    --trella-warning: #e2b203;
+    --trella-warning-subtle: #3a2e10;
+    --trella-success: #7ee2b8;
+    --trella-success-subtle: #17322a;
+    --trella-info: #579dff;
+    --trella-info-subtle: #1c2b41;
+
+    --trella-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
+    --trella-shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --trella-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.55);
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;

@@ -97,11 +97,12 @@ class ActivityAction(str, Enum):
     EPIC_DELETED = "EPIC_DELETED"
     TASK_EPIC_CHANGED = "TASK_EPIC_CHANGED"
     TASK_SPRINT_CHANGED = "TASK_SPRINT_CHANGED"
+    TASK_RANK_CHANGED = "TASK_RANK_CHANGED"
 
 
 class WorkspaceMode(str, Enum):
-    TRELLO = "TRELLO"
-    JIRA = "JIRA"
+    KANBAN = "KANBAN"
+    SCRUM = "SCRUM"
 
 
 class SprintStatus(str, Enum):

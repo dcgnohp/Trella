@@ -66,6 +66,17 @@ def switch_workspace_mode(
     data: WorkspaceModeUpdate,
     current_user: CurrentUser,
 ) -> OrganizationPublic:
-    """Switch workspace mode between TRELLO and JIRA. OWNER only."""
+    """Switch workspace mode between KANBAN and SCRUM. OWNER only."""
     org = _service.switch_mode(session, workspace_id, data.mode, current_user)
+    return OrganizationPublic.model_validate(org)
+
+
+@workspaces_router.get("/{workspace_id}", response_model=OrganizationPublic)
+def get_workspace(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Return workspace detail by ID. Raises HTTP 403 if not a member, HTTP 404 if not found."""
+    org = _service.get_for_member(session, workspace_id, current_user.id)
     return OrganizationPublic.model_validate(org)

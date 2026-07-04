@@ -25,11 +25,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed(v => !v) }}>
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#F4F5F7' }}>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--trella-surface-sunken)' }}>
         <AppNavbar />
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           <AppSidebar workspaceId={workspaceId} projectType={projectType} collapsed={collapsed} />
-          <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#F4F5F7' }}>{children}</main>
+          <main style={{ flex: 1, overflow: 'auto', backgroundColor: 'var(--trella-surface-sunken)' }}>{children}</main>
         </div>
       </div>
     </SidebarContext.Provider>

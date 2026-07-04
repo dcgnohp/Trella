@@ -44,8 +44,8 @@ export const Info = ({ isPro }: { isPro: boolean }) => {
         {orgInitials(name)}
       </div>
       <div>
-        <p style={{ fontSize: 18, fontWeight: 700, color: '#172B4D', margin: 0 }}>{name}</p>
-        <p style={{ fontSize: 12, color: '#7A869A', margin: '2px 0 0' }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--trella-text)', margin: 0 }}>{name}</p>
+        <p style={{ fontSize: 12, color: 'var(--trella-text-subtlest)', margin: '2px 0 0' }}>
           {isPro ? 'Pro' : 'Free'}
         </p>
       </div>
@@ -56,10 +56,10 @@ export const Info = ({ isPro }: { isPro: boolean }) => {
 Info.Skeleton = function SkeletonInfo() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: '#DFE1E6' }} />
+      <div style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: 'var(--trella-border)' }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ width: 160, height: 20, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
-        <div style={{ width: 60, height: 14, borderRadius: 4, backgroundColor: '#DFE1E6' }} />
+        <div style={{ width: 160, height: 20, borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
+        <div style={{ width: 60, height: 14, borderRadius: 4, backgroundColor: 'var(--trella-border)' }} />
       </div>
     </div>
   );

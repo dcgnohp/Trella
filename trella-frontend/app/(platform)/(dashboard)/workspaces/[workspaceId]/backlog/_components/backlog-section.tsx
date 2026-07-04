@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
 import { toast } from 'sonner';
 import { TaskRow } from './task-row';
+import { InlineCreateTask } from './inline-create-task';
 
 interface BacklogSectionProps {
   tasks: TaskPublic[];
@@ -20,18 +21,20 @@ interface BacklogSectionProps {
   customStatuses: CustomStatusPublic[];
   onTaskClick: (taskId: string) => void;
   onCreateSprint: () => void;
+  boardId: string;
+  todoColumnId: string;
 }
 
-export function BacklogSection({ tasks, projectId, workspaceId, members, customStatuses, onTaskClick, onCreateSprint }: BacklogSectionProps) {
+export function BacklogSection({ tasks, projectId, workspaceId, members, customStatuses, onTaskClick, onCreateSprint, boardId, todoColumnId }: BacklogSectionProps) {
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div style={{ border: `1px solid ${'#DFE1E6'}`, borderRadius: 6, overflow: 'hidden' }}>
+    <div style={{ border: `1px solid ${'var(--trella-border)'}`, borderRadius: 6, overflow: 'hidden' }}>
       {/* Header row */}
       <div
         style={{
           padding: '8px 12px',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'var(--trella-surface)',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
@@ -39,11 +42,11 @@ export function BacklogSection({ tasks, projectId, workspaceId, members, customS
         }}
         onClick={() => setExpanded(e => !e)}
       >
-        <span style={{ display: 'flex', alignItems: 'center', color: '#97A0AF', flexShrink: 0 }}>
+        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--trella-text-subtlest)', flexShrink: 0 }}>
           {expanded ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
         </span>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#172B4D' }}>Backlog</span>
-        <span style={{ fontSize: 12, color: '#97A0AF' }}>({tasks.length} work items)</span>
+        <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--trella-text)' }}>Backlog</span>
+        <span style={{ fontSize: 12, color: 'var(--trella-text-subtlest)' }}>({tasks.length} work items)</span>
         <div
           style={{ marginLeft: 'auto', flexShrink: 0 }}
           onClick={e => e.stopPropagation()}
@@ -64,13 +67,13 @@ export function BacklogSection({ tasks, projectId, workspaceId, members, customS
               style={{
                 backgroundColor: snapshot.isDraggingOver
                   ? '#CCE0FF'
-                  : '#FFFFFF',
+                  : 'var(--trella-surface)',
                 minHeight: 40,
               }}
             >
               {tasks.length === 0 ? (
-                <div style={{ padding: 16, textAlign: 'center' }}>
-                  <span style={{ fontSize: 12, color: '#97A0AF' }}>No items in backlog</span>
+                <div style={{ margin: '8px 12px', border: '2px dashed #2d3748', borderRadius: 8, padding: '24px 16px', textAlign: 'center' }}>
+                  <span style={{ fontSize: 13, color: '#64748b' }}>Your backlog is empty.</span>
                 </div>
               ) : (
                 tasks.map((task, i) => (
@@ -91,6 +94,16 @@ export function BacklogSection({ tasks, projectId, workspaceId, members, customS
             </div>
           )}
         </Droppable>
+      )}
+      {expanded && (
+        <InlineCreateTask
+          boardId={boardId}
+          columnId={todoColumnId}
+          sprintId={null}
+          workspaceId={workspaceId}
+          projectId={projectId}
+          projectMembers={members}
+        />
       )}
     </div>
   );

@@ -71,6 +71,7 @@ _REQUIRED_TABLE_NAMES = [
     "custom_statuses",
     "tasks",
     "notifications",
+    "sprints",
 ]
 
 

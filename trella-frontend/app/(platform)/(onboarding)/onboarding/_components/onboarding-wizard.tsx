@@ -4,17 +4,26 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StepTemplate } from './step-template';
 import { StepName } from './step-name';
-import { StepWorkTypes } from './step-work-types';
-import { StepStatuses } from './step-statuses';
+import { StepSetup } from './step-setup';
 import { StepInvite } from './step-invite';
 
 export type ProjectType = 'kanban' | 'scrum' | 'project-management';
 
+export interface WorkTypeItem {
+  key: string;
+  name: string;
+}
+
+export interface StatusItem {
+  name: string;
+}
+
 export interface OnboardingData {
   projectType: ProjectType;
   name: string;
-  workTypes: string[];
-  statuses: string[];
+  workTypes: WorkTypeItem[];
+  statuses: StatusItem[];
+  sampleItems?: boolean;
 }
 
 export function OnboardingWizard() {
@@ -25,8 +34,19 @@ export function OnboardingWizard() {
   const [data, setData] = useState<OnboardingData>({
     projectType: 'scrum',
     name: '',
-    workTypes: ['Task', 'Story'],
-    statuses: ['To Do', 'In Progress', 'In Review', 'Done'],
+    workTypes: [
+      { key: 'TASK', name: 'Task' },
+      { key: 'STORY', name: 'Story' },
+      { key: 'FEATURE', name: 'Feature' },
+      { key: 'BUG', name: 'Bug' },
+    ],
+    statuses: [
+      { name: 'To Do' },
+      { name: 'In Progress' },
+      { name: 'In Review' },
+      { name: 'Done' },
+    ],
+    sampleItems: false,
   });
 
   const update = (partial: Partial<OnboardingData>) =>
@@ -36,60 +56,40 @@ export function OnboardingWizard() {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#FFFFFF',
-      padding: '24px',
+      flexDirection: 'column',
+      backgroundColor: '#1a1f2e',
     }}>
-      <div style={{
-        width: '100%',
-        maxWidth: step === 0 ? 1320 : 980,
-        backgroundColor: '#FFFFFF',
-        borderRadius: '8px',
-        overflow: 'hidden',
-      }}>
-        {step === 0 && (
-          <StepTemplate
-            value={data.projectType}
-            onChange={v => update({ projectType: v })}
-            onNext={() => setStep(1)}
-          />
-        )}
-        {step === 1 && (
-          <StepName
-            value={data.name}
-            projectType={data.projectType}
-            onChange={v => update({ name: v })}
-            onNext={() => setStep(2)}
-            onBack={() => setStep(0)}
-          />
-        )}
-        {step === 2 && (
-          <StepWorkTypes
-            value={data.workTypes}
-            projectType={data.projectType}
-            onChange={v => update({ workTypes: v })}
-            onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
-          />
-        )}
-        {step === 3 && (
-          <StepStatuses
-            value={data.statuses}
-            projectType={data.projectType}
-            onChange={v => update({ statuses: v })}
-            onNext={() => setStep(4)}
-            onBack={() => setStep(2)}
-          />
-        )}
-        {step === 4 && (
-          <StepInvite
-            data={data}
-            orgId={orgId}
-            onBack={() => setStep(3)}
-          />
-        )}
-      </div>
+      {step === 0 && (
+        <StepTemplate
+          value={data.projectType}
+          onChange={v => update({ projectType: v })}
+          onNext={() => setStep(1)}
+        />
+      )}
+      {step === 1 && (
+        <StepName
+          value={data.name}
+          projectType={data.projectType}
+          onChange={v => update({ name: v })}
+          onNext={() => setStep(2)}
+          onBack={() => setStep(0)}
+        />
+      )}
+      {step === 2 && (
+        <StepSetup
+          data={data}
+          onUpdate={update}
+          onNext={() => setStep(3)}
+          onBack={() => setStep(1)}
+        />
+      )}
+      {step === 3 && (
+        <StepInvite
+          data={data}
+          orgId={orgId}
+          onBack={() => setStep(2)}
+        />
+      )}
     </div>
   );
 }

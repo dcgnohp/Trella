@@ -46,12 +46,12 @@ const PRIORITY_COLORS: Record<string, string> = {
   URGENT: "#FF5630",
   HIGH: "#FF991F",
   MEDIUM: "#0052CC",
-  LOW: "#97A0AF",
+  LOW: "var(--trella-text-subtlest)",
 };
 
 const CANONICAL_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   PENDING: { bg: "#FFAB001A", text: "#FFAB00" },
-  TODO: { bg: "#DFE1E6", text: "#172B4D" },
+  TODO: { bg: "var(--trella-border)", text: "var(--trella-text)" },
   IN_PROGRESS: { bg: "#0052CC1A", text: "#0052CC" },
   DONE: { bg: "#36B37E1A", text: "#36B37E" },
 };
@@ -61,10 +61,10 @@ const PRIORITIES = ["URGENT", "HIGH", "MEDIUM", "LOW"] as const;
 const TABS = ["Comments", "Attachments", "Activity"] as const;
 
 function getStatusStyle(cs: TaskPublic["customStatus"]): { bg: string; text: string } {
-  if (!cs) return { bg: "#DFE1E6", text: "#172B4D" };
+  if (!cs) return { bg: "var(--trella-border)", text: "var(--trella-text)" };
   const canonical = cs.canonicalStatus ?? "";
   if (CANONICAL_STATUS_COLORS[canonical]) return CANONICAL_STATUS_COLORS[canonical];
-  const color = cs.color ?? "#DFE1E6";
+  const color = cs.color ?? "var(--trella-border)";
   return { bg: color + "1A", text: color };
 }
 
@@ -81,7 +81,7 @@ function getTypeColor(type: string | null | undefined): string {
   switch (type) {
     case "BUG": return "#FF5630";
     case "STORY": return "#64BA3B";
-    case "SUBTASK": return "#7A869A";
+    case "SUBTASK": return "var(--trella-text-subtlest)";
     default: return "#0052CC";
   }
 }
@@ -109,14 +109,14 @@ function IconBtn({
       style={{
         width: 28,
         height: 28,
-        border: "1px solid #DFE1E6",
+        border: "1px solid var(--trella-border)",
         borderRadius: 4,
-        background: hov ? "rgba(9,30,66,0.06)" : "none",
+        background: hov ? "var(--trella-surface-selected)" : "none",
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#5E6C84",
+        color: "var(--trella-text-subtle)",
         flexShrink: 0,
       }}
     >
@@ -136,14 +136,14 @@ function TooltipInfo({ text }: { text: string }) {
       <span
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
-        style={{ cursor: "default", color: "#97A0AF", display: "inline-flex", alignItems: "center", marginLeft: 3 }}
+        style={{ cursor: "default", color: "var(--trella-text-subtlest)", display: "inline-flex", alignItems: "center", marginLeft: 3 }}
       >
         <InformationCircleIcon label="" size="small" />
       </span>
       {show && (
         <span style={{
           position: "absolute", left: "100%", top: "50%", transform: "translateY(-50%)",
-          marginLeft: 6, zIndex: 500, background: "#172B4D", color: "#FFFFFF",
+          marginLeft: 6, zIndex: 500, background: "var(--trella-text)", color: "var(--trella-surface)",
           fontSize: 11, padding: "5px 8px", borderRadius: 4,
           width: 200, lineHeight: 1.4, pointerEvents: "none",
           boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
@@ -162,7 +162,7 @@ function TooltipInfo({ text }: { text: string }) {
 function DetailRow({ label, tooltip, children }: { label: string; tooltip?: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "110px 1fr", gap: 8, paddingBottom: 10 }}>
-      <span style={{ fontSize: 12, color: "#5E6C84", paddingTop: 2, display: "flex", alignItems: "center" }}>
+      <span style={{ fontSize: 12, color: "var(--trella-text-subtle)", paddingTop: 2, display: "flex", alignItems: "center" }}>
         {label}
         {tooltip && <TooltipInfo text={tooltip} />}
       </span>
@@ -195,10 +195,15 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
     enabled: !!workspaceId,
   });
 
-  // Filter to only statuses tied to board columns
+  // Filter to statuses tied to board columns — by canonical key OR by name (for unmapped statuses)
   const columnStatusKeys = new Set(columns.map((c) => c.statusKey.toUpperCase()));
+  const columnNames = new Set(columns.map((c) => c.name.toLowerCase()));
   const filteredStatuses = columnStatusKeys.size > 0
-    ? statuses.filter((s) => s.canonicalStatus && columnStatusKeys.has(s.canonicalStatus.toUpperCase()))
+    ? statuses.filter(
+        (s) =>
+          (s.canonicalStatus && columnStatusKeys.has(s.canonicalStatus.toUpperCase())) ||
+          columnNames.has(s.name.toLowerCase()),
+      )
     : statuses;
 
   const mutation = useMutation({
@@ -227,10 +232,10 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
         right: 0,
         marginTop: 4,
         zIndex: 400,
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #DFE1E6",
+        backgroundColor: "var(--trella-surface)",
+        border: "1px solid var(--trella-border)",
         borderRadius: 6,
-        boxShadow: "0 4px 24px rgba(9,30,66,0.18)",
+        boxShadow: "var(--trella-shadow-overlay)",
         minWidth: 200,
         overflow: "hidden",
       }}
@@ -251,10 +256,10 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
               border: "none",
               cursor: "pointer",
               fontSize: 13,
-              color: "#172B4D",
+              color: "var(--trella-text)",
               textAlign: "left",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           >
             <span
@@ -270,7 +275,7 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
           </button>
         );
       })}
-      <div style={{ height: 1, backgroundColor: "#DFE1E6", margin: "4px 0" }} />
+      <div style={{ height: 1, backgroundColor: "var(--trella-border)", margin: "4px 0" }} />
       {(["Create status", "Edit status", "View workflow"] as const).map((label) => (
         <button
           key={label}
@@ -283,10 +288,10 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
             border: "none",
             cursor: "pointer",
             fontSize: 13,
-            color: "#5E6C84",
+            color: "var(--trella-text-subtle)",
             textAlign: "left",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         >
           {label}
@@ -354,7 +359,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
   const typeColor = getTypeColor(task.type);
 
   return (
-    <div style={{ flex: "1 1 60%", overflowY: "auto", padding: "24px 28px", borderRight: "1px solid #DFE1E6" }}>
+    <div style={{ flex: "1 1 60%", overflowY: "auto", padding: "24px 28px", borderRight: "1px solid var(--trella-border)" }}>
       {/* Title */}
       {editingTitle ? (
         <textarea
@@ -368,7 +373,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
             width: "100%",
             fontSize: 22,
             fontWeight: 600,
-            color: "#172B4D",
+            color: "var(--trella-text)",
             border: "1px solid #0052CC",
             borderRadius: 4,
             padding: "4px 8px",
@@ -385,7 +390,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
           style={{
             fontSize: 22,
             fontWeight: 600,
-            color: "#172B4D",
+            color: "var(--trella-text)",
             margin: "0 0 8px",
             lineHeight: 1.4,
             cursor: "text",
@@ -393,7 +398,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
             borderRadius: 4,
             border: "1px solid transparent",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.border = "1px solid #DFE1E6")}
+          onMouseEnter={(e) => (e.currentTarget.style.border = "1px solid var(--trella-border)")}
           onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid transparent")}
         >
           {task.title}
@@ -409,7 +414,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
             alignItems: "center",
             gap: 4,
             background: "none",
-            border: "1px solid #DFE1E6",
+            border: "1px solid var(--trella-border)",
             borderRadius: 4,
             cursor: "pointer",
             padding: "3px 8px",
@@ -419,7 +424,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
         >
           <span style={{ color: typeColor }}>{getTypeIcon(task.type)}</span>
           {task.type ?? "TASK"}
-          <span style={{ color: "#5E6C84" }}><ChevronDownIcon label="" size="small" /></span>
+          <span style={{ color: "var(--trella-text-subtle)" }}><ChevronDownIcon label="" size="small" /></span>
         </button>
         {typeDropOpen && (
           <div
@@ -429,10 +434,10 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
               left: 0,
               marginTop: 4,
               zIndex: 400,
-              backgroundColor: "#FFFFFF",
-              border: "1px solid #DFE1E6",
+              backgroundColor: "var(--trella-surface)",
+              border: "1px solid var(--trella-border)",
               borderRadius: 6,
-              boxShadow: "0 4px 24px rgba(9,30,66,0.18)",
+              boxShadow: "var(--trella-shadow-overlay)",
               minWidth: 140,
               overflow: "hidden",
             }}
@@ -457,7 +462,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
                   color: getTypeColor(t),
                   textAlign: "left",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 {getTypeIcon(t)}
@@ -492,12 +497,12 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
 
       {/* Linked work items */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "#172B4D" }}>Linked work items</p>
+        <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Linked work items</p>
         <button
           onClick={() => toast.info("Coming soon")}
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#5E6C84", padding: 0, display: "flex", alignItems: "center", gap: 4 }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#172B4D")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#5E6C84")}
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text-subtle)", padding: 0, display: "flex", alignItems: "center", gap: 4 }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--trella-text)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--trella-text-subtle)")}
         >
           <AddIcon label="" size="small" />
           Add linked work item
@@ -506,8 +511,8 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
 
       {/* Activity tabs */}
       <div>
-        <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 600, color: "#172B4D" }}>Activity</p>
-        <div style={{ display: "flex", borderBottom: "1px solid #DFE1E6", marginBottom: 16, gap: 4 }}>
+        <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Activity</p>
+        <div style={{ display: "flex", borderBottom: "1px solid var(--trella-border)", marginBottom: 16, gap: 4 }}>
           {TABS.map((tab, i) => (
             <button
               key={tab}
@@ -518,7 +523,7 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
                 cursor: "pointer",
                 padding: "6px 12px",
                 fontSize: 13,
-                color: activeTab === i ? "#0052CC" : "#5E6C84",
+                color: activeTab === i ? "#0052CC" : "var(--trella-text-subtle)",
                 fontWeight: activeTab === i ? 600 : 400,
                 borderBottom: activeTab === i ? "2px solid #0052CC" : "2px solid transparent",
                 marginBottom: -1,
@@ -648,7 +653,7 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
     ? (projectMembers.find((m) => m.userId === task.assigneeId) ?? null)
     : null;
   const assigneeName = assignee?.fullName ?? assignee?.email ?? "Unassigned";
-  const priColor = PRIORITY_COLORS[task.priority ?? ""] ?? "#97A0AF";
+  const priColor = PRIORITY_COLORS[task.priority ?? ""] ?? "var(--trella-text-subtlest)";
 
   const initials = (name: string) =>
     name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -657,8 +662,8 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
   const reporterInitials = initials(reporterName);
 
   return (
-    <div style={{ flex: "0 0 280px", overflowY: "auto", padding: 20, backgroundColor: "#F4F5F7" }}>
-      <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 700, color: "#7A869A", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+    <div style={{ flex: "0 0 280px", overflowY: "auto", padding: 20, backgroundColor: "var(--trella-surface-sunken)" }}>
+      <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 700, color: "var(--trella-text-subtlest)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
         Details
       </p>
 
@@ -674,11 +679,11 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
                 {initials(assigneeName)}
               </div>
             ) : (
-              <div style={{ width: 22, height: 22, borderRadius: "50%", backgroundColor: "#DFE1E6", display: "flex", alignItems: "center", justifyContent: "center", color: "#7A869A", flexShrink: 0 }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", backgroundColor: "var(--trella-border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--trella-text-subtlest)", flexShrink: 0 }}>
                 <PersonAvatarIcon label="" size="small" />
               </div>
             )}
-            <span style={{ fontSize: 13, color: "#172B4D" }}>{assigneeName}</span>
+            <span style={{ fontSize: 13, color: "var(--trella-text)" }}>{assigneeName}</span>
           </div>
           {!task.assigneeId && (
             <button
@@ -689,13 +694,13 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
             </button>
           )}
           {assigneeDrop && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6, boxShadow: "0 4px 24px rgba(9,30,66,0.18)", minWidth: 200, overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6, boxShadow: "var(--trella-shadow-overlay)", minWidth: 200, overflow: "hidden" }}>
               {projectMembers.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setAssigneeMutation.mutate(m.userId)}
-                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#172B4D", textAlign: "left" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)", textAlign: "left" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   <div style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#0052CC,#6554C0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "white", flexShrink: 0 }}>
@@ -706,11 +711,11 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
               ))}
               {task.assigneeId && (
                 <>
-                  <div style={{ height: 1, backgroundColor: "#DFE1E6", margin: "4px 0" }} />
+                  <div style={{ height: 1, backgroundColor: "var(--trella-border)", margin: "4px 0" }} />
                   <button
                     onClick={() => unsetAssigneeMutation.mutate()}
                     style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#FF5630", textAlign: "left" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
                     Remove assignee
@@ -732,15 +737,15 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
             {task.priority ?? "None"}
           </span>
           {priDrop && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6, boxShadow: "0 4px 24px rgba(9,30,66,0.18)", minWidth: 140, overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6, boxShadow: "var(--trella-shadow-overlay)", minWidth: 140, overflow: "hidden" }}>
               {PRIORITIES.map((p) => {
                 const pc = PRIORITY_COLORS[p];
                 return (
                   <button
                     key={p}
                     onClick={() => { patchMutation.mutate({ priority: p }); setPriDrop(false); }}
-                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#172B4D", textAlign: "left" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)", textAlign: "left" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
                     <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: pc, flexShrink: 0 }} />
@@ -754,7 +759,7 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
       </DetailRow>
 
       <DetailRow label="Parent" tooltip="Parent task this subtask belongs to">
-        <span style={{ fontSize: 13, color: "#97A0AF" }}>{task.parentId ? task.parentId.slice(0, 8) : "None"}</span>
+        <span style={{ fontSize: 13, color: "var(--trella-text-subtlest)" }}>{task.parentId ? task.parentId.slice(0, 8) : "None"}</span>
       </DetailRow>
 
       <DetailRow label="Due date" tooltip="Target completion date, auto-calculated from story points">
@@ -768,16 +773,16 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
             style={{ fontSize: 13, border: "1px solid #0052CC", borderRadius: 4, padding: "2px 6px", outline: "none" }}
           />
         ) : (
-          <span onClick={() => setEditingDueDate(true)} style={{ fontSize: 13, color: task.dueDate ? "#172B4D" : "#97A0AF", cursor: "pointer" }}>
+          <span onClick={() => setEditingDueDate(true)} style={{ fontSize: 13, color: task.dueDate ? "var(--trella-text)" : "var(--trella-text-subtlest)", cursor: "pointer" }}>
             {task.dueDate ? new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "None"}
           </span>
         )}
       </DetailRow>
 
-      <DetailRow label="Labels" tooltip="Tags for categorizing this task"><span style={{ fontSize: 13, color: "#97A0AF" }}>None</span></DetailRow>
-      <DetailRow label="Team" tooltip="Team responsible for this task"><span style={{ fontSize: 13, color: "#97A0AF" }}>None</span></DetailRow>
+      <DetailRow label="Labels" tooltip="Tags for categorizing this task"><span style={{ fontSize: 13, color: "var(--trella-text-subtlest)" }}>None</span></DetailRow>
+      <DetailRow label="Team" tooltip="Team responsible for this task"><span style={{ fontSize: 13, color: "var(--trella-text-subtlest)" }}>None</span></DetailRow>
       <DetailRow label="Start date" tooltip="Date this task was created and work can begin">
-        <span style={{ fontSize: 13, color: "#172B4D" }}>
+        <span style={{ fontSize: 13, color: "var(--trella-text)" }}>
           {new Date(task.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
         </span>
       </DetailRow>
@@ -785,16 +790,16 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
         <div style={{ position: "relative" }} ref={sprintRef}>
           <span
             onClick={() => setSprintDrop((p) => !p)}
-            style={{ fontSize: 13, color: currentSprint ? "#172B4D" : "#97A0AF", cursor: "pointer" }}
+            style={{ fontSize: 13, color: currentSprint ? "var(--trella-text)" : "var(--trella-text-subtlest)", cursor: "pointer" }}
           >
             {currentSprint ? currentSprint.name : "None"}
           </span>
           {sprintDrop && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6, boxShadow: "0 4px 24px rgba(9,30,66,0.18)", minWidth: 180, overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6, boxShadow: "var(--trella-shadow-overlay)", minWidth: 180, overflow: "hidden" }}>
               <button
                 onClick={() => { patchMutation.mutate({ sprintId: null }); setSprintDrop(false); }}
-                style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#97A0AF", textAlign: "left" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text-subtlest)", textAlign: "left" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 None
@@ -803,8 +808,8 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
                 <button
                   key={s.id}
                   onClick={() => { patchMutation.mutate({ sprintId: s.id }); setSprintDrop(false); }}
-                  style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#172B4D", textAlign: "left", fontWeight: s.id === task.sprintId ? 700 : 400 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F4F5F7")}
+                  style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)", textAlign: "left", fontWeight: s.id === task.sprintId ? 700 : 400 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   {s.name}
@@ -831,14 +836,14 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
             if (n !== task.storyPoint) patchMutation.mutate({ storyPoint: n });
           }}
           styles={{
-            control: (base) => ({ ...base, minHeight: 28, fontSize: 13, border: "1px solid #DFE1E6", boxShadow: "none", cursor: "pointer" }),
+            control: (base) => ({ ...base, minHeight: 28, fontSize: 13, border: "1px solid var(--trella-border)", boxShadow: "none", cursor: "pointer" }),
             valueContainer: (base) => ({ ...base, padding: "0 6px" }),
             indicatorsContainer: (base) => ({ ...base, height: 28 }),
             menu: (base) => ({ ...base, fontSize: 13, zIndex: 500 }),
           }}
         />
         {task.storyPoint != null && (
-          <span style={{ fontSize: 11, color: "#5E6C84", marginTop: 4, display: "block" }}>
+          <span style={{ fontSize: 11, color: "var(--trella-text-subtle)", marginTop: 4, display: "block" }}>
             {(task.storyPoint * hoursPerPoint / 8) < 1
               ? `${(task.storyPoint * hoursPerPoint).toFixed(1)}h`
               : `${(task.storyPoint * hoursPerPoint / 8).toFixed(1)} days`}
@@ -851,12 +856,12 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
           <div style={{ width: 22, height: 22, borderRadius: "50%", background: "linear-gradient(135deg,#0052CC,#6554C0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "white" }}>
             {reporterInitials}
           </div>
-          <span style={{ fontSize: 13, color: "#172B4D" }}>{reporterName}</span>
+          <span style={{ fontSize: 13, color: "var(--trella-text)" }}>{reporterName}</span>
         </div>
       </DetailRow>
 
-      <div style={{ borderTop: "1px solid #DFE1E6", paddingTop: 12, marginTop: 4 }}>
-        <p style={{ margin: 0, fontSize: 12, color: "#97A0AF" }}>
+      <div style={{ borderTop: "1px solid var(--trella-border)", paddingTop: 12, marginTop: 4 }}>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--trella-text-subtlest)" }}>
           Created {new Date(task.createdAt).toLocaleDateString()}
         </p>
       </div>
@@ -916,13 +921,13 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#172B4D" }}>Subtasks</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Subtasks</span>
         {total > 0 && (
-          <span style={{ fontSize: 12, color: "#5E6C84" }}>{pct}% Done</span>
+          <span style={{ fontSize: 12, color: "var(--trella-text-subtle)" }}>{pct}% Done</span>
         )}
       </div>
       {total > 0 && (
-        <div style={{ height: 4, backgroundColor: "#DFE1E6", borderRadius: 2, marginBottom: 10 }}>
+        <div style={{ height: 4, backgroundColor: "var(--trella-border)", borderRadius: 2, marginBottom: 10 }}>
           <div
             style={{
               height: "100%",
@@ -935,24 +940,24 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
         </div>
       )}
       {subtasks.length > 0 && (
-        <div style={{ border: "1px solid #DFE1E6", borderRadius: 4, overflow: "hidden", marginBottom: 8 }}>
+        <div style={{ border: "1px solid var(--trella-border)", borderRadius: 4, overflow: "hidden", marginBottom: 8 }}>
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 80px 80px 100px",
               padding: "4px 10px",
-              backgroundColor: "#F4F5F7",
-              borderBottom: "1px solid #DFE1E6",
+              backgroundColor: "var(--trella-surface-sunken)",
+              borderBottom: "1px solid var(--trella-border)",
             }}
           >
             {["Work", "Priority", "Assignee", "Status"].map((h) => (
-              <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "#5E6C84", textTransform: "uppercase" }}>
+              <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "var(--trella-text-subtle)", textTransform: "uppercase" }}>
                 {h}
               </span>
             ))}
           </div>
           {subtasks.map((sub) => {
-            const priColor = PRIORITY_COLORS[sub.priority ?? ""] ?? "#97A0AF";
+            const priColor = PRIORITY_COLORS[sub.priority ?? ""] ?? "var(--trella-text-subtlest)";
             const stStyle = getStatusStyle(sub.customStatus);
             return (
               <div
@@ -966,14 +971,14 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
                   cursor: onSubtaskClick ? "pointer" : "default",
                 }}
                 onClick={() => onSubtaskClick?.(sub)}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8F9FA")}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-hover)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                   <span style={{ color: getTypeColor(sub.type), flexShrink: 0 }}>
                     <SubtasksIcon label="" size="small" />
                   </span>
-                  <span style={{ fontSize: 13, color: "#172B4D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 13, color: "var(--trella-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {sub.title}
                   </span>
                 </div>
@@ -996,11 +1001,11 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
                       width: 20,
                       height: 20,
                       borderRadius: "50%",
-                      backgroundColor: "#DFE1E6",
+                      backgroundColor: "var(--trella-border)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#7A869A",
+                      color: "var(--trella-text-subtlest)",
                     }}
                   >
                     <PersonAvatarIcon label="" size="small" />
@@ -1046,7 +1051,7 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
               border: "1px solid #0052CC",
               borderRadius: 4,
               outline: "none",
-              color: "#172B4D",
+              color: "var(--trella-text)",
             }}
           />
           <button
@@ -1070,8 +1075,8 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
               padding: "5px 10px",
               fontSize: 12,
               backgroundColor: "transparent",
-              color: "#5E6C84",
-              border: "1px solid #DFE1E6",
+              color: "var(--trella-text-subtle)",
+              border: "1px solid var(--trella-border)",
               borderRadius: 4,
               cursor: "pointer",
             }}
@@ -1087,14 +1092,14 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
             border: "none",
             cursor: "pointer",
             fontSize: 13,
-            color: "#5E6C84",
+            color: "var(--trella-text-subtle)",
             padding: 0,
             display: "flex",
             alignItems: "center",
             gap: 4,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#172B4D")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#5E6C84")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--trella-text)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--trella-text-subtle)")}
         >
           <AddIcon label="" size="small" />
           Add subtask
@@ -1130,6 +1135,7 @@ export function TaskDetailDrawer({
   // Navigation stack for drilling into subtasks
   const [taskStack, setTaskStack] = React.useState<TaskPublic[]>([]);
   // Reset stack on task ID change (new task opened)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => { if (task) setTaskStack([task]); }, [task?.id]);
   // Sync root task only when the incoming prop is actually newer (by updatedAt).
   // This prevents a stale boardTasks refetch from overwriting a just-patched task.
@@ -1176,7 +1182,7 @@ export function TaskDetailDrawer({
   if (!open) return null;
 
   const statusStyle = getStatusStyle(displayTask?.customStatus);
-  const priColor = PRIORITY_COLORS[displayTask?.priority ?? ""] ?? "#97A0AF";
+  const priColor = PRIORITY_COLORS[displayTask?.priority ?? ""] ?? "var(--trella-text-subtlest)";
   const taskType = displayTask?.type ?? "TASK";
   const taskId = (displayTask as (TaskPublic & { issueKey?: string }) | null)?.issueKey ?? displayTask?.id?.slice(0, 8) ?? "";
 
@@ -1203,9 +1209,9 @@ export function TaskDetailDrawer({
           width: "90vw",
           maxWidth: 1100,
           minWidth: 680,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "var(--trella-surface)",
           borderRadius: 8,
-          boxShadow: "0 8px 64px rgba(9,30,66,0.25)",
+          boxShadow: "var(--trella-shadow-overlay)",
           display: "flex",
           flexDirection: "column",
           maxHeight: "calc(100vh - 96px)",
@@ -1219,7 +1225,7 @@ export function TaskDetailDrawer({
             display: "flex",
             alignItems: "center",
             padding: "0 16px",
-            borderBottom: "1px solid #DFE1E6",
+            borderBottom: "1px solid var(--trella-border)",
             flexShrink: 0,
             gap: 8,
           }}
@@ -1228,8 +1234,8 @@ export function TaskDetailDrawer({
           {taskStack.length > 1 && (
             <button
               onClick={() => setTaskStack(prev => prev.slice(0, -1))}
-              style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "1px solid #DFE1E6", borderRadius: 4, cursor: "pointer", padding: "3px 8px", fontSize: 12, color: "#5E6C84" }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(9,30,66,0.06)")}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "1px solid var(--trella-border)", borderRadius: 4, cursor: "pointer", padding: "3px 8px", fontSize: 12, color: "var(--trella-text-subtle)" }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--trella-surface-selected)")}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               <ArrowLeftIcon label="" size="small" />
@@ -1238,16 +1244,16 @@ export function TaskDetailDrawer({
           )}
 
           {/* Breadcrumb */}
-          <span style={{ fontSize: 12, color: "#97A0AF", cursor: "pointer" }}
+          <span style={{ fontSize: 12, color: "var(--trella-text-subtlest)", cursor: "pointer" }}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
             onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
           >
             Add epic
           </span>
-          <span style={{ color: "#DFE1E6" }}>/</span>
+          <span style={{ color: "var(--trella-border)" }}>/</span>
           <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ color: getTypeColor(taskType) }}>{getTypeIcon(taskType)}</span>
-            <span style={{ fontSize: 12, color: "#5E6C84", fontWeight: 500 }}>{taskId}</span>
+            <span style={{ fontSize: 12, color: "var(--trella-text-subtle)", fontWeight: 500 }}>{taskId}</span>
           </span>
 
           <div style={{ flex: 1 }} />
@@ -1313,13 +1319,13 @@ export function TaskDetailDrawer({
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#5E6C84",
+              color: "var(--trella-text-subtle)",
               display: "flex",
               alignItems: "center",
               padding: 4,
               borderRadius: 4,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(9,30,66,0.06)")}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-selected)")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           >
             <CrossIcon label="Close" size="small" />
@@ -1333,14 +1339,14 @@ export function TaskDetailDrawer({
             alignItems: 'center',
             gap: 6,
             padding: '6px 16px',
-            backgroundColor: '#F0F1F3',
-            borderBottom: '1px solid #DFE1E6',
+            backgroundColor: 'var(--trella-border-subtle)',
+            borderBottom: '1px solid var(--trella-border)',
             flexShrink: 0,
           }}>
-            <span style={{ color: '#7A869A', display: 'flex', alignItems: 'center' }}>
+            <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center' }}>
               <SubtasksIcon label="" size="small" />
             </span>
-            <span style={{ fontSize: 11, color: '#5E6C84' }}>
+            <span style={{ fontSize: 11, color: 'var(--trella-text-subtle)' }}>
               Subtask of
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#0052CC', cursor: 'default' }}>
@@ -1352,7 +1358,7 @@ export function TaskDetailDrawer({
         {/* Body */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           {!displayTask ? (
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#97A0AF", fontSize: 14 }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--trella-text-subtlest)", fontSize: 14 }}>
               Loading…
             </div>
           ) : (

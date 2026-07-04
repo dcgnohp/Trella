@@ -26,14 +26,14 @@ import LinkExternalIcon from '@atlaskit/icon/core/link-external';
 import SpeedIcon from '@atlaskit/icon/core/chart-trend-up';
 
 const S = {
-  bg: '#FFFFFF',
-  hover: 'rgba(9,30,66,0.04)',
-  active: 'rgba(9,30,66,0.08)',
-  activeBorder: '#0052CC',
-  text: '#5E6C84',
-  textActive: '#172B4D',
-  textMuted: '#7A869A',
-  border: '#DFE1E6',
+  bg: 'var(--trella-surface)',
+  hover: 'var(--trella-surface-hover)',
+  active: 'var(--trella-surface-selected)',
+  activeBorder: 'var(--trella-brand)',
+  text: 'var(--trella-text-subtle)',
+  textActive: 'var(--trella-text)',
+  textMuted: 'var(--trella-text-subtlest)',
+  border: 'var(--trella-border)',
 };
 
 type OrgResponse = { organizations?: OrganizationPublic[]; currentOrgId?: string | null };

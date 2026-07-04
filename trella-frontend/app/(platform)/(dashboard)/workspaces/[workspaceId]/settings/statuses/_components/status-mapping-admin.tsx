@@ -193,6 +193,7 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: ["custom-statuses", workspaceId] })
       // Req 14.2: every TaskCard derives its DisplayStyle from the task's
       // denormalized `custom_status`. Invalidate the task-list/task buckets
       // (prefix match across all boards/tasks) so cards showing tasks with this
@@ -228,6 +229,9 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
     onSuccess: () => {
       toast.success("Custom status deleted")
       queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: ["custom-statuses", workspaceId] })
+      queryClient.invalidateQueries({ queryKey: ["board-tasks"] })
+      queryClient.invalidateQueries({ queryKey: ["task"] })
     },
     onError: (error, status) => {
       // Still-in-use → warning dialog with the reference count, no delete
@@ -384,7 +388,7 @@ export function StatusMappingAdmin({ workspaceId }: { workspaceId: string }) {
                           }
                           onClick={() => deleteMutation.mutate(status)}
                         >
-                          <span style={{ display: 'flex', alignItems: 'center', color: '#5E6C84' }}><DeleteIcon label="Delete" size="small" /></span>
+                          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--trella-text-subtle)' }}><DeleteIcon label="Delete" size="small" /></span>
                         </Button>
                       </div>
                     </td>

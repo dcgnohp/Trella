@@ -13,5 +13,6 @@ class OrganizationCreate(SQLModel):
 class OrganizationPublic(CamelModel):
     id: uuid.UUID
     name: str
+    mode: str = "KANBAN"
     created_at: datetime
     updated_at: datetime

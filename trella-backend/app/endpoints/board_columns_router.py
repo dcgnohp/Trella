@@ -7,7 +7,9 @@ from app.models.enums import ActivityAction
 from app.models.tasks_model import DEFAULT_TASK_PRIORITY, Task
 from app.repositories.board_columns_repository import BoardColumnsRepository
 from app.repositories.boards_repository import BoardsRepository
+from app.repositories.organizations_repository import OrganizationsRepository
 from app.repositories.projects_repository import ProjectsRepository
+from app.repositories.sprints_repository import SprintsRepository
 from app.repositories.tasks_repository import (
     TasksRepository,
 )
@@ -33,6 +35,8 @@ _tasks_repo = TasksRepository()
 _activity_service = ActivityLogsService()
 _org_member_service = OrganizationMemberService()
 _velocity_config_repo = VelocityConfigRepository()
+_sprints_repo = SprintsRepository()
+_organizations_repo = OrganizationsRepository()
 
 
 @router.get("", response_model=list[ColumnPublic])
@@ -126,6 +130,18 @@ def create_task(
     _org_member_service.assert_member(session, project.workspace_id, current_user.id)
     position = _tasks_repo.max_position(session, column_id) + 1
 
+    # ponytail: SCRUM workspaces auto-assign new board tasks to the active sprint
+    # so tasks created via "+ Add task" on the board land in the running sprint
+    # instead of the backlog.
+    from app.models.enums import WorkspaceMode
+
+    auto_sprint_id: uuid.UUID | None = None
+    workspace = _organizations_repo.get(session, project.workspace_id)
+    if workspace is not None and workspace.mode == WorkspaceMode.SCRUM.value:
+        active_sprint = _sprints_repo.get_active_sprint(session, project.id)
+        if active_sprint is not None:
+            auto_sprint_id = active_sprint.id
+
     # Auto-compute due_date from story_point if not explicitly provided.
     computed_due_date = data.due_date
     if data.story_point is not None and computed_due_date is None:
@@ -165,6 +181,7 @@ def create_task(
                 assignee_id=data.assignee_id,
                 story_point=data.story_point,
                 issue_key=issue_key,
+                sprint_id=auto_sprint_id,
             ),
         )
         _activity_service.record(

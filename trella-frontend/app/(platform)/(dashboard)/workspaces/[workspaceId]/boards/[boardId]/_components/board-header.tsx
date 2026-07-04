@@ -48,8 +48,8 @@ export const BoardHeader = ({
   const filterActive = isFiltersActive(filters);
 
   const btnBase: React.CSSProperties = {
-    background: "none", border: "1px solid #DFE1E6", borderRadius: 4,
-    padding: "0 12px", height: 32, color: "#5E6C84", fontSize: 13,
+    background: "none", border: "1px solid var(--trella-border)", borderRadius: 4,
+    padding: "0 12px", height: 32, color: "var(--trella-text-subtle)", fontSize: 13,
     cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
   };
 
@@ -57,22 +57,22 @@ export const BoardHeader = ({
     <div style={{
       display: "flex", alignItems: "center", gap: 8,
       padding: "10px 20px", flexShrink: 0,
-      backgroundColor: "transparent", borderBottom: "1px solid #DFE1E6",
+      backgroundColor: "transparent", borderBottom: "1px solid var(--trella-border)",
     }}>
       {/* Search */}
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
-        backgroundColor: "#FFFFFF", border: "1px solid #DFE1E6",
+        backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)",
         borderRadius: 4, padding: "0 10px", height: 32,
       }}>
-        <span style={{ color: "#97A0AF", display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <span style={{ color: "var(--trella-text-subtlest)", display: "flex", alignItems: "center", flexShrink: 0 }}>
           <SearchIcon label="" size="small" />
         </span>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search board"
-          style={{ background: "none", border: "none", outline: "none", color: "#172B4D", fontSize: 13, width: 140 }}
+          style={{ background: "none", border: "none", outline: "none", color: "var(--trella-text)", fontSize: 13, width: 140 }}
         />
       </div>
 
@@ -90,8 +90,8 @@ export const BoardHeader = ({
           onClick={() => setFilterOpen(v => !v)}
           style={{
             ...btnBase,
-            borderColor: filterActive ? "#0052CC" : "#DFE1E6",
-            color: filterActive ? "#0052CC" : "#5E6C84",
+            borderColor: filterActive ? "#0052CC" : "var(--trella-border)",
+            color: filterActive ? "#0052CC" : "var(--trella-text-subtle)",
             background: filterActive ? "rgba(0,82,204,0.06)" : "none",
           }}
         >
@@ -101,7 +101,7 @@ export const BoardHeader = ({
             <span style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               width: 18, height: 18, borderRadius: "50%", background: "#0052CC",
-              color: "#FFFFFF", fontSize: 10, fontWeight: 700,
+              color: "var(--trella-surface)", fontSize: 10, fontWeight: 700,
             }}>
               {[filters.onlyMine ? 1 : 0, filters.assigneeId ? 1 : 0, filters.statusIds.length > 0 ? 1 : 0, filters.typeFilter ? 1 : 0].reduce((a, b) => a + b, 0)}
             </span>
@@ -155,7 +155,7 @@ export const BoardHeader = ({
             <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setGroupOpen(false)} />
             <div style={{
               position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 100,
-              background: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6,
+              background: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6,
               boxShadow: "0 8px 24px rgba(9,30,66,0.15)", padding: "4px 0", minWidth: 160,
             }}>
               {["None", "Assignee", "Priority", "Type"].map(opt => (
@@ -164,10 +164,10 @@ export const BoardHeader = ({
                   onClick={() => { setGroupOpen(false); if (opt !== "None") toast.info(`Group by ${opt} coming soon`); }}
                   style={{
                     display: "block", width: "100%", textAlign: "left",
-                    padding: "8px 14px", fontSize: 13, color: "#172B4D",
+                    padding: "8px 14px", fontSize: 13, color: "var(--trella-text)",
                     background: "none", border: "none", cursor: "pointer",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(9,30,66,0.04)")}
+                  onMouseEnter={e => (e.currentTarget.style.background = "var(--trella-surface-hover)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "none")}
                 >
                   {opt}
@@ -191,7 +191,7 @@ export const BoardHeader = ({
             <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setMoreOpen(false)} />
             <div style={{
               position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 100,
-              background: "#FFFFFF", border: "1px solid #DFE1E6", borderRadius: 6,
+              background: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6,
               boxShadow: "0 8px 24px rgba(9,30,66,0.15)", padding: "4px 0", minWidth: 180,
             }}>
               <MoreItem label="Start standup" onClick={() => { setMoreOpen(false); onStartStandup(); }} />
@@ -212,10 +212,10 @@ function MoreItem({ label, onClick }: { label: string; onClick: () => void }) {
       onClick={onClick}
       style={{
         display: "block", width: "100%", textAlign: "left",
-        padding: "8px 14px", fontSize: 13, color: "#172B4D",
+        padding: "8px 14px", fontSize: 13, color: "var(--trella-text)",
         background: "none", border: "none", cursor: "pointer",
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = "rgba(9,30,66,0.04)")}
+      onMouseEnter={e => (e.currentTarget.style.background = "var(--trella-surface-hover)")}
       onMouseLeave={e => (e.currentTarget.style.background = "none")}
     >
       {label}

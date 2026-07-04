@@ -143,12 +143,18 @@ class OrganizationsService:
     def switch_mode(
         self, session: Session, workspace_id: uuid.UUID, new_mode: str, user: User
     ) -> Organization:
-        """Switch workspace between TRELLO and JIRA mode. Requires OWNER role.
+        """Switch workspace between KANBAN and SCRUM mode. Requires OWNER role.
 
-        TRELLO→JIRA: create a default sprint per project, set all tasks sprint_id=NULL.
-        JIRA→TRELLO: set mode only; data is preserved.
+        KANBAN→SCRUM: create a default sprint per project, set all tasks sprint_id=NULL.
+        SCRUM→KANBAN: set mode only; data is preserved.
+
+        Also handles legacy TRELLO/JIRA values for backward compatibility.
         """
         from app.models.enums import WorkspaceMode
+
+        # Normalize legacy values
+        _legacy_map = {"TRELLO": WorkspaceMode.KANBAN.value, "JIRA": WorkspaceMode.SCRUM.value}
+        new_mode = _legacy_map.get(new_mode, new_mode)
 
         member = self.member_service.assert_member(session, workspace_id, user.id)
         if member.role != "OWNER":
@@ -162,21 +168,20 @@ class OrganizationsService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Workspace not found",
             )
-        if new_mode not in {WorkspaceMode.TRELLO.value, WorkspaceMode.JIRA.value}:
+        if new_mode not in {m.value for m in WorkspaceMode}:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid mode: {new_mode}. Must be TRELLO or JIRA",
+                detail=f"Invalid mode: {new_mode}. Must be KANBAN or SCRUM",
             )
 
         old_mode = org.mode
-        if old_mode == new_mode:
+        # Normalize old_mode legacy value for comparison
+        old_mode_normalized = _legacy_map.get(old_mode or "", old_mode)
+        if old_mode_normalized == new_mode:
             return org
 
-        if (
-            old_mode == WorkspaceMode.TRELLO.value
-            and new_mode == WorkspaceMode.JIRA.value
-        ):
-            self._migrate_trello_to_jira(session, workspace_id)
+        if new_mode == WorkspaceMode.SCRUM.value:
+            self._migrate_to_scrum(session, workspace_id)
 
         org.mode = new_mode
         try:
@@ -188,7 +193,7 @@ class OrganizationsService:
         session.refresh(org)
         return org
 
-    def _migrate_trello_to_jira(
+    def _migrate_to_scrum(
         self, session: Session, workspace_id: uuid.UUID
     ) -> None:
         """Create a default Sprint per project and move all tasks to backlog."""

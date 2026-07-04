@@ -56,16 +56,16 @@ export function CompleteSprintModal({ sprint, allSprints, projectId, workspaceId
       </ModalHeader>
       <ModalBody>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p style={{ margin: 0, fontSize: 14, color: '#172B4D' }}>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--trella-text)' }}>
             This sprint contains <strong>{doneCount} completed</strong> and <strong>{openCount} open</strong> work items.
           </p>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#5E6C84', lineHeight: 1.6 }}>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: 'var(--trella-text-subtle)', lineHeight: 1.6 }}>
             <li>Completed work items includes everything in the last column on the board, Done.</li>
             <li>Open work items includes everything from any other column on the board. Move these to a new sprint or the backlog.</li>
           </ul>
           {openCount > 0 && (
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#172B4D', display: 'block', marginBottom: 4 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
                 Move open work items to
               </label>
               <Select
