@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { getLastVisitedCookie, lastVisitedHref } from "@/lib/last-visited";
 
 export const Navbar = () => {
   const { isAuthenticated, signOut } = useAuth();
+  const dashboardHref = lastVisitedHref(getLastVisitedCookie());
 
   return (
     <div className="fixed top-0 w-full h-14 px-4 border-b shadow-sm bg-white flex items-center">
@@ -17,7 +19,7 @@ export const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/organization">
+                <Link href={dashboardHref}>
                   Go to Dashboard
                 </Link>
               </Button>

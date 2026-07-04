@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
 import { useBoardRealtime } from "@/lib/realtime/use-realtime";
+import { setLastVisitedCookie } from "@/lib/last-visited";
 import { TaskDetailDrawer } from "@/components/task-detail-drawer";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -80,6 +81,10 @@ export const KanbanBoardScreen = ({
 
   const boardData = boardQuery.data;
   const projectId = boardData?.projectId;
+
+  useEffect(() => {
+    setLastVisitedCookie(workspaceId, boardId);
+  }, [workspaceId, boardId]);
 
   // Live board updates: subscribe to the project channel and refresh the
   // board's task list when tasks are created/updated/moved elsewhere.

@@ -2,10 +2,12 @@ import Link from "next/link";
 import localFont from "next/font/local";
 import { Poppins } from "next/font/google";
 import { Medal } from "lucide-react";
+import { cookies } from "next/headers";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
+import { LAST_VISITED_COOKIE, lastVisitedHref } from "@/lib/last-visited";
 
 const headingFont = localFont({
   src: "../../public/fonts/font.woff2"
@@ -28,6 +30,7 @@ const textFont = Poppins({
 
 const MarketingPage = async () => {
   const user = await getCurrentUser();
+  const dashboardHref = lastVisitedHref(cookies().get(LAST_VISITED_COOKIE)?.value);
 
   return (
     <div className="flex items-center justify-center flex-col">
@@ -53,7 +56,7 @@ const MarketingPage = async () => {
         Collaborate, manage projects, and reach new productivity peaks. From high rises to the home office, the way your team works is unique - accomplish it all with Taskify.
       </div>
       <Button className="mt-6" size="lg" asChild>
-        <Link href={user ? "/organization" : "/sign-up"}>
+        <Link href={user ? dashboardHref : "/sign-up"}>
           {user ? "Go to Dashboard" : "Get Taskify for free"}
         </Link>
       </Button>
