@@ -60,11 +60,31 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
   });
 
   const stats = statsQ.data ?? { completed_7d: 0, updated_7d: 0, created_7d: 0, due_soon_7d: 0 };
-  const statusData: { name: string; count: number }[] = statusQ.data ?? [];
-  const activityData: { user: string; action: string; task_title: string; time_ago: string }[] = activityQ.data ?? [];
-  const priorityData: { priority: string; count: number }[] = priorityQ.data ?? [];
-  const workTypesData: { type: string; count: number; total: number }[] = workTypesQ.data ?? [];
-  const teamData: { member: string; assigned: number; completed: number }[] = teamQ.data ?? [];
+
+  const statusData: { name: string; count: number }[] = (statusQ.data?.by_status ?? []).map(
+    (s: { status: string; count: number }) => ({ name: s.status, count: s.count })
+  );
+
+  const activityData: { user: string; action: string; task_title: string; time_ago: string }[] = (activityQ.data?.items ?? []).map(
+    (a: { user_name: string; field: string; task_title: string | null; time_ago: string }) => ({
+      user: a.user_name,
+      action: a.field ? `updated "${a.field}" on` : 'updated',
+      task_title: a.task_title ?? '',
+      time_ago: a.time_ago,
+    })
+  );
+
+  const priorityData: { priority: string; count: number }[] = priorityQ.data?.by_priority ?? [];
+
+  const _workTypesRaw: { type: string; count: number; percentage: number }[] = workTypesQ.data?.by_type ?? [];
+  const _workTypesTotal = _workTypesRaw.reduce((s: number, w: { count: number }) => s + w.count, 0);
+  const workTypesData: { type: string; count: number; total: number }[] = _workTypesRaw.map(
+    (w: { type: string; count: number }) => ({ type: w.type, count: w.count, total: _workTypesTotal })
+  );
+
+  const teamData: { member: string; assigned: number; completed: number }[] = (teamQ.data?.members ?? []).map(
+    (m: { name: string; task_count: number }) => ({ member: m.name, assigned: m.task_count, completed: 0 })
+  );
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--trella-surface-sunken)' }}>

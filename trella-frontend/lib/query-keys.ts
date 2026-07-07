@@ -92,6 +92,15 @@ export const queryKeys = {
   summaryPriorityBreakdown: (workspaceId: string) => ["summary-priority", workspaceId] as const,
   summaryWorkTypes: (workspaceId: string) => ["summary-work-types", workspaceId] as const,
   summaryTeamWorkload: (workspaceId: string) => ["summary-team-workload", workspaceId] as const,
+
+  /** All plans for a workspace (list view, no boardIds). */
+  plans: (workspaceId: string) => ["plans", workspaceId] as const,
+
+  /** A single plan's details (with boardIds). */
+  plan: (planId: string) => ["plan", planId] as const,
+
+  /** Epics belonging to a plan (drives Summary/Timeline/Program/Calendar tabs). */
+  planEpics: (planId: string) => ["plan-epics", planId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

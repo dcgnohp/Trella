@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import datetime
 from typing import Any, Protocol
 
 from fastapi import HTTPException, status
@@ -16,7 +17,7 @@ from app.services.activity_logs_service import ActivityLogsService
 logger = logging.getLogger(__name__)
 
 _EPIC_UPDATABLE_FIELDS = frozenset(
-    {"title", "description", "priority", "due_date", "story_point"}
+    {"title", "description", "priority", "due_date", "start_date", "story_point"}
 )
 
 
@@ -127,6 +128,7 @@ class EpicsService:
             description=fields.get("description"),
             priority=fields.get("priority") or DEFAULT_TASK_PRIORITY,
             due_date=fields.get("due_date"),
+            start_date=fields.get("start_date"),
             story_point=fields.get("story_point"),
             type=TaskType.EPIC.value,
             position=max_pos + 1,
@@ -197,6 +199,12 @@ class EpicsService:
         for field, value in updates.items():
             if field in _EPIC_UPDATABLE_FIELDS:
                 setattr(epic, field, value)
+        # ponytail: activity log new_value is a JSON column, so datetime fields
+        # (start_date/due_date) must be stringified — mirrors tasks_service's isoformat pattern.
+        logged_updates = {
+            field: (value.isoformat() if isinstance(value, datetime) else value)
+            for field, value in updates.items()
+        }
         try:
             epic = self.tasks_repo.update(session, epic)
             self.activity_logs_service.record(
@@ -206,7 +214,7 @@ class EpicsService:
                 task_id=epic.id,
                 actor=user,
                 action="EPIC_UPDATED",
-                new_value=updates,
+                new_value=logged_updates,
             )
             session.commit()
         except Exception:

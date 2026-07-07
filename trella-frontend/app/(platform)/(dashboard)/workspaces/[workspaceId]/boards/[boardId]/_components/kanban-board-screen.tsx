@@ -12,6 +12,7 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { setLastVisitedCookie } from "@/lib/last-visited";
+import { useWorkspaceMode } from "@/lib/workspace-mode/use-workspace-mode";
 import { TaskDetailDrawer } from "@/components/task-detail-drawer";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -69,15 +70,7 @@ export const KanbanBoardScreen = ({
     staleTime: 5 * 60 * 1000,
   });
 
-  const workspaceModeQuery = useQuery({
-    queryKey: ["workspace-mode", workspaceId],
-    queryFn: async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}`, { cache: "no-store" });
-      if (!res.ok) return { mode: "KANBAN" };
-      return res.json() as Promise<{ mode: string }>;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const workspaceModeQuery = useWorkspaceMode(workspaceId);
 
   const boardData = boardQuery.data;
   const projectId = boardData?.projectId;

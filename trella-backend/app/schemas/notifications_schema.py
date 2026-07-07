@@ -11,6 +11,13 @@ from app.core.base import CamelModel
 from app.repositories.notifications_repository import Cursor
 
 
+class NotificationCreate(CamelModel):
+    recipient_id: uuid.UUID
+    type: str
+    title: str
+    content: str | None = None
+
+
 class NotificationPublic(CamelModel):
     id: uuid.UUID
     type: str

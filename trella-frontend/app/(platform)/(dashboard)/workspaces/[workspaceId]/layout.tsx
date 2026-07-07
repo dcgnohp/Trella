@@ -1,22 +1,26 @@
-import { notFound } from "next/navigation";
-import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { headers, cookies } from "next/headers";
 import { WorkspaceHeader } from "./_components/workspace-header";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-async function getWorkspaceMode(workspaceId: string): Promise<string | null> {
+async function getWorkspaceInfo(workspaceId: string): Promise<{ mode: string | null; firstBoardId: string | null }> {
   try {
-    const { cookies } = await import("next/headers");
     const token = cookies().get("access_token")?.value;
-    const resp = await fetch(`${BACKEND}/api/v1/workspaces/${workspaceId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      cache: "no-store",
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    return (data?.mode as string) ?? null;
+    const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const [workspaceResp, boardsResp] = await Promise.all([
+      fetch(`${BACKEND}/api/v1/workspaces/${workspaceId}`, { headers: authHeader, cache: "no-store" }),
+      fetch(`${BACKEND}/api/v1/boards?orgId=${workspaceId}`, { headers: authHeader, cache: "no-store" }),
+    ]);
+    const mode = workspaceResp.ok ? (((await workspaceResp.json()) as { mode?: string }).mode ?? null) : null;
+    let firstBoardId: string | null = null;
+    if (boardsResp.ok) {
+      const boards = (await boardsResp.json()) as Array<{ id: string }>;
+      firstBoardId = boards[0]?.id ?? null;
+    }
+    return { mode, firstBoardId };
   } catch {
-    return null;
+    return { mode: null, firstBoardId: null };
   }
 }
 
@@ -27,21 +31,26 @@ interface WorkspaceLayoutProps {
 
 export default async function WorkspaceLayout({ children, params }: WorkspaceLayoutProps) {
   const { workspaceId } = params;
-  const mode = await getWorkspaceMode(workspaceId);
+  const { mode, firstBoardId } = await getWorkspaceInfo(workspaceId);
+  const headersList = headers();
+  const pathname = headersList.get("x-pathname") ?? "";
 
+  // Scrum workspaces: /boards index → redirect to the single board
   if (mode === "SCRUM") {
-    const headersList = headers();
-    const pathname = headersList.get("x-pathname") ?? "";
-    const isRoot = pathname === `/workspaces/${workspaceId}`;
-    const isBoardsIndex = pathname === `/workspaces/${workspaceId}/boards`;
-    if (isRoot || isBoardsIndex) {
-      notFound();
+    const isBoardsIndex =
+      pathname === `/workspaces/${workspaceId}/boards` ||
+      pathname === `/workspaces/${workspaceId}`;
+    if (isBoardsIndex) {
+      if (firstBoardId) redirect(`/workspaces/${workspaceId}/boards/${firstBoardId}`);
+      redirect(`/workspaces/${workspaceId}/summary`);
     }
   }
 
+  const isPlanRoute = pathname.includes(`/plans/`) && pathname.split(`/plans/`)[1]?.length > 0;
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <WorkspaceHeader workspaceId={workspaceId} />
+      {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
       <div style={{ flex: 1, overflow: "auto" }}>{children}</div>
     </div>
   );

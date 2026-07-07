@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, status
 from app.core.deps import CurrentUser, SessionDep
 from app.repositories.notifications_repository import DEFAULT_LIMIT, MAX_LIMIT
 from app.schemas.notifications_schema import (
+    NotificationCreate,
     NotificationPublic,
     UnreadCountPublic,
     decode_cursor,
@@ -66,4 +67,23 @@ def mark_all_notifications_read(
 ) -> dict[str, bool]:
     """Mark every unread notification of the current user as read."""
     _service.mark_all_read(session, current_user.id)
+    return {"success": True}
+
+
+@router.post("/send", status_code=status.HTTP_201_CREATED)
+def send_notification(
+    session: SessionDep,
+    data: NotificationCreate,
+    current_user: CurrentUser,
+) -> dict[str, bool]:
+    """Send a notification to the specified recipient user."""
+    from app.models.enums import NotificationType
+    _service.emit(
+        session,
+        recipient_id=data.recipient_id,
+        type=NotificationType(data.type),
+        title=data.title,
+        content=data.content,
+    )
+    session.commit()
     return {"success": True}

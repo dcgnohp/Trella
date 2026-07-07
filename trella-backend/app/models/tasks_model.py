@@ -27,6 +27,12 @@ class Task(UUIDMixin, TimestampMixin, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
         nullable=True,
     )
+    # pyrefly: ignore [no-matching-overload]
+    start_date: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
+        nullable=True,
+    )
     assignee_id: uuid.UUID | None = Field(
         default=None,
         foreign_key="users.id",

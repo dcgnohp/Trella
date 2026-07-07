@@ -1254,6 +1254,18 @@ export const EpicCreateSchema = {
             ],
             title: 'Duedate'
         },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
         storyPoint: {
             anyOf: [
                 {
@@ -1357,6 +1369,18 @@ export const EpicPublicSchema = {
             ],
             title: 'Duedate'
         },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
         assigneeId: {
             anyOf: [
                 {
@@ -1436,7 +1460,7 @@ export const EpicPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
+    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'startDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
     title: 'EpicPublic'
 } as const;
 
@@ -1486,6 +1510,18 @@ export const EpicUpdateSchema = {
                 }
             ],
             title: 'Duedate'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
         },
         storyPoint: {
             anyOf: [
@@ -1555,6 +1591,18 @@ export const EpicWithTasksPublicSchema = {
                 }
             ],
             title: 'Duedate'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
         },
         assigneeId: {
             anyOf: [
@@ -1643,7 +1691,7 @@ export const EpicWithTasksPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
+    required: ['id', 'projectId', 'boardId', 'columnId', 'title', 'description', 'priority', 'dueDate', 'startDate', 'assigneeId', 'customStatusId', 'position', 'type', 'storyPoint', 'sprintId', 'epicId', 'createdAt', 'updatedAt'],
     title: 'EpicWithTasksPublic'
 } as const;
 
@@ -2045,6 +2093,11 @@ export const OrganizationPublicSchema = {
             type: 'string',
             title: 'Name'
         },
+        mode: {
+            type: 'string',
+            title: 'Mode',
+            default: 'KANBAN'
+        },
         createdAt: {
             type: 'string',
             format: 'date-time',
@@ -2059,6 +2112,193 @@ export const OrganizationPublicSchema = {
     type: 'object',
     required: ['id', 'name', 'createdAt', 'updatedAt'],
     title: 'OrganizationPublic'
+} as const;
+
+export const ParentUpdateSchema = {
+    properties: {
+        parentId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parentid'
+        }
+    },
+    type: 'object',
+    required: ['parentId'],
+    title: 'ParentUpdate'
+} as const;
+
+export const PlanCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        boardIds: {
+            items: {
+                type: 'string',
+                format: 'uuid'
+            },
+            type: 'array',
+            title: 'Boardids'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'PlanCreate'
+} as const;
+
+export const PlanPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        workspaceId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Workspaceid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        createdBy: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Createdby'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        }
+    },
+    type: 'object',
+    required: ['id', 'workspaceId', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt'],
+    title: 'PlanPublic'
+} as const;
+
+export const PlanUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    title: 'PlanUpdate'
+} as const;
+
+export const PlanWithBoardsPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        workspaceId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Workspaceid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        createdBy: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Createdby'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Createdat'
+        },
+        updatedAt: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updatedat'
+        },
+        boardIds: {
+            items: {
+                type: 'string',
+                format: 'uuid'
+            },
+            type: 'array',
+            title: 'Boardids',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'workspaceId', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt'],
+    title: 'PlanWithBoardsPublic'
 } as const;
 
 export const ProjectCreateSchema = {

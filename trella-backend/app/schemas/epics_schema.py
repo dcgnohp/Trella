@@ -10,6 +10,7 @@ class EpicCreate(CamelModel):
     description: str | None = None
     priority: str | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
     story_point: int | None = None
 
 
@@ -18,6 +19,7 @@ class EpicUpdate(CamelModel):
     description: str | None = None
     priority: str | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
     story_point: int | None = None
 
 
@@ -30,6 +32,7 @@ class EpicPublic(CamelModel):
     description: str | None
     priority: str
     due_date: datetime | None
+    start_date: datetime | None
     assignee_id: uuid.UUID | None
     custom_status_id: uuid.UUID | None
     position: int

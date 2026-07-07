@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import type { OrganizationPublic } from '@/lib/client';
+import { BoardsService } from '@/lib/client';
+import { queryKeys } from '@/lib/query-keys';
+import { parseLastVisited, getLastVisitedCookie } from '@/lib/last-visited';
 import { useSidebar } from './dashboard-shell';
 
 // ADS icons — new icon package uses /core/ path (not /glyph/)
@@ -123,6 +126,26 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
     },
   });
 
+  const boardsQuery = useQuery({
+    queryKey: queryKeys.workspaceBoards(workspaceId ?? ''),
+    queryFn: () => BoardsService.Boards_boardsListBoards({ orgId: workspaceId! }),
+    enabled: !!workspaceId,
+    staleTime: 60_000,
+  });
+
+  // Resolve which boardId to link to: URL param > last-visited cookie > first board
+  const activeBoardHref = React.useMemo(() => {
+    if (!workspaceId) return null;
+    // If already on a board page, extract boardId from path
+    const match = pathname.match(/\/boards\/([^/]+)/);
+    if (match) return `/workspaces/${workspaceId}/boards/${match[1]}`;
+    // Fall back to last-visited cookie for this workspace
+    const lastVisited = parseLastVisited(getLastVisitedCookie());
+    const lastBoardId = lastVisited?.workspaceId === workspaceId ? lastVisited.boardId : null;
+    const fallbackId = lastBoardId ?? boardsQuery.data?.[0]?.id;
+    return fallbackId ? `/workspaces/${workspaceId}/boards/${fallbackId}` : null;
+  }, [workspaceId, pathname, boardsQuery.data]);
+
   const organizations = orgQuery.data?.organizations ?? [];
 
   const width = collapsed ? 56 : 264;
@@ -189,7 +212,6 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
         <div style={{ height: 1, backgroundColor: S.border, margin: '8px 6px' }} />
 
         <NavItem href="/organization" icon={<AppsIcon label="Apps" size="small" />} label="Apps" collapsed={collapsed} />
-        <NavItem href="#" icon={<RoadmapIcon label="Plans" size="small" />} label="Plans" collapsed={collapsed} />
 
         <div style={{ height: 1, backgroundColor: S.border, margin: '8px 6px' }} />
 
@@ -228,9 +250,9 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
         )}
 
         {/* Board + Settings links when in a workspace */}
-        {workspaceId && (
+        {workspaceId && activeBoardHref && (
           <NavItem
-            href={`/workspaces/${workspaceId}/boards`}
+            href={activeBoardHref}
             icon={<BoardIcon label="Board" size="small" />}
             label="Board"
             isActive={pathname.includes('/boards')}
@@ -243,6 +265,15 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
             icon={<SpeedIcon label="Velocity" size="small" />}
             label="Velocity"
             isActive={pathname.includes('/settings/velocity')}
+            collapsed={collapsed}
+          />
+        )}
+        {workspaceId && (
+          <NavItem
+            href={`/workspaces/${workspaceId}/plans`}
+            icon={<RoadmapIcon label="Plans" size="small" />}
+            label="Plans"
+            isActive={pathname.includes('/plans')}
             collapsed={collapsed}
           />
         )}

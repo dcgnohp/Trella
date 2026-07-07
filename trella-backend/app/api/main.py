@@ -19,6 +19,7 @@ from app.endpoints.organizations_router import (
 from app.endpoints.organizations_router import (
     workspaces_router,
 )
+from app.endpoints.plans_router import router as plans_router
 from app.endpoints.project_members_router import router as project_members_router
 from app.endpoints.projects_router import router as projects_router
 from app.endpoints.sprints_router import router as sprints_router
@@ -43,6 +44,7 @@ api_router.include_router(audit_logs_router)
 # --- NEW canonical domains (task-collaboration-and-status-mapping) ---
 api_router.include_router(board_columns_router)
 api_router.include_router(projects_router)
+api_router.include_router(plans_router)
 api_router.include_router(project_members_router)
 api_router.include_router(workspace_members_router)
 api_router.include_router(comments_router)

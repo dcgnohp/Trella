@@ -18,6 +18,7 @@ class TaskUpdate(CamelModel):
     description: str | None = None
     priority: str | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
     assignee_id: uuid.UUID | None = None
     custom_status_id: uuid.UUID | None = None
     column_id: uuid.UUID | None = None
@@ -34,6 +35,7 @@ class TaskCreate(CamelModel):
     type: str | None = None
     parent_id: uuid.UUID | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
     assignee_id: uuid.UUID | None = None
     story_point: int | None = None
 
@@ -59,6 +61,7 @@ class TaskPublic(CamelModel):
     description: str | None
     priority: str
     due_date: datetime | None
+    start_date: datetime | None = None
     assignee_id: uuid.UUID | None
     custom_status_id: uuid.UUID | None
     custom_status: CustomStatusEmbed | None = None

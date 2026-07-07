@@ -45,10 +45,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
-  // Pass pathname to server components via header for route guards
-  const response = NextResponse.next()
-  response.headers.set("x-pathname", pathname)
-  return response
+  // Pass pathname to server components via header for route guards.
+  // Must be set on the forwarded *request* headers — server components read
+  // request headers via next/headers `headers()`, not the response headers.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-pathname", pathname)
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
 export const config = {

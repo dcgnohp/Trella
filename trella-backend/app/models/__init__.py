@@ -12,6 +12,8 @@ from app.models.custom_statuses_model import CustomStatus
 from app.models.notifications_model import Notification
 from app.models.org_limits_model import OrgLimit
 from app.models.org_subscriptions_model import OrgSubscription
+from app.models.plan_boards_model import PlanBoard
+from app.models.plans_model import Plan
 from app.models.project_members_model import ProjectMember
 from app.models.projects_model import Project
 from app.models.sprints_model import Sprint
@@ -50,4 +52,6 @@ __all__ = [
     "ActivityLog",
     "Sprint",
     "VelocityConfig",
+    "Plan",
+    "PlanBoard",
 ]

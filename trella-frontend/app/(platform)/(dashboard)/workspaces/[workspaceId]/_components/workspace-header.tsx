@@ -2,11 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useRouter, usePathname, useParams } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
-import { BoardsService } from '@/lib/client';
+import RefreshIcon from '@atlaskit/icon/core/refresh';
+import { BoardsService, WorkspacesService, WorkspaceMembersService } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
+import { useAuth } from '@/components/providers/auth-provider';
+import { ConfirmModal } from '@/components/ads/confirm-modal';
+import { useWorkspaceMode } from '@/lib/workspace-mode/use-workspace-mode';
+import { parseLastVisited, getLastVisitedCookie } from '@/lib/last-visited';
 
 const TABS_SCRUM = [
   { label: 'Summary', segment: 'summary' },
@@ -36,28 +42,51 @@ interface WorkspaceHeaderProps {
 export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   const pathname = usePathname();
   const params = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const boardId = params?.boardId as string | undefined;
 
-  const [projectType, setProjectType] = React.useState<'kanban' | 'scrum' | null>(null);
   const [spaceName, setSpaceName] = React.useState<string | null>(null);
-  const [workspaceMode, setWorkspaceMode] = React.useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [localScrum, setLocalScrum] = React.useState(false);
 
   React.useEffect(() => {
-    const stored = window.localStorage.getItem(`trella:projectType:${workspaceId}`) as 'kanban' | 'scrum' | null;
-    setProjectType(stored);
     try {
       const raw = window.localStorage.getItem(`trella:onboarding:${workspaceId}`);
       if (raw) setSpaceName(JSON.parse(raw).name as string);
     } catch { /* empty */ }
-    // Also fetch mode from API
-    fetch(`/api/workspaces/${workspaceId}`)
-      .then(r => r.json())
-      .then(d => { if (d?.mode) setWorkspaceMode(d.mode); })
-      .catch(() => {});
+    setLocalScrum(window.localStorage.getItem(`trella:projectType:${workspaceId}`) === 'scrum');
   }, [workspaceId]);
 
-  const isScrum = workspaceMode === 'SCRUM' || projectType === 'scrum';
+  const modeQuery = useWorkspaceMode(workspaceId);
+  const isScrum = modeQuery.data?.mode === 'SCRUM' || localScrum;
   const tabs = isScrum ? TABS_SCRUM : TABS_KANBAN;
+
+  const membersQuery = useQuery({
+    queryKey: queryKeys.workspaceMembers(workspaceId),
+    queryFn: () => WorkspaceMembersService.WorkspaceMembers_workspaceMembersListMembers({ workspaceId }),
+  });
+  // ponytail: show button while loading, hide only once confirmed not owner
+  const isOwner = membersQuery.isLoading || (membersQuery.data?.some(m => m.userId === user?.id && m.role === 'OWNER') ?? false);
+
+  const switchModeMutation = useMutation({
+    mutationFn: (nextMode: 'KANBAN' | 'SCRUM') =>
+      WorkspacesService.Workspaces_workspacesSwitchWorkspaceMode({
+        workspaceId,
+        requestBody: { mode: nextMode },
+      }),
+    onSuccess: (_, nextMode) => {
+      window.localStorage.setItem(`trella:projectType:${workspaceId}`, nextMode === 'SCRUM' ? 'scrum' : 'kanban');
+      queryClient.invalidateQueries({ queryKey: ['workspace-mode', workspaceId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBoards(workspaceId) });
+      toast.success(nextMode === 'SCRUM' ? 'Switched to Scrum' : 'Switched to Kanban');
+      router.refresh();
+    },
+    onError: () => toast.error('Failed to switch workspace mode'),
+  });
 
   const boardsQuery = useQuery({
     queryKey: queryKeys.workspaceBoards(workspaceId),
@@ -68,7 +97,11 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   const getTabHref = (segment: string) => {
     if (segment === 'boards') {
       if (boardId) return `/workspaces/${workspaceId}/boards/${boardId}`;
-      if (boardsQuery.data?.[0]) return `/workspaces/${workspaceId}/boards/${boardsQuery.data[0].id}`;
+      // Fall back to last-visited board for this workspace, then first board
+      const lastVisited = parseLastVisited(getLastVisitedCookie());
+      const lastBoardId = lastVisited?.workspaceId === workspaceId ? lastVisited.boardId : null;
+      const fallbackId = lastBoardId ?? boardsQuery.data?.[0]?.id;
+      if (fallbackId) return `/workspaces/${workspaceId}/boards/${fallbackId}`;
       return `/workspaces/${workspaceId}/boards`;
     }
     return `/workspaces/${workspaceId}/${segment}`;
@@ -80,6 +113,7 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   };
 
   return (
+    <>
     <div style={{
       backgroundColor: 'var(--trella-surface)',
       borderBottom: '1px solid var(--trella-border)',
@@ -102,6 +136,23 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
         <span style={{ color: 'var(--trella-text-subtlest)', display: 'flex', alignItems: 'center', marginLeft: 4, cursor: 'pointer' }}>
           <ShowMoreHorizontalIcon label="More" size="small" />
         </span>
+
+        {isOwner && (
+          <button
+            onClick={() => setConfirmOpen(true)}
+            disabled={switchModeMutation.isPending}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'none', border: '1px solid var(--trella-border)', borderRadius: 4,
+              padding: '4px 10px', height: 28, fontSize: 12, color: 'var(--trella-text-subtle)',
+              cursor: switchModeMutation.isPending ? 'default' : 'pointer',
+            }}
+          >
+            <RefreshIcon label="" size="small" />
+            Switch to {isScrum ? 'Kanban' : 'Scrum'}
+          </button>
+        )}
       </div>
 
       {/* Tab bar */}
@@ -127,5 +178,35 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
         })}
       </div>
     </div>
+    <ConfirmModal
+      isOpen={confirmOpen}
+      title={isScrum ? 'Switch to Kanban?' : 'Switch to Scrum?'}
+      body={
+        isScrum
+          ? (
+            <div>
+              <p style={{ margin: '0 0 10px' }}>
+                ⚠️ <strong>Một số tính năng sẽ không còn hiển thị:</strong>
+              </p>
+              <ul style={{ margin: '0 0 10px', paddingLeft: 20, lineHeight: 1.7 }}>
+                <li>Tab <strong>Backlog</strong>, <strong>Development</strong> và <strong>Docs</strong> sẽ bị ẩn.</li>
+                <li>Các task đang ở <strong>Backlog</strong> (chưa gán sprint) sẽ <strong>không hiện trên board Kanban</strong> — dữ liệu vẫn còn, nhưng không truy cập được từ giao diện.</li>
+                <li>Story point, assignee, priority của tất cả task <strong>được giữ nguyên</strong>.</li>
+              </ul>
+              <p style={{ margin: 0, fontSize: 12, color: 'var(--trella-text-subtle)' }}>
+                Chuyển lại về Scrum bất cứ lúc nào để truy cập lại Backlog.
+              </p>
+            </div>
+          )
+          : 'A default "Sprint 1" will be created and all tasks will move to the Backlog. Story points, assignees and priorities are kept as-is.'
+      }
+      confirmLabel="Switch"
+      onConfirm={() => {
+        setConfirmOpen(false);
+        switchModeMutation.mutate(isScrum ? 'KANBAN' : 'SCRUM');
+      }}
+      onClose={() => setConfirmOpen(false)}
+    />
+    </>
   );
 }
