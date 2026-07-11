@@ -51,7 +51,7 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
-      <div style={{ flex: 1, overflow: "auto" }}>{children}</div>
+      <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
     </div>
   );
 }

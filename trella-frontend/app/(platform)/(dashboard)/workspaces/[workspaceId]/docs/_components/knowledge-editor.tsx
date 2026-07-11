@@ -95,6 +95,7 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
   const [editorText, setEditorText] = React.useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
   const initialLoadDone = React.useRef(false)
+  const contentScrollRef = React.useRef<HTMLDivElement>(null)
 
   const searchParams = useSearchParams()
   const queryTaskId = searchParams?.get('taskId')
@@ -268,7 +269,7 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
   const chars = editorText.length
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background min-h-0 h-full">
       {/* ── Top bar ── */}
       <div className="flex items-center gap-2 px-6 py-3 border-b border-border flex-shrink-0 min-h-[56px]">
         {/* Breadcrumb */}
@@ -339,14 +340,14 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
       </div>
 
       {/* ── Body: editor + right panel ── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Center: toolbar + content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           {/* Tiptap toolbar */}
           {editor && <EditorToolbar editor={editor} />}
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div ref={contentScrollRef} className="flex-1 overflow-y-auto px-8 py-6 min-h-0">
             <div className="max-w-3xl mx-auto">
               {/* Category badge above title */}
               {(category || selectedCollection?.name) && (() => {
@@ -413,15 +414,16 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
           onDeleteConfirm={() => deleteMut.mutate()}
           canDelete={!!liveDocId}
           editor={editor}
+          contentScrollRef={contentScrollRef}
         />
       </div>
 
       <style>{`
         .tiptap { outline: none; }
         .tiptap p { margin: 0 0 6px; }
-        .tiptap h1 { font-size:22px;font-weight:700;margin:16px 0 8px; }
-        .tiptap h2 { font-size:18px;font-weight:700;margin:14px 0 6px; }
-        .tiptap h3 { font-size:15px;font-weight:600;margin:10px 0 4px; }
+        .tiptap h1 { font-size:22px;font-weight:700;margin:16px 0 8px;scroll-margin-top:80px; }
+        .tiptap h2 { font-size:18px;font-weight:700;margin:14px 0 6px;scroll-margin-top:80px; }
+        .tiptap h3 { font-size:15px;font-weight:600;margin:10px 0 4px;scroll-margin-top:80px; }
         .tiptap ul, .tiptap ol { margin:4px 0 6px 24px;padding:0; }
         .tiptap code { background:var(--trella-surface-sunken);border-radius:3px;padding:1px 5px;font-size:13px;font-family:monospace; }
         .tiptap pre { background:var(--trella-surface-sunken);border-radius:6px;padding:12px 16px;margin:8px 0;overflow-x:auto; }
@@ -429,6 +431,8 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
         .tiptap p.is-editor-empty:first-child::before { content:attr(data-placeholder);color:var(--trella-text-subtlest);pointer-events:none;float:left;height:0; }
         .tiptap a { color:var(--trella-brand);text-decoration:underline; }
         .tiptap blockquote { border-left:3px solid var(--trella-border);margin:8px 0;padding-left:14px;color:var(--trella-text-subtle); }
+        @keyframes outline-flash { 0%,15% { background:rgba(0,82,204,0.18); border-radius:4px; outline: 2px solid rgba(0,82,204,0.4); outline-offset:2px } 100% { background:transparent; outline:none } }
+        .outline-flash { animation: outline-flash 2s ease-out forwards; }
       `}</style>
     </div>
   )
@@ -506,6 +510,7 @@ interface RightPanelProps {
   onDeleteConfirm: () => void
   canDelete: boolean
   editor: any
+  contentScrollRef: React.RefObject<HTMLDivElement>
 }
 
 const SELECT_CLS = 'w-full h-10 px-3 text-sm border border-border rounded-md bg-background text-foreground outline-none focus:ring-1 focus:ring-primary'
@@ -517,22 +522,46 @@ function RightPanel({
   onTitleChange, onCollectionChange, onSourceTypeChange, onCategoryChange,
   onDescriptionChange, onParentIdChange, onTaskIdChange,
   showDeleteConfirm, onDeleteRequest, onDeleteCancel, onDeleteConfirm, canDelete, editor,
+  contentScrollRef,
 }: RightPanelProps) {
   const selectedCollection = collections.find(c => c.id === collectionId)
   const authorName = doc?.authorName || doc?.createdBy?.split('@')[0] || '—'
   const potentialParents = docs.filter(d => d.id !== doc?.id && !d.isArchived)
+  const [activeOutlinePos, setActiveOutlinePos] = React.useState<number | null>(null)
 
   const outline = React.useMemo(() => {
     if (!editor) return []
-    const items: { level: number; text: string; pos: number }[] = []
+    const items: { level: number; text: string; pos: number; nodeSize: number }[] = []
     editor.state.doc.descendants((node: any, pos: number) => {
       if (node.type.name === 'heading') {
-        items.push({ level: node.attrs.level, text: node.textContent, pos })
+        items.push({ level: node.attrs.level, text: node.textContent, pos, nodeSize: node.nodeSize })
       }
     })
     return items
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, editor?.state.doc.content])
+
+  // Auto-sync active outline item while scrolling
+  React.useEffect(() => {
+    if (!editor || !contentScrollRef.current || outline.length === 0) return
+    const headings = Array.from(editor.view.dom.querySelectorAll('h1,h2,h3')) as HTMLElement[]
+    if (headings.length === 0) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter(e => e.isIntersecting)
+        if (visible.length === 0) return
+        const topmost = visible.reduce((a, b) =>
+          a.boundingClientRect.top < b.boundingClientRect.top ? a : b
+        )
+        const idx = headings.indexOf(topmost.target as HTMLElement)
+        if (idx !== -1 && outline[idx]) setActiveOutlinePos(outline[idx].pos)
+      },
+      { root: contentScrollRef.current, rootMargin: '0px 0px -80% 0px', threshold: 0 }
+    )
+    headings.forEach(h => observer.observe(h))
+    return () => observer.disconnect()
+  }, [editor, outline, contentScrollRef])
+
   return (
     <div className="w-80 flex-shrink-0 border-l border-border flex flex-col bg-background overflow-hidden">
       {/* Tabs */}
@@ -731,11 +760,35 @@ function RightPanel({
                 <button
                   key={i}
                   onClick={() => {
-                    editor.commands.setTextSelection(h.pos)
-                    editor.commands.scrollIntoView()
+                    const headings = Array.from(editor.view.dom.querySelectorAll('h1,h2,h3')) as HTMLElement[]
+                    const el = headings[i]
+                    if (!el) return
+                    setActiveOutlinePos(h.pos)
+                    // Scroll within editor container
+                    let scrollable: HTMLElement | null = el.parentElement
+                    while (scrollable && scrollable !== document.body) {
+                      const oy = window.getComputedStyle(scrollable).overflowY
+                      if (oy === 'auto' || oy === 'scroll') break
+                      scrollable = scrollable.parentElement
+                    }
+                    if (scrollable) {
+                      const offset = el.getBoundingClientRect().top - scrollable.getBoundingClientRect().top - 24
+                      scrollable.scrollTo({ top: scrollable.scrollTop + offset, behavior: 'smooth' })
+                    }
+                    // Highlight after scroll lands
+                    setTimeout(() => {
+                      el.animate([
+                        { backgroundColor: 'rgba(0,82,204,0.15)', borderRadius: '4px', boxShadow: '0 0 0 3px rgba(0,82,204,0.3)' },
+                        { backgroundColor: 'transparent', borderRadius: '4px', boxShadow: 'none' },
+                      ], { duration: 2000, easing: 'ease-out', fill: 'none' })
+                    }, 450)
                   }}
-                  className={`text-left text-sm hover:text-primary transition-colors hover:underline truncate
-                    ${h.level === 1 ? 'font-bold mt-2' : h.level === 2 ? 'font-semibold pl-3' : 'font-medium pl-6 text-muted-foreground'}`}
+                  className={`text-left text-sm transition-colors truncate
+                    ${activeOutlinePos === h.pos
+                      ? 'text-primary font-semibold'
+                      : 'hover:text-primary hover:underline text-foreground'
+                    }
+                    ${h.level === 1 ? 'font-bold mt-2' : h.level === 2 ? 'pl-3' : 'pl-6 text-muted-foreground'}`}
                 >
                   {h.text || 'Empty heading'}
                 </button>
