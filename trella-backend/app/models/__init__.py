@@ -1,5 +1,8 @@
 from sqlmodel import SQLModel
 
+from app.models.docs_model import Doc
+from app.models.knowledge_collections_model import KnowledgeCollection
+from app.models.knowledge_user_prefs_model import KnowledgeUserPref
 from app.models.activity_logs_model import ActivityLog
 from app.models.attachments_model import Attachment
 from app.models.audit_logs_model import AuditAction, AuditLog, EntityType
@@ -29,6 +32,9 @@ Organization = Workspace
 OrganizationMember = WorkspaceMember
 
 __all__ = [
+    "Doc",
+    "KnowledgeCollection",
+    "KnowledgeUserPref",
     "SQLModel",
     "User",
     "Workspace",

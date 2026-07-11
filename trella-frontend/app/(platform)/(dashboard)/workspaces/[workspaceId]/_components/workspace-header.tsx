@@ -19,8 +19,6 @@ const TABS_SCRUM = [
   { label: 'List', segment: 'list' },
   { label: 'Board', segment: 'boards' },
   { label: 'Backlog', segment: 'backlog' },
-  { label: 'Development', segment: 'development' },
-  { label: 'Forms', segment: 'forms' },
   { label: 'Timeline', segment: 'timeline' },
   { label: 'Docs', segment: 'docs' },
   { label: 'Reports', segment: 'reports' },
@@ -30,8 +28,6 @@ const TABS_SCRUM = [
 const TABS_KANBAN = [
   { label: 'Summary', segment: 'summary' },
   { label: 'Board', segment: 'boards' },
-  { label: 'Forms', segment: 'forms' },
-  { label: 'Development', segment: 'development' },
   { label: 'Timeline', segment: 'timeline' },
   { label: 'Reports', segment: 'reports' },
   { label: 'Velocity', segment: 'settings/velocity' },
@@ -194,7 +190,7 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
                 ⚠️ <strong>Một số tính năng sẽ không còn hiển thị:</strong>
               </p>
               <ul style={{ margin: '0 0 10px', paddingLeft: 20, lineHeight: 1.7 }}>
-                <li>Tab <strong>Backlog</strong>, <strong>Development</strong> và <strong>Docs</strong> sẽ bị ẩn.</li>
+                <li>Tab <strong>Backlog</strong> và <strong>Docs</strong> sẽ bị ẩn.</li>
                 <li>Kanban không có Backlog riêng: các task đang ở <strong>Backlog</strong> (chưa gán sprint) sẽ <strong>hiển thị trực tiếp trên board</strong> cùng các task khác.</li>
                 <li>Story point, assignee, priority của tất cả task <strong>được giữ nguyên</strong>.</li>
               </ul>

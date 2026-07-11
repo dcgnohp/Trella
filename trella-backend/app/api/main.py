@@ -1,5 +1,9 @@
 from fastapi import APIRouter
 
+from app.endpoints.docs_router import router as docs_router
+from app.endpoints.knowledge_collections_router import router as knowledge_collections_router
+from app.endpoints.knowledge_user_prefs_router import router as knowledge_user_prefs_router
+from app.endpoints.reports_router import router as reports_router
 from app.endpoints.activity_logs_router import router as activity_logs_router
 from app.endpoints.attachments_router import router as attachments_router
 from app.endpoints.audit_logs_router import router as audit_logs_router
@@ -61,6 +65,10 @@ api_router.include_router(sprints_router)
 api_router.include_router(epics_router)
 api_router.include_router(backlog_router)
 api_router.include_router(workspaces_router)
+api_router.include_router(docs_router)
+api_router.include_router(knowledge_collections_router)
+api_router.include_router(knowledge_user_prefs_router)
+api_router.include_router(reports_router)
 api_router.include_router(velocity_config_router)
 api_router.include_router(summary_router)
 api_router.include_router(workflows_router)
