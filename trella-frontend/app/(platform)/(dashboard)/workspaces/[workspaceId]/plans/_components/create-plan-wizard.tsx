@@ -14,17 +14,19 @@ import CrossIcon from '@atlaskit/icon/core/close';
 import { BoardsService, PlansService, OrganizationsService, type PlanWithBoardsPublic } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
 import { PlanOnboarding } from './plan-onboarding';
+import { parseLastVisited, getLastVisitedCookie } from '@/lib/last-visited';
 
 interface CreatePlanWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  workspaceId: string;
+  workspaceId?: string;
+  prefill?: boolean;
 }
 
 type BoardOption = { label: string; value: string };
 type WorkType = 'Board';
 
-export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWizardProps) {
+export function CreatePlanWizard({ isOpen, onClose, workspaceId, prefill = true }: CreatePlanWizardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -33,14 +35,17 @@ export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWiz
   const [selectedBoards, setSelectedBoards] = useState<BoardOption[]>([]);
   const [createdPlan, setCreatedPlan] = useState<PlanWithBoardsPublic | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [filterWorkspaceId, setFilterWorkspaceId] = useState<string>(workspaceId);
+  const [filterWorkspaceId, setFilterWorkspaceId] = useState<string>(prefill ? (workspaceId ?? '') : '');
+  const [hasPrefilled, setHasPrefilled] = useState(false);
 
   const workspacesQuery = useQuery({
     queryKey: ['organizations-list'],
     queryFn: () => OrganizationsService.Organizations_organizationsListOrganizations(),
     enabled: isOpen,
   });
-  const workspaceOptions = (workspacesQuery.data ?? []).map(org => ({ label: org.name, value: org.id }));
+  const workspaceOptions = (workspacesQuery.data ?? [])
+    .filter(org => org.mode !== 'KANBAN')
+    .map(org => ({ label: org.name, value: org.id }));
 
   const boardsQuery = useQuery({
     queryKey: queryKeys.workspaceBoards(filterWorkspaceId),
@@ -61,12 +66,30 @@ export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWiz
     return Array.from(map.values());
   }, [boardOptions, selectedBoards]);
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      setHasPrefilled(false);
+    }
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (isOpen && prefill && filterWorkspaceId && boardOptions.length > 0 && !hasPrefilled) {
+      const lastVisited = parseLastVisited(getLastVisitedCookie());
+      const activeBoardId = lastVisited?.workspaceId === filterWorkspaceId ? lastVisited.boardId : null;
+      const targetBoard = boardOptions.find(b => b.value === activeBoardId) ?? boardOptions[0];
+      if (targetBoard) {
+        setSelectedBoards([targetBoard]);
+        setHasPrefilled(true);
+      }
+    }
+  }, [isOpen, prefill, filterWorkspaceId, boardOptions, hasPrefilled]);
+
   const reset = () => {
     setName('');
     setSelectedBoards([]);
     setCreatedPlan(null);
     setShowOnboarding(false);
-    setFilterWorkspaceId(workspaceId);
+    setFilterWorkspaceId(prefill ? (workspaceId ?? '') : '');
   };
 
   const handleClose = () => {
@@ -77,14 +100,14 @@ export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWiz
   const createMutation = useMutation({
     mutationFn: () =>
       PlansService.Plans_plansCreatePlan({
-        workspaceId,
+        workspaceId: filterWorkspaceId,
         requestBody: {
           name,
           boardIds: selectedBoards.map(b => b.value),
         },
       }),
     onSuccess: (plan) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.plans(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plans(filterWorkspaceId) });
       toast.success('Plan successfully created');
       setCreatedPlan(plan);
       setShowOnboarding(true);
@@ -99,20 +122,20 @@ export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWiz
     return (
       <PlanOnboarding
         plan={createdPlan}
-        workspaceId={workspaceId}
+        workspaceId={filterWorkspaceId}
         onFinish={() => {
           handleClose();
-          router.push(`/workspaces/${workspaceId}/plans/${createdPlan.id}/summary`);
+          router.push(`/workspaces/${filterWorkspaceId}/plans/${createdPlan.id}/summary`);
         }}
         onSkip={() => {
           handleClose();
-          router.push(`/workspaces/${workspaceId}/plans/${createdPlan.id}/summary`);
+          router.push(`/workspaces/${filterWorkspaceId}/plans/${createdPlan.id}/summary`);
         }}
       />
     );
   }
 
-  const canCreate = name.trim().length > 0;
+  const canCreate = name.trim().length > 0 && selectedBoards.length > 0;
   const epicCount = selectedBoards.length * 4; // preview hint
 
   return (
@@ -192,8 +215,11 @@ export function CreatePlanWizard({ isOpen, onClose, workspaceId }: CreatePlanWiz
             </label>
             <Select
               options={workspaceOptions}
-              value={workspaceOptions.find(o => o.value === filterWorkspaceId)}
-              onChange={opt => setFilterWorkspaceId((opt as { value: string })?.value ?? workspaceId)}
+              value={workspaceOptions.find(o => o.value === filterWorkspaceId) || null}
+              onChange={opt => {
+                setFilterWorkspaceId((opt as { value: string })?.value ?? '');
+                setSelectedBoards([]);
+              }}
               isLoading={workspacesQuery.isLoading}
               placeholder="Select workspace"
               menuPlacement="auto"

@@ -8,11 +8,13 @@ import {
   ColumnsService,
   CustomStatusesService,
   ProjectMembersService,
+  SprintsService,
 } from "@/lib/client";
 import { queryKeys } from "@/lib/query-keys";
 import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { setLastVisitedCookie } from "@/lib/last-visited";
 import { useWorkspaceMode } from "@/lib/workspace-mode/use-workspace-mode";
+import { isTaskVisibleOnScrumBoard } from "@/lib/board/scrum-board-filter";
 import { TaskDetailDrawer } from "@/components/task-detail-drawer";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -75,6 +77,22 @@ export const KanbanBoardScreen = ({
   const boardData = boardQuery.data;
   const projectId = boardData?.projectId;
 
+  const isScrum =
+    workspaceModeQuery.data?.mode === 'SCRUM' ||
+    (typeof window !== 'undefined' && window.localStorage.getItem(`trella:projectType:${workspaceId}`) === 'scrum');
+
+  // Scrum boards mirror the running sprint only — backlog (no sprint) and other
+  // sprints stay in the Backlog tab. Kanban has no sprints, so this is skipped.
+  const sprintsQuery = useQuery({
+    queryKey: ['sprints', projectId || ''],
+    queryFn: () => SprintsService.Sprints_sprintsListSprints({ projectId: projectId! }),
+    enabled: !!projectId && isScrum,
+  });
+  const activeSprintId = useMemo(
+    () => sprintsQuery.data?.find((s) => s.status === 'ACTIVE')?.id ?? null,
+    [sprintsQuery.data],
+  );
+
   useEffect(() => {
     setLastVisitedCookie(workspaceId, boardId);
   }, [workspaceId, boardId]);
@@ -125,13 +143,27 @@ export const KanbanBoardScreen = ({
     return all.filter(task => {
       // Subtasks (parentId set) are shown inside task detail — not on the main board
       if (task.parentId) return false;
+      // Scrum: only the active sprint's tasks belong on the board. Backlog tasks
+      // (sprintId null) and non-active sprints are hidden. No active sprint => empty board.
+      if (!isTaskVisibleOnScrumBoard(task.sprintId, isScrum, activeSprintId)) return false;
       if (filters.onlyMine && task.assigneeId !== user?.id) return false;
       if (!filters.onlyMine && filters.assigneeId && task.assigneeId !== filters.assigneeId) return false;
       if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.customStatusId ?? "")) return false;
       if (filters.typeFilter && (task.type ?? "task").toLowerCase() !== filters.typeFilter.toLowerCase()) return false;
       return true;
     });
-  }, [tasksQuery.data, filters, user?.id]);
+  }, [tasksQuery.data, filters, user?.id, isScrum, activeSprintId]);
+
+  // Drives the "plan & start a sprint" hint: true when the board surface has no
+  // work (Scrum: nothing in the active sprint; Kanban: no tasks at all), ignoring
+  // user-applied filters.
+  const boardIsEmpty = useMemo(
+    () =>
+      !(tasksQuery.data ?? [])
+        .filter((t) => !t.parentId)
+        .some((t) => isTaskVisibleOnScrumBoard(t.sprintId, isScrum, activeSprintId)),
+    [tasksQuery.data, isScrum, activeSprintId],
+  );
 
   const isLoading =
     boardQuery.isLoading ||
@@ -176,10 +208,6 @@ export const KanbanBoardScreen = ({
   const customStatuses = customStatusesQuery.data ?? [];
   const members = projectMembersQuery.data ?? [];
 
-  const isScrum =
-    workspaceModeQuery.data?.mode === 'SCRUM' ||
-    (typeof window !== 'undefined' && window.localStorage.getItem(`trella:projectType:${workspaceId}`) === 'scrum');
-
   return (
     <div style={{ display: "flex", height: "100%", backgroundColor: "var(--trella-surface-sunken)", overflow: "hidden" }}>
       {standupActive && (
@@ -209,7 +237,7 @@ export const KanbanBoardScreen = ({
             projectMembers={members}
             onTaskClick={(task) => setSelectedTaskId(task.id)}
             isScrum={isScrum}
-            boardIsEmpty={(tasksQuery.data ?? []).length === 0}
+            boardIsEmpty={boardIsEmpty}
           />
         </main>
       </div>
@@ -222,6 +250,7 @@ export const KanbanBoardScreen = ({
         workspaceId={workspaceId}
         projectMembers={members}
         columns={columns}
+        onManageWorkflow={() => setWorkflowOpen(true)}
       />
 
       <ManageWorkflowModal
@@ -229,6 +258,7 @@ export const KanbanBoardScreen = ({
         onClose={() => setWorkflowOpen(false)}
         boardName={board.title}
         customStatuses={customStatuses}
+        workspaceId={workspaceId}
       />
     </div>
   );

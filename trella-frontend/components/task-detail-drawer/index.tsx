@@ -17,11 +17,13 @@ import InformationCircleIcon from "@atlaskit/icon/core/information-circle";
 import ArrowLeftIcon from "@atlaskit/icon/core/arrow-left";
 
 import type { TaskPublic, ProjectMemberPublic, ColumnPublic, SprintPublic } from "@/lib/client";
-import { TasksService, CustomStatusesService, ColumnsService, VelocityConfigService, SprintsService } from "@/lib/client";
+import { TasksService, CustomStatusesService, ColumnsService, VelocityConfigService, SprintsService, WorkflowsService, ApiError } from "@/lib/client";
 import CreatableSelect from "@atlaskit/select/creatable-select";
 import { useTaskRealtime } from "@/lib/realtime/use-realtime";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useWorkspaceMode } from "@/lib/workspace-mode/use-workspace-mode";
+import { ViewWorkflowModal } from "@/components/view-workflow-modal";
 
 import { CommentsTab } from "../modals/task-detail-modal/comments-tab";
 import { AttachmentsTab } from "../modals/task-detail-modal/attachments-tab";
@@ -40,6 +42,7 @@ export interface TaskDetailDrawerProps {
   workspaceId?: string;
   projectMembers?: ProjectMemberPublic[];
   columns?: ColumnPublic[];
+  onManageWorkflow?: () => void;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -181,9 +184,10 @@ interface StatusDropdownProps {
   onClose: () => void;
   columns?: ColumnPublic[];
   onTaskUpdated?: (t: TaskPublic) => void;
+  onViewWorkflowClick?: () => void;
 }
 
-function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdated }: StatusDropdownProps) {
+function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdated, onViewWorkflowClick }: StatusDropdownProps) {
   const qc = useQueryClient();
 
   const { data: statuses = [] } = useQuery({
@@ -194,6 +198,37 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
       }),
     enabled: !!workspaceId,
   });
+
+  const modeQuery = useWorkspaceMode(workspaceId ?? "");
+  const isScrum =
+    modeQuery.data?.mode === "SCRUM" ||
+    (typeof window !== "undefined" &&
+      window.localStorage.getItem(`trella:projectType:${workspaceId}`) === "scrum");
+
+  const workflowsQuery = useQuery({
+    queryKey: ["workflows", workspaceId],
+    queryFn: () => WorkflowsService.Workflows_workflowsListWorkflows({ workspaceId: workspaceId! }),
+    enabled: !!isScrum && !!workspaceId,
+  });
+
+  const activeWorkflow = React.useMemo(() => {
+    return workflowsQuery.data?.find((w) => w.isActive) || workflowsQuery.data?.[0];
+  }, [workflowsQuery.data]);
+
+  const workflowDetailQuery = useQuery({
+    queryKey: ["workflow", activeWorkflow?.id],
+    queryFn: () => WorkflowsService.Workflows_workflowsGetWorkflow({ workflowId: activeWorkflow!.id }),
+    enabled: !!isScrum && !!activeWorkflow?.id,
+  });
+
+  const transitions = workflowDetailQuery.data?.transitions || [];
+  const validDestIds = React.useMemo(() => {
+    return transitions
+      .filter((t) => t.fromStatusId === task.customStatusId || t.fromStatusId === null)
+      .map((t) => t.toStatusId);
+  }, [transitions, task.customStatusId]);
+
+  const isWorkflowActive = transitions.length > 0;
 
   // Filter to statuses tied to board columns — by canonical key OR by name (for unmapped statuses)
   const columnStatusKeys = new Set(columns.map((c) => c.statusKey.toUpperCase()));
@@ -207,10 +242,10 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
     : statuses;
 
   const mutation = useMutation({
-    mutationFn: (customStatusId: string) =>
+    mutationFn: ({ customStatusId, transitionComment }: { customStatusId: string; transitionComment?: string }) =>
       TasksService.Tasks_tasksUpdateTask({
         taskId: task.id,
-        requestBody: { customStatusId },
+        requestBody: { customStatusId, transitionComment },
       }),
     onSuccess: (data) => {
       onTaskUpdated?.(data);
@@ -221,7 +256,40 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
       toast.success("Status updated");
       onClose();
     },
-    onError: () => toast.error("Failed to update status"),
+    onError: (error: any, variables) => {
+      let msg = "Failed to update status";
+      if (error instanceof ApiError) {
+        const body = error.body as { detail?: string } | undefined;
+        if (typeof body?.detail === "string") {
+          msg = body.detail;
+        }
+      }
+
+      // If a comment is required, prompt the user directly via prompt dialog
+      if (msg.includes("comment is required") || msg.toLowerCase().includes("bình luận")) {
+        const comment = window.prompt("Quy trình Scrum yêu cầu viết bình luận giải trình để chuyển sang trạng thái này:");
+        if (comment !== null && comment.trim() !== "") {
+          mutation.mutate({
+            customStatusId: variables.customStatusId,
+            transitionComment: comment,
+          });
+          return;
+        }
+      }
+
+      const currentStatus = statuses.find((s) => s.id === task.customStatusId)?.name || "Không rõ";
+      const targetStatus = statuses.find((s) => s.id === variables.customStatusId)?.name || "Không rõ";
+
+      if (msg === "Invalid workflow transition path") {
+        const validStatuses = statuses
+          .filter((s) => validDestIds.includes(s.id))
+          .map((s) => s.name);
+        const validListStr = validStatuses.length > 0 ? validStatuses.join(", ") : "không có trạng thái nào";
+        msg = `Không thể chuyển trạng thái từ "${currentStatus}" sang "${targetStatus}". Theo quy trình làm việc (Workflow) của dự án, từ "${currentStatus}" bạn chỉ có thể chuyển sang: ${validListStr}.`;
+      }
+
+      toast.error(msg);
+    },
   });
 
   return (
@@ -242,10 +310,16 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
     >
       {filteredStatuses.map((s) => {
         const style = getStatusStyle(s);
+        const isSelected = task.customStatusId === s.id;
+        const isValid = !isWorkflowActive || isSelected || validDestIds.includes(s.id);
+
         return (
           <button
             key={s.id}
-            onClick={() => mutation.mutate(s.id)}
+            onClick={() => {
+              if (!isValid) return;
+              mutation.mutate({ customStatusId: s.id });
+            }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -254,32 +328,64 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
               padding: "7px 12px",
               background: "none",
               border: "none",
-              cursor: "pointer",
+              cursor: isValid ? "pointer" : "not-allowed",
               fontSize: 13,
               color: "var(--trella-text)",
               textAlign: "left",
+              opacity: isValid ? 1 : 0.45,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            onMouseEnter={(e) => {
+              if (isValid) e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)";
+            }}
+            onMouseLeave={(e) => {
+              if (isValid) e.currentTarget.style.backgroundColor = "transparent";
+            }}
           >
             <span
               style={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                backgroundColor: style.text,
-                flexShrink: 0,
+                backgroundColor: style.bg,
+                color: style.text,
+                padding: "2px 6px",
+                borderRadius: 3,
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                display: "inline-block",
+                letterSpacing: "0.02em",
               }}
-            />
-            {s.name}
+            >
+              {s.name}
+            </span>
+            {!isValid && (
+              <span style={{ fontSize: 9, color: "var(--trella-text-subtlest)", fontStyle: "italic", marginLeft: "auto" }}>
+                (Không hợp lệ)
+              </span>
+            )}
           </button>
         );
       })}
+
+      {isWorkflowActive && (
+        <>
+          <div style={{ height: 1, backgroundColor: "var(--trella-border)", margin: "4px 0" }} />
+          <div style={{ padding: "8px 12px 10px", fontSize: 11, color: "var(--trella-text-subtle)", lineHeight: 1.4, maxWidth: 220 }}>
+            <span style={{ fontWeight: 600, color: "var(--trella-text)" }}>Gợi ý chuyển trạng thái:</span> Từ &quot;{task.customStatus?.name || "To Do"}&quot; chỉ có thể chuyển sang: <span style={{ color: "#0052CC", fontWeight: 500 }}>{filteredStatuses.filter(s => validDestIds.includes(s.id)).map(s => s.name).join(", ") || "không có"}</span>.
+          </div>
+        </>
+      )}
+
       <div style={{ height: 1, backgroundColor: "var(--trella-border)", margin: "4px 0" }} />
       {(["Create status", "Edit status", "View workflow"] as const).map((label) => (
         <button
           key={label}
-          onClick={() => { toast.info("Coming soon"); onClose(); }}
+          onClick={() => {
+            if (label === "View workflow" && onViewWorkflowClick) {
+              onViewWorkflowClick();
+            } else {
+              toast.info("Coming soon");
+            }
+            onClose();
+          }}
           style={{
             display: "flex",
             width: "100%",
@@ -305,7 +411,7 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
 // LeftPanel
 // ---------------------------------------------------------------------------
 
-interface LeftPanelProps {
+export interface LeftPanelProps {
   task: TaskPublic;
   open: boolean;
   actorNames?: Record<string, string>;
@@ -313,7 +419,7 @@ interface LeftPanelProps {
   onTaskUpdated?: (t: TaskPublic) => void;
 }
 
-function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: LeftPanelProps) {
+export function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: LeftPanelProps) {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = React.useState(0);
 
@@ -545,16 +651,25 @@ function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: Le
 // RightPanel
 // ---------------------------------------------------------------------------
 
-interface RightPanelProps {
+export interface RightPanelProps {
   task: TaskPublic;
   projectMembers?: ProjectMemberPublic[];
   workspaceId?: string;
   onTaskUpdated?: (t: TaskPublic) => void;
 }
 
-function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: RightPanelProps) {
+export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: RightPanelProps) {
   const qc = useQueryClient();
   const { user } = useAuth();
+
+  // Sprint is a Scrum-only concept — Kanban workspaces have no backlog/sprints,
+  // so hide the Sprint field there. Mirror the board's mode check (BE mode +
+  // localStorage fallback) so the two surfaces agree.
+  const modeQuery = useWorkspaceMode(workspaceId ?? "");
+  const isScrum =
+    modeQuery.data?.mode === "SCRUM" ||
+    (typeof window !== "undefined" &&
+      window.localStorage.getItem(`trella:projectType:${workspaceId}`) === "scrum");
 
   // Velocity config query
   const { data: velocityConfig } = useQuery({
@@ -786,6 +901,7 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
           {new Date(task.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
         </span>
       </DetailRow>
+      {isScrum && (
       <DetailRow label="Sprint" tooltip="Sprint this task is assigned to">
         <div style={{ position: "relative" }} ref={sprintRef}>
           <span
@@ -819,6 +935,7 @@ function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdated }: R
           )}
         </div>
       </DetailRow>
+      )}
 
       <DetailRow label="Story points" tooltip="Effort estimate — only Fibonacci values allowed (1,2,3,5,8,13,21)">
         <CreatableSelect<{ label: string; value: number }, false>
@@ -1121,9 +1238,21 @@ export function TaskDetailDrawer({
   workspaceId,
   projectMembers = [],
   columns = [],
+  onManageWorkflow,
 }: TaskDetailDrawerProps) {
   const [statusDropOpen, setStatusDropOpen] = React.useState(false);
+  const [workflowDiagramOpen, setWorkflowDiagramOpen] = React.useState(false);
   const statusDropRef = React.useRef<HTMLDivElement>(null);
+
+  // Fetch custom statuses list for the workflow diagram
+  const { data: statuses = [] } = useQuery({
+    queryKey: queryKeys.customStatuses(workspaceId ?? ""),
+    queryFn: () =>
+      CustomStatusesService.CustomStatuses_customStatusesListCustomStatuses({
+        workspaceId: workspaceId!,
+      }),
+    enabled: open && !!workspaceId,
+  });
 
   // Fetch parent task for the subtask banner
   const { data: parentTask } = useQuery({
@@ -1291,6 +1420,7 @@ export function TaskDetailDrawer({
                     if (idx === -1) return prev;
                     const next = [...prev]; next[idx] = updated; return next;
                   })}
+                  onViewWorkflowClick={() => setWorkflowDiagramOpen(true)}
                 />
               )}
             </div>
@@ -1392,6 +1522,16 @@ export function TaskDetailDrawer({
           )}
         </div>
       </div>
+      {displayTask && (
+        <ViewWorkflowModal
+          open={workflowDiagramOpen}
+          onClose={() => setWorkflowDiagramOpen(false)}
+          workspaceId={workspaceId ?? ""}
+          currentStatusId={displayTask.customStatusId}
+          customStatuses={statuses}
+          onEditClick={onManageWorkflow}
+        />
+      )}
     </div>
   );
 }

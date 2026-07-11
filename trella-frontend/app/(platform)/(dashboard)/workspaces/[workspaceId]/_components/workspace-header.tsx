@@ -24,15 +24,17 @@ const TABS_SCRUM = [
   { label: 'Timeline', segment: 'timeline' },
   { label: 'Docs', segment: 'docs' },
   { label: 'Reports', segment: 'reports' },
+  { label: 'Velocity', segment: 'settings/velocity' },
+  { label: 'Plans', segment: 'plans' },
 ];
 const TABS_KANBAN = [
   { label: 'Summary', segment: 'summary' },
-  { label: 'List', segment: 'list' },
   { label: 'Board', segment: 'boards' },
   { label: 'Forms', segment: 'forms' },
   { label: 'Development', segment: 'development' },
   { label: 'Timeline', segment: 'timeline' },
   { label: 'Reports', segment: 'reports' },
+  { label: 'Velocity', segment: 'settings/velocity' },
 ];
 
 interface WorkspaceHeaderProps {
@@ -112,6 +114,9 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
     return pathname.includes(`/${segment}`);
   };
 
+  const isPlanRoute = pathname.includes('/plans/') && pathname.split('/plans/')[1]?.length > 0;
+  if (isPlanRoute) return null;
+
   return (
     <>
     <div style={{
@@ -190,7 +195,7 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
               </p>
               <ul style={{ margin: '0 0 10px', paddingLeft: 20, lineHeight: 1.7 }}>
                 <li>Tab <strong>Backlog</strong>, <strong>Development</strong> và <strong>Docs</strong> sẽ bị ẩn.</li>
-                <li>Các task đang ở <strong>Backlog</strong> (chưa gán sprint) sẽ <strong>không hiện trên board Kanban</strong> — dữ liệu vẫn còn, nhưng không truy cập được từ giao diện.</li>
+                <li>Kanban không có Backlog riêng: các task đang ở <strong>Backlog</strong> (chưa gán sprint) sẽ <strong>hiển thị trực tiếp trên board</strong> cùng các task khác.</li>
                 <li>Story point, assignee, priority của tất cả task <strong>được giữ nguyên</strong>.</li>
               </ul>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--trella-text-subtle)' }}>

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import NotificationIcon from '@atlaskit/icon/core/notification';
 import SettingsIcon from '@atlaskit/icon/core/settings';
 import SearchIcon from '@atlaskit/icon/core/search';
@@ -18,6 +18,7 @@ import CreditCardIcon from '@atlaskit/icon/core/credit-card';
 
 import { ThemeToggle, ThemeMenu } from '@/components/theme-toggle';
 import { CreateTaskModal } from '@/components/create-task-modal';
+import { useAuth } from '@/components/providers/auth-provider';
 
 const SETTINGS_SECTIONS = [
   {
@@ -50,9 +51,26 @@ export function AppNavbar() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch] = useState('');
   const params = useParams();
   const workspaceId = params?.workspaceId as string | undefined;
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
+  const getInitials = () => {
+    if (user?.fullName) {
+      const parts = user.fullName.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return user.fullName.substring(0, 2).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <div style={{
@@ -209,14 +227,88 @@ export function AppNavbar() {
         )}
       </div>
 
-      {/* Avatar */}
-      <div style={{
-        width: 32, height: 32, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #0052CC 0%, #6554C0 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-      }}>
-        KS
+      {/* Avatar / Profile Dropdown */}
+      <div style={{ position: 'relative' }}>
+        <div
+          onClick={() => setProfileOpen(v => !v)}
+          style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #0052CC 0%, #6554C0 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          {getInitials()}
+        </div>
+
+        {profileOpen && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setProfileOpen(false)} />
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 6,
+              backgroundColor: 'var(--trella-surface-overlay)', borderRadius: 6,
+              boxShadow: 'var(--trella-shadow-overlay)',
+              padding: '8px 0', width: 240, zIndex: 50,
+              border: '1px solid var(--trella-border)',
+            }}>
+              {/* User details */}
+              <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--trella-border)', marginBottom: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Account</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0052CC 0%, #6554C0 100%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 14, fontWeight: 700,
+                  }}>
+                    {getInitials()}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--trella-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {user?.fullName || 'User'}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--trella-text-subtle)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {user?.email || ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Logout button */}
+              <div
+                role="button"
+                tabIndex={0}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: 14,
+                  color: 'var(--trella-text)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-hover)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
+                onClick={async () => {
+                  setProfileOpen(false);
+                  await signOut();
+                  router.push('/sign-in');
+                  router.refresh();
+                }}
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter') {
+                    setProfileOpen(false);
+                    await signOut();
+                    router.push('/sign-in');
+                    router.refresh();
+                  }
+                }}
+              >
+                Log out
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {workspaceId && (

@@ -6,7 +6,6 @@ import Modal, {
   ModalFooter,
   ModalHeader,
   ModalTitle,
-  ModalTransition,
 } from '@atlaskit/modal-dialog';
 import Button from '@atlaskit/button/new';
 import { token } from '@atlaskit/tokens';
@@ -16,7 +15,6 @@ import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import { usePlanStaging, type StagedChange, type StagedFields } from '../_hooks/use-plan-staging';
 
 interface UnsavedChangesDialogProps {
-  isOpen: boolean;
   onClose: () => void;
   sprintNameById: Record<string, string>;
   statusNameById: Record<string, string>;
@@ -32,7 +30,6 @@ const FIELD_LABELS: Record<keyof StagedFields, string> = {
 };
 
 export function UnsavedChangesDialog({
-  isOpen,
   onClose,
   sprintNameById,
   statusNameById,
@@ -56,71 +53,67 @@ export function UnsavedChangesDialog({
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="x-large">
-          <ModalHeader hasCloseButton>
-            <ModalTitle>Unsaved changes</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <div style={{ marginBottom: 16 }}>
-              <Text color="color.text.subtle">
-                Save work items changed in your plan so they update in your workspace.
-              </Text>
-            </div>
+    <Modal onClose={onClose} width="x-large">
+      <ModalHeader hasCloseButton>
+        <ModalTitle>Unsaved changes</ModalTitle>
+      </ModalHeader>
+      <ModalBody>
+        <div style={{ marginBottom: 16 }}>
+          <Text color="color.text.subtle">
+            Save work items changed in your plan so they update in your workspace.
+          </Text>
+        </div>
 
-            {/* Table header */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '2fr 1fr 1.2fr 1.2fr',
-              gap: 12,
-              padding: '8px 12px',
-              borderBottom: `2px solid ${token('color.border')}`,
-              fontSize: 12,
-              fontWeight: 600,
-              color: token('color.text.subtle'),
-            }}>
-              <span>Title</span>
-              <span>Category</span>
-              <span>Current</span>
-              <span>New</span>
-            </div>
+        {/* Table header */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '2fr 1fr 1.2fr 1.2fr',
+          gap: 12,
+          padding: '8px 12px',
+          borderBottom: `2px solid ${token('color.border')}`,
+          fontSize: 12,
+          fontWeight: 600,
+          color: token('color.text.subtle'),
+        }}>
+          <span>Title</span>
+          <span>Category</span>
+          <span>Current</span>
+          <span>New</span>
+        </div>
 
-            {changes.length === 0 ? (
-              <div style={{ padding: 24, textAlign: 'center' }}>
-                <Text color="color.text.subtle">No unsaved changes.</Text>
-              </div>
-            ) : (
-              changes.map(change => (
-                <ChangeRow
-                  key={change.taskId}
-                  change={change}
-                  fmt={fmt}
-                  onDiscard={() => discardChange(change.taskId)}
-                />
-              ))
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              appearance="subtle"
-              onClick={discardAll}
-              isDisabled={changes.length === 0 || isSaving}
-            >
-              Discard selected changes
-            </Button>
-            <Button
-              appearance="primary"
-              onClick={handleSave}
-              isLoading={isSaving}
-              isDisabled={changes.length === 0}
-            >
-              Save changes
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+        {changes.length === 0 ? (
+          <div style={{ padding: 24, textAlign: 'center' }}>
+            <Text color="color.text.subtle">No unsaved changes.</Text>
+          </div>
+        ) : (
+          changes.map(change => (
+            <ChangeRow
+              key={change.taskId}
+              change={change}
+              fmt={fmt}
+              onDiscard={() => discardChange(change.taskId)}
+            />
+          ))
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          appearance="subtle"
+          onClick={discardAll}
+          isDisabled={changes.length === 0 || isSaving}
+        >
+          Discard selected changes
+        </Button>
+        <Button
+          appearance="primary"
+          onClick={handleSave}
+          isLoading={isSaving}
+          isDisabled={changes.length === 0}
+        >
+          Save changes
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 }
 

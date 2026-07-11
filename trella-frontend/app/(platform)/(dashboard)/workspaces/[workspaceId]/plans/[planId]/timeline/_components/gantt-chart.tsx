@@ -3,6 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import { Text } from '@atlaskit/primitives';
+import BugIcon from '@atlaskit/icon/core/bug';
+import StoryIcon from '@atlaskit/icon/core/story';
+import EpicIcon from '@atlaskit/icon/core/epic';
+import TaskIcon from '@atlaskit/icon/core/task';
 
 interface GanttEpic {
   id: string;
@@ -97,15 +101,16 @@ export function GanttChart({ epics, onEpicDateChange }: GanttChartProps) {
   };
 
   const renderTypeIcon = (type?: string) => {
+    const iconStyle = { display: 'inline-flex', marginRight: 4, verticalAlign: 'middle' };
     switch (type) {
       case 'BUG':
-        return <span style={{ color: 'var(--ds-background-danger-bold)', fontSize: 12, marginRight: 4 }}>🐞</span>;
+        return <span style={iconStyle}><BugIcon label="Bug" size="small" /></span>;
       case 'STORY':
-        return <span style={{ color: token('color.text.success'), fontSize: 12, marginRight: 4 }}>🟢</span>;
+        return <span style={iconStyle}><StoryIcon label="Story" size="small" /></span>;
       case 'EPIC':
-        return <span style={{ color: token('color.text.discovery'), fontSize: 12, marginRight: 4 }}>🟣</span>;
+        return <span style={iconStyle}><EpicIcon label="Epic" size="small" /></span>;
       default:
-        return <span style={{ color: 'var(--ds-background-brand-bold)', fontSize: 12, marginRight: 4 }}>🟦</span>;
+        return <span style={iconStyle}><TaskIcon label="Task" size="small" /></span>;
     }
   };
 

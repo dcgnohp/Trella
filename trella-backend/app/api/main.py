@@ -30,6 +30,7 @@ from app.endpoints.tasks_router import router as tasks_router
 from app.endpoints.users_router import router as users_router
 from app.endpoints.velocity_config_router import router as velocity_config_router
 from app.endpoints.workspace_members_router import router as workspace_members_router
+from app.endpoints.workflows_router import router as workflows_router
 
 api_router = APIRouter()
 
@@ -62,6 +63,7 @@ api_router.include_router(backlog_router)
 api_router.include_router(workspaces_router)
 api_router.include_router(velocity_config_router)
 api_router.include_router(summary_router)
+api_router.include_router(workflows_router)
 
 # --- LEGACY deprecated aliases (no behavior change, OpenAPI-flagged) ---
 api_router.include_router(organizations_router, deprecated=True)

@@ -4,7 +4,6 @@ import React, { useState, useRef } from 'react';
 import { Droppable } from '@hello-pangea/dnd';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
-import ModalDialog, { ModalBody, ModalFooter, ModalHeader, ModalTitle } from '@atlaskit/modal-dialog';
 import ChevronDownIcon from '@atlaskit/icon/core/chevron-down';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
@@ -13,6 +12,7 @@ import { SprintsService } from '@/lib/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
 import { toast } from 'sonner';
+import { ConfirmModal } from '@/components/ads/confirm-modal';
 import { TaskRow } from './task-row';
 import { StartSprintModal } from './start-sprint-modal';
 import { CompleteSprintModal } from './complete-sprint-modal';
@@ -28,11 +28,12 @@ interface SprintSectionProps {
   onTaskClick: (taskId: string) => void;
   boardId: string;
   todoColumnId: string;
+  transitions?: any[];
 }
 
 type SprintMenu = 'rename' | 'edit-dates' | 'delete' | null;
 
-export function SprintSection({ sprint, allSprints, projectId, workspaceId, members, customStatuses, onTaskClick, boardId, todoColumnId }: SprintSectionProps) {
+export function SprintSection({ sprint, allSprints, projectId, workspaceId, members, customStatuses, onTaskClick, boardId, todoColumnId, transitions = [] }: SprintSectionProps) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(true);
   const [showStartModal, setShowStartModal] = useState(false);
@@ -226,6 +227,7 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
                       onTaskClick={t => onTaskClick(t.id)}
                       projectId={projectId}
                       workspaceId={workspaceId}
+                      transitions={transitions}
                     />
                   ))
                 )}
@@ -254,63 +256,52 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
         <CompleteSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowCompleteModal(false)} />
       )}
 
-      {activeDialog === 'rename' && (
-        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
-          <ModalHeader><ModalTitle>Rename sprint</ModalTitle></ModalHeader>
-          <ModalBody>
-            <Textfield value={newName} onChange={e => setNewName((e.target as HTMLInputElement).value)} autoFocus />
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
-            <Button appearance="primary" isLoading={updateMutation.isPending} onClick={() => updateMutation.mutate({ name: newName })}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalDialog>
-      )}
+      <ConfirmModal
+        isOpen={activeDialog === 'rename'}
+        title="Rename sprint"
+        confirmLabel="Save"
+        confirmLoading={updateMutation.isPending}
+        confirmDisabled={!newName.trim()}
+        onConfirm={() => updateMutation.mutate({ name: newName })}
+        onClose={() => setActiveDialog(null)}
+        body={
+          <Textfield value={newName} onChange={e => setNewName((e.target as HTMLInputElement).value)} autoFocus />
+        }
+      />
 
-      {activeDialog === 'edit-dates' && (
-        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
-          <ModalHeader><ModalTitle>Edit sprint dates</ModalTitle></ModalHeader>
-          <ModalBody>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Start date</label>
-                <Textfield type="date" value={startDate} onChange={e => setStartDate((e.target as HTMLInputElement).value)} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
-                <Textfield type="date" value={endDate} onChange={e => setEndDate((e.target as HTMLInputElement).value)} />
-              </div>
+      <ConfirmModal
+        isOpen={activeDialog === 'edit-dates'}
+        title="Edit sprint dates"
+        confirmLabel="Save"
+        confirmLoading={updateMutation.isPending}
+        onConfirm={() => updateMutation.mutate({ startDate: startDate || undefined, endDate: endDate || undefined })}
+        onClose={() => setActiveDialog(null)}
+        body={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>Start date</label>
+              <Textfield type="date" value={startDate} onChange={e => setStartDate((e.target as HTMLInputElement).value)} />
             </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
-            <Button
-              appearance="primary"
-              isLoading={updateMutation.isPending}
-              onClick={() => updateMutation.mutate({ startDate: startDate || undefined, endDate: endDate || undefined })}
-            >
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalDialog>
-      )}
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
+              <Textfield type="date" value={endDate} onChange={e => setEndDate((e.target as HTMLInputElement).value)} />
+            </div>
+          </div>
+        }
+      />
 
-      {activeDialog === 'delete' && (
-        <ModalDialog onClose={() => setActiveDialog(null)} width="small">
-          <ModalHeader><ModalTitle>Delete sprint</ModalTitle></ModalHeader>
-          <ModalBody>
-            <p style={{ margin: 0, fontSize: 14 }}>Are you sure you want to delete <strong>{sprint.name}</strong>? This action cannot be undone.</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={() => setActiveDialog(null)}>Cancel</Button>
-            <Button appearance="danger" isLoading={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
-              Delete sprint
-            </Button>
-          </ModalFooter>
-        </ModalDialog>
-      )}
+      <ConfirmModal
+        isOpen={activeDialog === 'delete'}
+        title="Delete sprint"
+        appearance="danger"
+        confirmLabel="Delete sprint"
+        confirmLoading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+        onClose={() => setActiveDialog(null)}
+        body={
+          <p style={{ margin: 0, fontSize: 14 }}>Are you sure you want to delete <strong>{sprint.name}</strong>? This action cannot be undone.</p>
+        }
+      />
     </>
   );
 }

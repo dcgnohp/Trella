@@ -7,6 +7,13 @@ import { PlansService, CustomStatusesService, type CustomStatusPublic, type Task
 import { queryKeys } from '@/lib/query-keys';
 import { usePlanStaging } from '../../_hooks/use-plan-staging';
 
+// ADS Design Icons
+import CalendarIcon from '@atlaskit/icon/core/calendar';
+import PersonAvatarIcon from '@atlaskit/icon/core/person-avatar';
+import WarningIcon from '@atlaskit/icon/core/warning';
+import LinkIcon from '@atlaskit/icon/core/link';
+import InformationCircleIcon from '@atlaskit/icon/core/information-circle';
+
 interface PlanSummaryClientProps {
   planId: string;
   workspaceId: string;
@@ -146,12 +153,15 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
         
         {/* Date range header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ds-surface-sunken)', border: '1px solid var(--ds-border)', borderRadius: 4, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>
-            <span>📅 {dateRangeStr}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ds-surface-sunken)', border: '1px solid var(--ds-border)', borderRadius: 4, padding: '6px 12px', fontSize: 13, fontWeight: 500, color: 'var(--ds-text)' }}>
+            <CalendarIcon label="Calendar" size="small" />
+            <span>{dateRangeStr}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ds-text-subtle)' }}>
             <span>Date last saved Jul 04, 2026</span>
-            <span style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--ds-border)', fontSize: 11, fontWeight: 'bold', color: 'var(--ds-text)' }}>i</span>
+            <span style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--ds-text-subtle)' }}>
+              <InformationCircleIcon label="Info" size="small" />
+            </span>
           </div>
         </div>
 
@@ -161,7 +171,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             title={`${unassignedCount} unassigned work items`}
             icon={
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: token('color.background.brand.subtlest'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ds-text-brand)' }}>
-                👤
+                <PersonAvatarIcon label="Unassigned" size="small" />
               </div>
             }
           />
@@ -169,7 +179,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             title={`${highPriorityCount} highest priority work items`}
             icon={
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: token('color.background.neutral'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ds-text-subtle)' }}>
-                ⛔
+                <WarningIcon label="Priority" size="small" />
               </div>
             }
           />
@@ -177,7 +187,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             title={`${overdueCount} overdue work item${overdueCount !== 1 ? 's' : ''}`}
             icon={
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: token('color.background.danger'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ds-text-danger)' }}>
-                📅
+                <CalendarIcon label="Overdue" size="small" />
               </div>
             }
             titleColor={overdueCount > 0 ? 'var(--ds-text-danger)' : undefined}
@@ -186,7 +196,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             title="0 blocked work items"
             icon={
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: token('color.background.neutral'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ds-text-subtle)' }}>
-                🔗
+                <LinkIcon label="Blocked" size="small" />
               </div>
             }
           />

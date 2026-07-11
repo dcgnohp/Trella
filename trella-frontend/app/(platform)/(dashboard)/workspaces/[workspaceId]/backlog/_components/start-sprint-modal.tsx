@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import ModalDialog, { ModalBody, ModalFooter, ModalHeader, ModalTitle } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import TextArea from '@atlaskit/textarea';
+import { ConfirmModal } from '@/components/ads/confirm-modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SprintsService } from '@/lib/client';
 import type { SprintWithTasks } from '@/lib/client';
@@ -44,11 +43,16 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
   });
 
   return (
-    <ModalDialog onClose={onClose} width="medium">
-      <ModalHeader>
-        <ModalTitle>Start Sprint</ModalTitle>
-      </ModalHeader>
-      <ModalBody>
+    <ConfirmModal
+      isOpen
+      title="Start Sprint"
+      width={560}
+      confirmLabel="Start sprint"
+      confirmLoading={startMutation.isPending}
+      confirmDisabled={!name || !startDate || !endDate}
+      onConfirm={() => startMutation.mutate()}
+      onClose={onClose}
+      body={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
@@ -86,18 +90,7 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
             {(sprint.tasks ?? []).length} work items will be included in this sprint.
           </p>
         </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button appearance="subtle" onClick={onClose}>Cancel</Button>
-        <Button
-          appearance="primary"
-          isLoading={startMutation.isPending}
-          isDisabled={!name || !startDate || !endDate}
-          onClick={() => startMutation.mutate()}
-        >
-          Start sprint
-        </Button>
-      </ModalFooter>
-    </ModalDialog>
+      }
+    />
   );
 }

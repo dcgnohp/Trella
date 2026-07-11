@@ -5,6 +5,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { token } from '@atlaskit/tokens';
 import PageHeader from '@atlaskit/page-header';
 import Lozenge from '@atlaskit/lozenge';
+import BugIcon from '@atlaskit/icon/core/bug';
+import StoryIcon from '@atlaskit/icon/core/story';
+import EpicIcon from '@atlaskit/icon/core/epic';
+import TaskIcon from '@atlaskit/icon/core/task';
+import EditIcon from '@atlaskit/icon/core/edit';
 import {
   PlansService,
   SprintsService,
@@ -132,15 +137,16 @@ export function PlanProgramClient({ planId, workspaceId }: PlanProgramClientProp
   };
 
   const renderTypeIcon = (type?: string) => {
+    const iconStyle = { display: 'inline-flex', marginRight: 4, verticalAlign: 'middle' };
     switch (type) {
       case 'BUG':
-        return <span style={{ fontSize: 12, marginRight: 4 }}>🐞</span>;
+        return <span style={iconStyle}><BugIcon label="Bug" size="small" /></span>;
       case 'STORY':
-        return <span style={{ fontSize: 12, marginRight: 4 }}>🟢</span>;
+        return <span style={iconStyle}><StoryIcon label="Story" size="small" /></span>;
       case 'EPIC':
-        return <span style={{ fontSize: 12, marginRight: 4 }}>🟣</span>;
+        return <span style={iconStyle}><EpicIcon label="Epic" size="small" /></span>;
       default:
-        return <span style={{ fontSize: 12, marginRight: 4 }}>🟦</span>;
+        return <span style={iconStyle}><TaskIcon label="Task" size="small" /></span>;
     }
   };
 
@@ -324,8 +330,12 @@ function TaskCard({ task, statuses, members, modified, onDragStart, onClick, ren
       onMouseLeave={() => setHovered(false)}
       style={{
         background: token('elevation.surface.raised'),
-        border: `1px solid ${modified ? token('color.border.warning') : hovered ? token('color.border.brand') : token('color.border')}`,
-        borderLeft: modified ? `3px solid ${token('color.border.warning')}` : undefined,
+        borderTop: `1px solid ${modified ? token('color.border.warning') : hovered ? token('color.border.brand') : token('color.border')}`,
+        borderRight: `1px solid ${modified ? token('color.border.warning') : hovered ? token('color.border.brand') : token('color.border')}`,
+        borderBottom: `1px solid ${modified ? token('color.border.warning') : hovered ? token('color.border.brand') : token('color.border')}`,
+        borderLeft: modified
+          ? `3px solid ${token('color.border.warning')}`
+          : `1px solid ${hovered ? token('color.border.brand') : token('color.border')}`,
         borderRadius: 4,
         padding: '12px 14px',
         cursor: 'grab',
@@ -337,10 +347,10 @@ function TaskCard({ task, statuses, members, modified, onDragStart, onClick, ren
       {hovered && (
         <button
           onClick={e => { e.stopPropagation(); onClick(); }}
-          style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', color: token('color.icon.subtle'), cursor: 'pointer', fontSize: 12, padding: 2 }}
+          style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', color: token('color.icon.subtle'), cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 2 }}
           title="Edit details"
         >
-          ✏️
+          <EditIcon label="Edit" size="small" />
         </button>
       )}
 

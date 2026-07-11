@@ -2015,6 +2015,38 @@ export const MemberRoleUpdateSchema = {
     title: 'MemberRoleUpdate'
 } as const;
 
+export const NotificationCreateSchema = {
+    properties: {
+        recipientId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Recipientid'
+        },
+        type: {
+            type: 'string',
+            title: 'Type'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        content: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Content'
+        }
+    },
+    type: 'object',
+    required: ['recipientId', 'type', 'title'],
+    title: 'NotificationCreate'
+} as const;
+
 export const NotificationPublicSchema = {
     properties: {
         id: {
@@ -2831,6 +2863,18 @@ export const TaskCreateSchema = {
             ],
             title: 'Duedate'
         },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
         assigneeId: {
             anyOf: [
                 {
@@ -2912,6 +2956,18 @@ export const TaskPublicSchema = {
                 }
             ],
             title: 'Duedate'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
         },
         assigneeId: {
             anyOf: [
@@ -3077,6 +3133,18 @@ export const TaskUpdateSchema = {
             ],
             title: 'Duedate'
         },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
         assigneeId: {
             anyOf: [
                 {
@@ -3170,6 +3238,17 @@ export const TaskUpdateSchema = {
                 }
             ],
             title: 'Parentid'
+        },
+        transitionComment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Transitioncomment'
         }
     },
     type: 'object',
@@ -3357,6 +3436,320 @@ export const VelocityConfigUpdateSchema = {
     type: 'object',
     required: ['hoursPerPoint'],
     title: 'VelocityConfigUpdate'
+} as const;
+
+export const WorkflowCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'WorkflowCreate'
+} as const;
+
+export const WorkflowPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        workspaceId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Workspaceid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        isActive: {
+            type: 'boolean',
+            title: 'Isactive'
+        },
+        transitions: {
+            items: {
+                '$ref': '#/components/schemas/WorkflowTransitionPublic'
+            },
+            type: 'array',
+            title: 'Transitions',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'workspaceId', 'name', 'description', 'isActive'],
+    title: 'WorkflowPublic'
+} as const;
+
+export const WorkflowTransitionCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        fromStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fromstatusid'
+        },
+        toStatusId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Tostatusid'
+        },
+        conditions: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Conditions',
+            default: []
+        },
+        validators: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Validators',
+            default: []
+        },
+        actions: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Actions',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['name', 'toStatusId'],
+    title: 'WorkflowTransitionCreate'
+} as const;
+
+export const WorkflowTransitionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        workflowId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Workflowid'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        fromStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fromstatusid'
+        },
+        toStatusId: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Tostatusid'
+        },
+        conditions: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Conditions'
+        },
+        validators: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Validators'
+        },
+        actions: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Actions'
+        }
+    },
+    type: 'object',
+    required: ['id', 'workflowId', 'name', 'fromStatusId', 'toStatusId', 'conditions', 'validators', 'actions'],
+    title: 'WorkflowTransitionPublic'
+} as const;
+
+export const WorkflowTransitionUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        fromStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fromstatusid'
+        },
+        toStatusId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tostatusid'
+        },
+        conditions: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Conditions'
+        },
+        validators: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Validators'
+        },
+        actions: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actions'
+        }
+    },
+    type: 'object',
+    title: 'WorkflowTransitionUpdate'
+} as const;
+
+export const WorkflowUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        isActive: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Isactive'
+        }
+    },
+    type: 'object',
+    title: 'WorkflowUpdate'
 } as const;
 
 export const WorkspaceInviteSchema = {

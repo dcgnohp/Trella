@@ -14,6 +14,7 @@ import {
   PlansService,
   SprintsService,
   CustomStatusesService,
+  OrganizationsService,
 } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
 import { usePlanStaging } from '../_hooks/use-plan-staging';
@@ -39,11 +40,26 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const planQuery = useQuery({
     queryKey: queryKeys.plan(planId),
     queryFn: () => PlansService.Plans_plansGetPlan({ planId }),
   });
   const planName = planQuery.data?.name ?? '…';
+
+  const orgsQuery = useQuery({
+    queryKey: ['organizations-list'],
+    queryFn: () => OrganizationsService.Organizations_organizationsListOrganizations(),
+  });
+  const workspaceName = useMemo(() => {
+    if (!mounted) return 'Workspace';
+    const org = orgsQuery.data?.find(o => o.id === workspaceId);
+    return org?.name ?? 'Workspace';
+  }, [orgsQuery.data, workspaceId, mounted]);
 
   // Staging store — drives the "Unsaved changes N" button + review dialog.
   const { stagedCount } = usePlanStaging();
@@ -114,9 +130,17 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
       flexShrink: 0,
     }}>
       {/* Breadcrumb */}
-      <div style={{ padding: '8px 24px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Link href={`/workspaces/${workspaceId}/plans`} style={{ textDecoration: 'none' }}>
-          <Text size="small" color="color.text.subtle">Plans</Text>
+      <div style={{ padding: '8px 24px 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: token('color.text.subtle') }}>
+        <Link href={`/workspaces/${workspaceId}/boards`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <span style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+            {workspaceName}
+          </span>
+        </Link>
+        <span>/</span>
+        <Link href={`/workspaces/${workspaceId}/plans`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <span style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+            Plans
+          </span>
         </Link>
       </div>
 
@@ -181,12 +205,13 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
         </div>
       </div>
 
-      <UnsavedChangesDialog
-        isOpen={isUnsavedOpen}
-        onClose={() => setIsUnsavedOpen(false)}
-        sprintNameById={sprintNameById}
-        statusNameById={statusNameById}
-      />
+      {isUnsavedOpen && (
+        <UnsavedChangesDialog
+          onClose={() => setIsUnsavedOpen(false)}
+          sprintNameById={sprintNameById}
+          statusNameById={statusNameById}
+        />
+      )}
 
       {/* Tab bar + "+" */}
       <div style={{ display: 'flex', alignItems: 'center', paddingInline: 16, marginTop: 2 }}>

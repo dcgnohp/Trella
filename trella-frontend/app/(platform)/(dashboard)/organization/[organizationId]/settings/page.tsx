@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, LogOut, Trash2, Zap } from "lucide-react";
 
 import { OrganizationsService, type OrganizationPublic } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -20,17 +20,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpgradeWizardModal } from "./_components/upgrade-wizard-modal";
+import { useAuth } from "@/components/providers/auth-provider";
 
 const SettingsPage = () => {
   const params = useParams();
   const router = useRouter();
   const organizationId = params.organizationId as string;
+  const { signOut, user } = useAuth();
 
   const [organization, setOrganization] = useState<OrganizationPublic | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [confirmName, setConfirmName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -124,6 +128,32 @@ const SettingsPage = () => {
         </CardContent>
       </Card>
 
+      {organization.mode === "KANBAN" && (
+        <Card className="border-blue-500/30 bg-blue-50/5 dark:bg-blue-950/10">
+          <CardHeader>
+            <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-x-2">
+              <Zap className="h-5 w-5 animate-pulse" /> Nâng cấp lên Jira (Scrum Mode)
+            </CardTitle>
+            <CardDescription>
+              Mở khóa các tính năng quản lý Scrum chuẩn Agile: Sprints, Backlog, Điểm story point, Epic, và Workflow Engine kiểm soát quy trình chặt chẽ.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground max-w-md">
+                Tổ chức của bạn đang chạy ở chế độ Trello (Kanban) tự do. Kích hoạt chế độ Jira để tổ chức các chu kỳ Sprint phát triển phần mềm chuyên nghiệp.
+              </p>
+            </div>
+            <Button
+              onClick={() => setIsUpgradeOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-x-2 shrink-0"
+            >
+              Nâng cấp ngay
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-destructive/50 bg-destructive/5">
         <CardHeader>
           <CardTitle className="text-destructive flex items-center gap-x-2">
@@ -183,6 +213,40 @@ const SettingsPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>User Account</CardTitle>
+          <CardDescription>Logged in as {user?.email}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Sign Out</p>
+            <p className="text-xs text-muted-foreground max-w-md">
+              Sign out of your active session on this device.
+            </p>
+          </div>
+          <Button
+            onClick={async () => {
+              await signOut();
+              router.push("/sign-in");
+              router.refresh();
+            }}
+            variant="outline"
+            className="shrink-0 font-medium flex items-center gap-x-2"
+          >
+            <LogOut className="h-4 w-4" /> Đăng xuất
+          </Button>
+        </CardContent>
+      </Card>
+
+      <UpgradeWizardModal
+        isOpen={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+        workspaceId={organization.id}
+        workspaceName={organization.name}
+        onUpgradeSuccess={(updatedOrg) => setOrganization(updatedOrg)}
+      />
     </div>
   );
 };

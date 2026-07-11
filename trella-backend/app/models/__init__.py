@@ -18,8 +18,10 @@ from app.models.project_members_model import ProjectMember
 from app.models.projects_model import Project
 from app.models.sprints_model import Sprint
 from app.models.task_cards_model import Card
+from app.models.tasks_model import Task
 from app.models.users_model import User
 from app.models.velocity_config_model import VelocityConfig
+from app.models.workflows_model import Workflow, WorkflowTransition
 from app.models.workspace_members_model import WorkspaceMember
 from app.models.workspaces_model import Workspace
 
@@ -41,6 +43,7 @@ __all__ = [
     "BoardMember",
     "List",
     "Card",
+    "Task",
     "AuditLog",
     "AuditAction",
     "EntityType",
@@ -54,4 +57,6 @@ __all__ = [
     "VelocityConfig",
     "Plan",
     "PlanBoard",
+    "Workflow",
+    "WorkflowTransition",
 ]

@@ -72,6 +72,8 @@ _REQUIRED_TABLE_NAMES = [
     "tasks",
     "notifications",
     "sprints",
+    "workflows",
+    "workflow_transitions",
 ]
 
 

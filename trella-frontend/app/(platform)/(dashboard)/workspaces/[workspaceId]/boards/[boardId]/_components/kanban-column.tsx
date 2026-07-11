@@ -27,6 +27,9 @@ interface KanbanColumnProps {
   onTaskCreated: () => void;
   isScrum?: boolean;
   boardIsEmpty?: boolean;
+  isDimmed?: boolean;
+  isValidTarget?: boolean;
+  isDraggingTask?: boolean;
 }
 
 const STATUS_ACCENT: Record<string, string> = {
@@ -48,6 +51,9 @@ export const KanbanColumn = ({
   onTaskCreated,
   isScrum,
   boardIsEmpty,
+  isDimmed = false,
+  isValidTarget = false,
+  isDraggingTask = false,
 }: KanbanColumnProps) => {
   const accent = STATUS_ACCENT[column.statusKey] ?? "var(--trella-text-subtle)";
   const [hovered, setHovered] = useState(false);
@@ -79,9 +85,14 @@ export const KanbanColumn = ({
         flexDirection: "column",
         borderRadius: "6px",
         backgroundColor: "var(--trella-surface-sunken)",
-        border: "1px solid var(--trella-border)",
+        border: isDraggingTask && isValidTarget ? `2px dashed ${accent}` : "1px solid var(--trella-border)",
         overflow: "hidden",
         maxHeight: "calc(100vh - 200px)",
+        opacity: isDimmed ? 0.35 : 1,
+        filter: isDimmed ? "grayscale(30%)" : "none",
+        pointerEvents: isDimmed ? "none" : "auto",
+        transition: "opacity 0.2s ease, filter 0.2s ease, border 0.2s ease",
+        boxShadow: isDraggingTask && isValidTarget ? `0 0 12px ${accent}2A` : "none",
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

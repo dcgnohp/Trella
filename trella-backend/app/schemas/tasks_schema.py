@@ -28,6 +28,7 @@ class TaskUpdate(CamelModel):
     sprint_id: uuid.UUID | None = None
     epic_id: uuid.UUID | None = None
     parent_id: uuid.UUID | None = None
+    transition_comment: str | None = None
 
 
 class TaskCreate(CamelModel):

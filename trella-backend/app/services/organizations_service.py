@@ -229,4 +229,10 @@ class OrganizationsService:
             for task in tasks:
                 task.sprint_id = None
                 session.add(task)
+        
+        # Bootstrap default workflow template
+        from app.services.workflows_service import WorkflowsService
+        wf_service = WorkflowsService()
+        wf_service.bootstrap_default_workflow(session, workspace_id)
+        
         session.flush()

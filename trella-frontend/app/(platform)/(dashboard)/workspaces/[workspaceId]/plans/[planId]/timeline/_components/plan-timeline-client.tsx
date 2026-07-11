@@ -18,6 +18,17 @@ import { TaskDetailDrawer } from '@/components/task-detail-drawer';
 import { GanttChart } from './gantt-chart';
 import { usePlanStaging, type StagedFields } from '../../_hooks/use-plan-staging';
 
+// ADS Design Icons
+import BugIcon from '@atlaskit/icon/core/bug';
+import StoryIcon from '@atlaskit/icon/core/story';
+import EpicIcon from '@atlaskit/icon/core/epic';
+import TaskIcon from '@atlaskit/icon/core/task';
+import BoardIcon from '@atlaskit/icon/core/board';
+import PriorityHighestIcon from '@atlaskit/icon/core/priority-highest';
+import PriorityHighIcon from '@atlaskit/icon/core/priority-high';
+import PriorityLowIcon from '@atlaskit/icon/core/priority-low';
+import PriorityMediumIcon from '@atlaskit/icon/core/priority-medium';
+
 interface PlanTimelineClientProps {
   planId: string;
   workspaceId: string;
@@ -151,10 +162,30 @@ export function PlanTimelineClient({ planId, workspaceId }: PlanTimelineClientPr
 
   const getPriorityStyle = (priority?: string) => {
     switch (priority) {
-      case 'URGENT': return { color: token('color.text.danger'), label: 'Urgent', icon: '⇈' };
-      case 'HIGH': return { color: token('color.text.warning'), label: 'High', icon: '↑' };
-      case 'LOW': return { color: token('color.text.information'), label: 'Low', icon: '↓' };
-      default: return { color: token('color.text.success'), label: 'Medium', icon: '=' };
+      case 'URGENT':
+        return {
+          color: token('color.text.danger'),
+          label: 'Urgent',
+          icon: <PriorityHighestIcon label="Urgent" size="small" />
+        };
+      case 'HIGH':
+        return {
+          color: token('color.text.warning'),
+          label: 'High',
+          icon: <PriorityHighIcon label="High" size="small" />
+        };
+      case 'LOW':
+        return {
+          color: token('color.text.information'),
+          label: 'Low',
+          icon: <PriorityLowIcon label="Low" size="small" />
+        };
+      default:
+        return {
+          color: token('color.text.success'),
+          label: 'Medium',
+          icon: <PriorityMediumIcon label="Medium" size="small" />
+        };
     }
   };
 
@@ -170,15 +201,16 @@ export function PlanTimelineClient({ planId, workspaceId }: PlanTimelineClientPr
   };
 
   const renderTypeIcon = (type?: string) => {
+    const iconStyle = { display: 'inline-flex', marginRight: 6, verticalAlign: 'middle' };
     switch (type) {
       case 'BUG':
-        return <span style={{ fontSize: 13, marginRight: 6 }}>🐞</span>;
+        return <span style={iconStyle}><BugIcon label="Bug" size="small" /></span>;
       case 'STORY':
-        return <span style={{ fontSize: 13, marginRight: 6 }}>🟢</span>;
+        return <span style={iconStyle}><StoryIcon label="Story" size="small" /></span>;
       case 'EPIC':
-        return <span style={{ fontSize: 13, marginRight: 6 }}>🟣</span>;
+        return <span style={iconStyle}><EpicIcon label="Epic" size="small" /></span>;
       default:
-        return <span style={{ fontSize: 13, marginRight: 6 }}>🟦</span>;
+        return <span style={iconStyle}><TaskIcon label="Task" size="small" /></span>;
     }
   };
 
@@ -296,7 +328,10 @@ export function PlanTimelineClient({ planId, workspaceId }: PlanTimelineClientPr
                       <td></td>
                       <td colSpan={6} style={{ fontWeight: 600, color: 'var(--ds-text)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span>💻 {boardTitle}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <BoardIcon label="Board" size="small" />
+                            <span>{boardTitle}</span>
+                          </div>
                           <span style={{ fontSize: 11, background: 'var(--ds-border)', color: 'var(--ds-text-subtle)', padding: '2px 6px', borderRadius: 999 }}>
                             {boardTasks.length} items
                           </span>
@@ -383,7 +418,7 @@ interface TreeTaskRowProps {
   setEditingDateTaskId: (id: string | null) => void;
   setEditingDateType: (type: 'start' | 'due' | null) => void;
   onClickTask: () => void;
-  getPriorityStyle: (p?: string) => { color: string; label: string; icon: string };
+  getPriorityStyle: (p?: string) => { color: string; label: string; icon: React.ReactNode };
   getStatusColor: (canonicalStatus?: string | null) => { bg: string; text: string };
   renderTypeIcon: (type?: string) => React.ReactNode;
   formatD: (d?: string | null) => string;
@@ -645,7 +680,7 @@ function TreeTaskRow({
             onClick={e => onOpenDropdown(e, task.id, 'priority')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
           >
-            <span style={{ color: priorityStyle.color, fontWeight: 'bold' }}>{priorityStyle.icon}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>{priorityStyle.icon}</span>
             <span style={{ fontSize: 13, color: 'var(--ds-text)' }}>{priorityStyle.label}</span>
           </div>
 

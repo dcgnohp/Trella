@@ -59,6 +59,7 @@ export function PlansListClient({ workspaceId }: PlansListClientProps) {
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         workspaceId={workspaceId}
+        prefill={true}
       />
     </div>
   );

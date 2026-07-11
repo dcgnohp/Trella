@@ -230,15 +230,28 @@ class TasksService:
         if not updates:
             return task
 
+        transition_comment = updates.pop("transition_comment", None)
+
         old_custom_status_id = task.custom_status_id
         old_priority = task.priority
         old_due_date = task.due_date
 
-        for field, value in updates.items():
-            if field in _UPDATABLE_FIELDS:
-                setattr(task, field, value)
+        # If custom_status_id changes, validate workflow transition rules first
+        if "custom_status_id" in updates and updates["custom_status_id"] != old_custom_status_id:
+            from app.services.workflows_service import WorkflowsService
+            wf_service = WorkflowsService()
+            wf_service.validate_and_process_transition(
+                session,
+                workspace_id=workspace_id,
+                project_id=project_id,
+                task=task,
+                from_status_id=old_custom_status_id,
+                to_status_id=updates["custom_status_id"],
+                user=user,
+                comment=transition_comment,
+            )
 
-        # When custom_status_id changes, find the matching board column and update column_id.
+        # When custom_status_id changes, find the matching board column and resolve column_id first.
         if "custom_status_id" in updates and updates["custom_status_id"] is not None and "column_id" not in updates:
             new_status = self.custom_statuses_repo.get(
                 session, updates["custom_status_id"]
@@ -255,8 +268,12 @@ class TasksService:
                     match = next(
                         (c for c in columns if c.status_key.upper() == canonical), None
                     )
-                if match:
-                    task.column_id = match.id
+                if match and task.column_id != match.id:
+                    updates["column_id"] = match.id
+
+        for field, value in updates.items():
+            if field in _UPDATABLE_FIELDS:
+                setattr(task, field, value)
 
         # Auto-calculate due_date when story_point is set and due_date not explicitly provided.
         if (

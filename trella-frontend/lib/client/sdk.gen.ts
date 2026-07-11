@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BacklogGetBacklogData, BacklogGetBacklogResponse, BacklogGetWorkspaceBacklogData, BacklogGetWorkspaceBacklogResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, EpicsCreateEpicData, EpicsCreateEpicResponse, EpicsListEpicsData, EpicsListEpicsResponse, EpicsGetEpicData, EpicsGetEpicResponse, EpicsUpdateEpicData, EpicsUpdateEpicResponse, EpicsDeleteEpicData, EpicsDeleteEpicResponse, EpicsGetEpicProgressData, EpicsGetEpicProgressResponse, EpicsAddTaskToEpicData, EpicsAddTaskToEpicResponse, EpicsRemoveTaskFromEpicData, EpicsRemoveTaskFromEpicResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, PlansCreatePlanData, PlansCreatePlanResponse, PlansListPlansData, PlansListPlansResponse, PlansGetPlanData, PlansGetPlanResponse, PlansUpdatePlanData, PlansUpdatePlanResponse, PlansDeletePlanData, PlansDeletePlanResponse, PlansListEpicsForPlanData, PlansListEpicsForPlanResponse, ProjectMembersSearchMembersData, ProjectMembersSearchMembersResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, SprintsCreateSprintData, SprintsCreateSprintResponse, SprintsListSprintsData, SprintsListSprintsResponse, SprintsGetSprintData, SprintsGetSprintResponse, SprintsUpdateSprintData, SprintsUpdateSprintResponse, SprintsDeleteSprintData, SprintsDeleteSprintResponse, SprintsStartSprintData, SprintsStartSprintResponse, SprintsCompleteSprintData, SprintsCompleteSprintResponse, SprintsAddTaskToSprintData, SprintsAddTaskToSprintResponse, SprintsRemoveTaskFromSprintData, SprintsRemoveTaskFromSprintResponse, SprintsGetSprintInsightsData, SprintsGetSprintInsightsResponse, SprintsListWorkspaceSprintsData, SprintsListWorkspaceSprintsResponse, SprintsCreateWorkspaceSprintData, SprintsCreateWorkspaceSprintResponse, SummaryGetStatsData, SummaryGetStatsResponse, SummaryGetStatusOverviewData, SummaryGetStatusOverviewResponse, SummaryGetActivityData, SummaryGetActivityResponse, SummaryGetPriorityBreakdownData, SummaryGetPriorityBreakdownResponse, SummaryGetWorkTypesData, SummaryGetWorkTypesResponse, SummaryGetTeamWorkloadData, SummaryGetTeamWorkloadResponse, TasksGetTaskData, TasksGetTaskResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, TasksSetParentData, TasksSetParentResponse, TasksUpdateStoryPointData, TasksUpdateStoryPointResponse, TasksListSubtasksData, TasksListSubtasksResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, VelocityConfigGetVelocityConfigData, VelocityConfigGetVelocityConfigResponse, VelocityConfigUpdateVelocityConfigData, VelocityConfigUpdateVelocityConfigResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspacesSwitchWorkspaceModeData, WorkspacesSwitchWorkspaceModeResponse, WorkspacesGetWorkspaceData, WorkspacesGetWorkspaceResponse } from './types.gen';
+import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BacklogGetBacklogData, BacklogGetBacklogResponse, BacklogGetWorkspaceBacklogData, BacklogGetWorkspaceBacklogResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, EpicsCreateEpicData, EpicsCreateEpicResponse, EpicsListEpicsData, EpicsListEpicsResponse, EpicsGetEpicData, EpicsGetEpicResponse, EpicsUpdateEpicData, EpicsUpdateEpicResponse, EpicsDeleteEpicData, EpicsDeleteEpicResponse, EpicsGetEpicProgressData, EpicsGetEpicProgressResponse, EpicsAddTaskToEpicData, EpicsAddTaskToEpicResponse, EpicsRemoveTaskFromEpicData, EpicsRemoveTaskFromEpicResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, NotificationsSendNotificationData, NotificationsSendNotificationResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, PlansCreatePlanData, PlansCreatePlanResponse, PlansListPlansData, PlansListPlansResponse, PlansGetPlanData, PlansGetPlanResponse, PlansUpdatePlanData, PlansUpdatePlanResponse, PlansDeletePlanData, PlansDeletePlanResponse, PlansListEpicsForPlanData, PlansListEpicsForPlanResponse, ProjectMembersSearchMembersData, ProjectMembersSearchMembersResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, SprintsCreateSprintData, SprintsCreateSprintResponse, SprintsListSprintsData, SprintsListSprintsResponse, SprintsGetSprintData, SprintsGetSprintResponse, SprintsUpdateSprintData, SprintsUpdateSprintResponse, SprintsDeleteSprintData, SprintsDeleteSprintResponse, SprintsStartSprintData, SprintsStartSprintResponse, SprintsCompleteSprintData, SprintsCompleteSprintResponse, SprintsAddTaskToSprintData, SprintsAddTaskToSprintResponse, SprintsRemoveTaskFromSprintData, SprintsRemoveTaskFromSprintResponse, SprintsGetSprintInsightsData, SprintsGetSprintInsightsResponse, SprintsListWorkspaceSprintsData, SprintsListWorkspaceSprintsResponse, SprintsCreateWorkspaceSprintData, SprintsCreateWorkspaceSprintResponse, SummaryGetStatsData, SummaryGetStatsResponse, SummaryGetStatusOverviewData, SummaryGetStatusOverviewResponse, SummaryGetActivityData, SummaryGetActivityResponse, SummaryGetPriorityBreakdownData, SummaryGetPriorityBreakdownResponse, SummaryGetWorkTypesData, SummaryGetWorkTypesResponse, SummaryGetTeamWorkloadData, SummaryGetTeamWorkloadResponse, TasksGetTaskData, TasksGetTaskResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, TasksSetParentData, TasksSetParentResponse, TasksUpdateStoryPointData, TasksUpdateStoryPointResponse, TasksListSubtasksData, TasksListSubtasksResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, VelocityConfigGetVelocityConfigData, VelocityConfigGetVelocityConfigResponse, VelocityConfigUpdateVelocityConfigData, VelocityConfigUpdateVelocityConfigResponse, WorkflowsCreateWorkflowData, WorkflowsCreateWorkflowResponse, WorkflowsListWorkflowsData, WorkflowsListWorkflowsResponse, WorkflowsBootstrapDefaultWorkflowData, WorkflowsBootstrapDefaultWorkflowResponse, WorkflowsGetWorkflowData, WorkflowsGetWorkflowResponse, WorkflowsUpdateWorkflowData, WorkflowsUpdateWorkflowResponse, WorkflowsDeleteWorkflowData, WorkflowsDeleteWorkflowResponse, WorkflowsCreateTransitionData, WorkflowsCreateTransitionResponse, WorkflowsUpdateTransitionData, WorkflowsUpdateTransitionResponse, WorkflowsDeleteTransitionData, WorkflowsDeleteTransitionResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspacesSwitchWorkspaceModeData, WorkspacesSwitchWorkspaceModeResponse, WorkspacesGetWorkspaceData, WorkspacesGetWorkspaceResponse } from './types.gen';
 
 export class ActivityLogsService {
     /**
@@ -1411,20 +1411,13 @@ export class NotificationsService {
     
     /**
      * Send Notification
-     * Send a notification to any recipient.
+     * Send a notification to the specified recipient user.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns boolean Successful Response
      * @throws ApiError
      */
-    public static Notifications_notificationsSendNotification(data: {
-        requestBody: {
-            recipientId: string;
-            type: string;
-            title: string;
-            content?: string | null;
-        };
-    }): CancelablePromise<{ success: boolean }> {
+    public static Notifications_notificationsSendNotification(data: NotificationsSendNotificationData): CancelablePromise<NotificationsSendNotificationResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/me/notifications/send',
@@ -2483,6 +2476,201 @@ export class VelocityConfigService {
             },
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class WorkflowsService {
+    /**
+     * Create Workflow
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns WorkflowPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsCreateWorkflow(data: WorkflowsCreateWorkflowData): CancelablePromise<WorkflowsCreateWorkflowResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/workflows',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Workflows
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns WorkflowPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsListWorkflows(data: WorkflowsListWorkflowsData): CancelablePromise<WorkflowsListWorkflowsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/workflows',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Bootstrap Default Workflow
+     * Bootstrap a default standard workflow template if none exists.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns WorkflowPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsBootstrapDefaultWorkflow(data: WorkflowsBootstrapDefaultWorkflowData): CancelablePromise<WorkflowsBootstrapDefaultWorkflowResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/workflows/bootstrap',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Workflow
+     * @param data The data for the request.
+     * @param data.workflowId
+     * @returns WorkflowPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsGetWorkflow(data: WorkflowsGetWorkflowData): CancelablePromise<WorkflowsGetWorkflowResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workflows/{workflow_id}',
+            path: {
+                workflow_id: data.workflowId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Workflow
+     * @param data The data for the request.
+     * @param data.workflowId
+     * @param data.requestBody
+     * @returns WorkflowPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsUpdateWorkflow(data: WorkflowsUpdateWorkflowData): CancelablePromise<WorkflowsUpdateWorkflowResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workflows/{workflow_id}',
+            path: {
+                workflow_id: data.workflowId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Workflow
+     * @param data The data for the request.
+     * @param data.workflowId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsDeleteWorkflow(data: WorkflowsDeleteWorkflowData): CancelablePromise<WorkflowsDeleteWorkflowResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workflows/{workflow_id}',
+            path: {
+                workflow_id: data.workflowId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Transition
+     * @param data The data for the request.
+     * @param data.workflowId
+     * @param data.requestBody
+     * @returns WorkflowTransitionPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsCreateTransition(data: WorkflowsCreateTransitionData): CancelablePromise<WorkflowsCreateTransitionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workflows/{workflow_id}/transitions',
+            path: {
+                workflow_id: data.workflowId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Transition
+     * @param data The data for the request.
+     * @param data.transitionId
+     * @param data.requestBody
+     * @returns WorkflowTransitionPublic Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsUpdateTransition(data: WorkflowsUpdateTransitionData): CancelablePromise<WorkflowsUpdateTransitionResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workflows/transitions/{transition_id}',
+            path: {
+                transition_id: data.transitionId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Transition
+     * @param data The data for the request.
+     * @param data.transitionId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Workflows_workflowsDeleteTransition(data: WorkflowsDeleteTransitionData): CancelablePromise<WorkflowsDeleteTransitionResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workflows/transitions/{transition_id}',
+            path: {
+                transition_id: data.transitionId
+            },
             errors: {
                 422: 'Validation Error'
             }

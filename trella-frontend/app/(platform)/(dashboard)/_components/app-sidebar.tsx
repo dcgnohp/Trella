@@ -27,6 +27,9 @@ import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import ArrowRightIcon from '@atlaskit/icon/core/arrow-right';
 import LinkExternalIcon from '@atlaskit/icon/core/link-external';
 import SpeedIcon from '@atlaskit/icon/core/chart-trend-up';
+import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
+import { PlansService } from '@/lib/client';
+import { CreatePlanWizard } from '@/app/(platform)/(dashboard)/workspaces/[workspaceId]/plans/_components/create-plan-wizard';
 
 const S = {
   bg: 'var(--trella-surface)',
@@ -90,24 +93,45 @@ function NavItem({ href, icon, label, isActive, rightEl, collapsed }: NavItemPro
   );
 }
 
-function ExpandableSection({ label, children, defaultOpen = false, collapsed }: { label: string; children: React.ReactNode; defaultOpen?: boolean; collapsed?: boolean }) {
+function ExpandableSection({
+  label,
+  children,
+  defaultOpen = false,
+  collapsed,
+  rightEl
+}: {
+  label: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  collapsed?: boolean;
+  rightEl?: React.ReactNode;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   if (collapsed) return <>{children}</>;
   return (
     <div>
-      <button
-        onClick={() => setOpen(v => !v)}
+      <div
         style={{
-          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 4,
-          padding: '6px 12px 6px 14px', color: S.textMuted, fontSize: 12, fontWeight: 500,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '2px 12px 2px 14px',
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', color: S.textMuted }}>
-          {open ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
-        </span>
-        {label}
-      </button>
+        <button
+          onClick={() => setOpen(v => !v)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '4px 0', color: S.textMuted, fontSize: 12, fontWeight: 500,
+            flex: 1, textAlign: 'left'
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', color: S.textMuted }}>
+            {open ? <ChevronDownIcon label="" size="small" /> : <ChevronRightIcon label="" size="small" />}
+          </span>
+          {label}
+        </button>
+        {rightEl && <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{rightEl}</div>}
+      </div>
       {open && children}
     </div>
   );
@@ -116,6 +140,13 @@ function ExpandableSection({ label, children, defaultOpen = false, collapsed }: 
 export function AppSidebar({ workspaceId, projectType: _projectType, userRole, collapsed }: AppSidebarProps) {
   const pathname = usePathname();
   const { toggle } = useSidebar();
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+  const plansQuery = useQuery({
+    queryKey: queryKeys.plans(workspaceId ?? ''),
+    queryFn: () => PlansService.Plans_plansListPlans({ workspaceId: workspaceId! }),
+    enabled: !!workspaceId,
+  });
 
   const orgQuery = useQuery({
     queryKey: ['organizations'],
@@ -213,6 +244,67 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
 
         <NavItem href="/organization" icon={<AppsIcon label="Apps" size="small" />} label="Apps" collapsed={collapsed} />
 
+        {workspaceId && (
+          <ExpandableSection
+            label="Plans"
+            defaultOpen
+            collapsed={collapsed}
+            rightEl={
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsWizardOpen(true);
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.textMuted, padding: 2, display: 'flex', alignItems: 'center' }}
+                >
+                  <AddIcon label="Create plan" size="small" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.textMuted, padding: 2, display: 'flex', alignItems: 'center' }}
+                >
+                  <ShowMoreHorizontalIcon label="More options" size="small" />
+                </button>
+              </>
+            }
+          >
+            {/* Recent header */}
+            {!collapsed && (
+              <div style={{ padding: '4px 16px 2px 28px', fontSize: 11, fontWeight: 700, color: S.textMuted, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Recent
+              </div>
+            )}
+            
+            {plansQuery.isLoading ? (
+              !collapsed && <div style={{ padding: '4px 28px', fontSize: 12, color: S.textMuted }}>Loading plans...</div>
+            ) : plansQuery.data && plansQuery.data.length > 0 ? (
+              plansQuery.data.slice(0, 5).map(plan => (
+                <NavItem
+                  key={plan.id}
+                  href={`/workspaces/${workspaceId}/plans/${plan.id}/summary`}
+                  icon={<RoadmapIcon label="" size="small" />}
+                  label={plan.name}
+                  isActive={pathname.includes(`/plans/${plan.id}`)}
+                  collapsed={collapsed}
+                />
+              ))
+            ) : (
+              !collapsed && <div style={{ padding: '4px 28px', fontSize: 12, color: S.textMuted }}>No plans yet</div>
+            )}
+
+            <NavItem
+              href={`/workspaces/${workspaceId}/plans`}
+              icon={<FolderOpenIcon label="View all plans" size="small" />}
+              label="View all plans"
+              isActive={pathname === `/workspaces/${workspaceId}/plans`}
+              collapsed={collapsed}
+            />
+          </ExpandableSection>
+        )}
+
         <div style={{ height: 1, backgroundColor: S.border, margin: '8px 6px' }} />
 
         {/* Spaces heading */}
@@ -259,24 +351,6 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
             collapsed={collapsed}
           />
         )}
-        {workspaceId && (
-          <NavItem
-            href={`/workspaces/${workspaceId}/settings/velocity`}
-            icon={<SpeedIcon label="Velocity" size="small" />}
-            label="Velocity"
-            isActive={pathname.includes('/settings/velocity')}
-            collapsed={collapsed}
-          />
-        )}
-        {workspaceId && (
-          <NavItem
-            href={`/workspaces/${workspaceId}/plans`}
-            icon={<RoadmapIcon label="Plans" size="small" />}
-            label="Plans"
-            isActive={pathname.includes('/plans')}
-            collapsed={collapsed}
-          />
-        )}
 
         <div style={{ height: 1, backgroundColor: S.border, margin: '8px 6px' }} />
 
@@ -289,6 +363,12 @@ export function AppSidebar({ workspaceId, projectType: _projectType, userRole, c
 
         <NavItem href="#" icon={<SettingsIcon label="Settings" size="small" />} label="Customize sidebar" collapsed={collapsed} />
       </div>
+      <CreatePlanWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        workspaceId={workspaceId ?? ''}
+        prefill={false}
+      />
     </div>
   );
 }

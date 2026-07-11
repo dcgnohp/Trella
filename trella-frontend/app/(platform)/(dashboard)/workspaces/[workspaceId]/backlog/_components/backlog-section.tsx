@@ -23,9 +23,10 @@ interface BacklogSectionProps {
   onCreateSprint: () => void;
   boardId: string;
   todoColumnId: string;
+  transitions?: any[];
 }
 
-export function BacklogSection({ tasks, projectId, workspaceId, members, customStatuses, onTaskClick, onCreateSprint, boardId, todoColumnId }: BacklogSectionProps) {
+export function BacklogSection({ tasks, projectId, workspaceId, members, customStatuses, onTaskClick, onCreateSprint, boardId, todoColumnId, transitions = [] }: BacklogSectionProps) {
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -87,6 +88,7 @@ export function BacklogSection({ tasks, projectId, workspaceId, members, customS
                     onTaskClick={t => onTaskClick(t.id)}
                     projectId={projectId}
                     workspaceId={workspaceId}
+                    transitions={transitions}
                   />
                 ))
               )}

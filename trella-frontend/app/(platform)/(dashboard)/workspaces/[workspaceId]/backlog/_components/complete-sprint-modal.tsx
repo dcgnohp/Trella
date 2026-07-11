@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import ModalDialog, { ModalBody, ModalFooter, ModalHeader, ModalTitle } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
+import { ConfirmModal } from '@/components/ads/confirm-modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SprintsService } from '@/lib/client';
 import type { SprintWithTasks } from '@/lib/client';
@@ -48,13 +47,15 @@ export function CompleteSprintModal({ sprint, allSprints, projectId, workspaceId
   });
 
   return (
-    <ModalDialog onClose={onClose} width="medium">
-      <ModalHeader>
-        <ModalTitle>
-          <span style={{ fontSize: 20 }}>🏆</span>{' '}Complete {sprint.name}
-        </ModalTitle>
-      </ModalHeader>
-      <ModalBody>
+    <ConfirmModal
+      isOpen
+      title={`🏆 Complete ${sprint.name}`}
+      width={560}
+      confirmLabel="Complete sprint"
+      confirmLoading={completeMutation.isPending}
+      onConfirm={() => completeMutation.mutate()}
+      onClose={onClose}
+      body={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--trella-text)' }}>
             This sprint contains <strong>{doneCount} completed</strong> and <strong>{openCount} open</strong> work items.
@@ -73,21 +74,13 @@ export function CompleteSprintModal({ sprint, allSprints, projectId, workspaceId
                 value={moveTo}
                 onChange={opt => opt && setMoveTo(opt as { label: string; value: string })}
                 menuPlacement="auto"
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 1100 }) }}
               />
             </div>
           )}
         </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button appearance="subtle" onClick={onClose}>Cancel</Button>
-        <Button
-          appearance="primary"
-          isLoading={completeMutation.isPending}
-          onClick={() => completeMutation.mutate()}
-        >
-          Complete sprint
-        </Button>
-      </ModalFooter>
-    </ModalDialog>
+      }
+    />
   );
 }

@@ -411,6 +411,13 @@ export type MemberRoleUpdate = {
     projectRole: string;
 };
 
+export type NotificationCreate = {
+    recipientId: string;
+    type: string;
+    title: string;
+    content?: (string | null);
+};
+
 export type NotificationPublic = {
     id: string;
     type: string;
@@ -618,6 +625,7 @@ export type TaskUpdate = {
     sprintId?: (string | null);
     epicId?: (string | null);
     parentId?: (string | null);
+    transitionComment?: (string | null);
 };
 
 /**
@@ -672,6 +680,73 @@ export type VelocityConfigPublic = {
 
 export type VelocityConfigUpdate = {
     hoursPerPoint: number;
+};
+
+export type WorkflowCreate = {
+    name: string;
+    description?: (string | null);
+};
+
+export type WorkflowPublic = {
+    id: string;
+    workspaceId: string;
+    name: string;
+    description: (string | null);
+    isActive: boolean;
+    transitions?: Array<WorkflowTransitionPublic>;
+};
+
+export type WorkflowTransitionCreate = {
+    name: string;
+    fromStatusId?: (string | null);
+    toStatusId: string;
+    conditions?: Array<{
+        [key: string]: unknown;
+    }>;
+    validators?: Array<{
+        [key: string]: unknown;
+    }>;
+    actions?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type WorkflowTransitionPublic = {
+    id: string;
+    workflowId: string;
+    name: string;
+    fromStatusId: (string | null);
+    toStatusId: string;
+    conditions: Array<{
+        [key: string]: unknown;
+    }>;
+    validators: Array<{
+        [key: string]: unknown;
+    }>;
+    actions: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type WorkflowTransitionUpdate = {
+    name?: (string | null);
+    fromStatusId?: (string | null);
+    toStatusId?: (string | null);
+    conditions?: (Array<{
+    [key: string]: unknown;
+}> | null);
+    validators?: (Array<{
+    [key: string]: unknown;
+}> | null);
+    actions?: (Array<{
+    [key: string]: unknown;
+}> | null);
+};
+
+export type WorkflowUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    isActive?: (boolean | null);
 };
 
 export type WorkspaceInvite = {
@@ -1110,6 +1185,14 @@ export type NotificationsMarkAllNotificationsReadResponse = ({
     [key: string]: (boolean);
 });
 
+export type NotificationsSendNotificationData = {
+    requestBody: NotificationCreate;
+};
+
+export type NotificationsSendNotificationResponse = ({
+    [key: string]: (boolean);
+});
+
 export type OrganizationsListOrganizationsResponse = (Array<OrganizationPublic>);
 
 export type OrganizationsCreateOrganizationData = {
@@ -1430,6 +1513,64 @@ export type VelocityConfigUpdateVelocityConfigData = {
 };
 
 export type VelocityConfigUpdateVelocityConfigResponse = (VelocityConfigPublic);
+
+export type WorkflowsCreateWorkflowData = {
+    requestBody: WorkflowCreate;
+    workspaceId: string;
+};
+
+export type WorkflowsCreateWorkflowResponse = (WorkflowPublic);
+
+export type WorkflowsListWorkflowsData = {
+    workspaceId: string;
+};
+
+export type WorkflowsListWorkflowsResponse = (Array<WorkflowPublic>);
+
+export type WorkflowsBootstrapDefaultWorkflowData = {
+    workspaceId: string;
+};
+
+export type WorkflowsBootstrapDefaultWorkflowResponse = (WorkflowPublic);
+
+export type WorkflowsGetWorkflowData = {
+    workflowId: string;
+};
+
+export type WorkflowsGetWorkflowResponse = (WorkflowPublic);
+
+export type WorkflowsUpdateWorkflowData = {
+    requestBody: WorkflowUpdate;
+    workflowId: string;
+};
+
+export type WorkflowsUpdateWorkflowResponse = (WorkflowPublic);
+
+export type WorkflowsDeleteWorkflowData = {
+    workflowId: string;
+};
+
+export type WorkflowsDeleteWorkflowResponse = (void);
+
+export type WorkflowsCreateTransitionData = {
+    requestBody: WorkflowTransitionCreate;
+    workflowId: string;
+};
+
+export type WorkflowsCreateTransitionResponse = (WorkflowTransitionPublic);
+
+export type WorkflowsUpdateTransitionData = {
+    requestBody: WorkflowTransitionUpdate;
+    transitionId: string;
+};
+
+export type WorkflowsUpdateTransitionResponse = (WorkflowTransitionPublic);
+
+export type WorkflowsDeleteTransitionData = {
+    transitionId: string;
+};
+
+export type WorkflowsDeleteTransitionResponse = (void);
 
 export type WorkspaceMembersInviteMemberData = {
     requestBody: WorkspaceInvite;

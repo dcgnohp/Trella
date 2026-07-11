@@ -9,7 +9,7 @@ import StoryIcon from '@atlaskit/icon/core/story';
 import SubtasksIcon from '@atlaskit/icon/core/subtasks';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { TasksService } from '@/lib/client';
+import { TasksService, ApiError } from '@/lib/client';
 import type { TaskPublic, ProjectMemberPublic, CustomStatusPublic, SprintWithTasks } from '@/lib/client';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/query-keys';
@@ -39,6 +39,13 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   PENDING: { bg: '#FFAB00', text: '#000' },
 };
 
+const LOZENGE_COLORS: Record<string, { bg: string; text: string }> = {
+  TODO: { bg: "#F4F5F7", text: "#42526E" },
+  IN_PROGRESS: { bg: "#DEEBFF", text: "#0747A6" },
+  DONE: { bg: "#E3FCEF", text: "#006644" },
+  PENDING: { bg: "#FFF0B3", text: "#172B4D" },
+};
+
 interface TaskRowProps {
   task: TaskPublic;
   index: number;
@@ -48,9 +55,10 @@ interface TaskRowProps {
   onTaskClick: (task: TaskPublic) => void;
   projectId: string;
   workspaceId: string;
+  transitions?: any[];
 }
 
-export function TaskRow({ task, index, droppableId, members, customStatuses, onTaskClick, projectId, workspaceId }: TaskRowProps) {
+export function TaskRow({ task, index, droppableId, members, customStatuses, onTaskClick, projectId, workspaceId, transitions = [] }: TaskRowProps) {
   const queryClient = useQueryClient();
   const [hovered, setHovered] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
@@ -66,9 +74,9 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
   const dueDateLabel = task.dueDate ? format(parseISO(task.dueDate), 'MMM d') : null;
 
   const updateStatusMutation = useMutation({
-    mutationFn: (customStatusId: string) =>
-      TasksService.Tasks_tasksUpdateTask({ taskId: task.id, requestBody: { customStatusId } }),
-    onMutate: (customStatusId: string) => {
+    mutationFn: ({ customStatusId, transitionComment }: { customStatusId: string; transitionComment?: string }) =>
+      TasksService.Tasks_tasksUpdateTask({ taskId: task.id, requestBody: { customStatusId, transitionComment } }),
+    onMutate: ({ customStatusId }) => {
       // Optimistic update: patch task in both sprint and backlog caches
       const newStatus = customStatuses.find(cs => cs.id === customStatusId);
       if (!newStatus) return;
@@ -92,8 +100,45 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
         old => old?.map(patchTask)
       );
     },
-    onError: () => {
-      toast.error('Failed to update status');
+    onError: (error: any, variables) => {
+      let msg = 'Failed to update status';
+      if (error instanceof ApiError) {
+        const body = error.body as { detail?: string } | undefined;
+        if (typeof body?.detail === 'string') {
+          msg = body.detail;
+        }
+      }
+
+      const currentStatus = customStatuses.find(s => s.id === task.customStatusId)?.name || 'Không rõ';
+      const targetStatus = customStatuses.find(s => s.id === variables.customStatusId)?.name || 'Không rõ';
+
+      if (msg === 'Invalid workflow transition path') {
+        const validDestIds = transitions
+          .filter(t => t.fromStatusId === task.customStatusId || t.fromStatusId === null)
+          .map(t => t.toStatusId);
+        const validStatuses = customStatuses
+          .filter(s => validDestIds.includes(s.id))
+          .map(s => s.name);
+        
+        const validListStr = validStatuses.length > 0 ? validStatuses.join(', ') : 'không có trạng thái nào';
+        msg = `Không thể chuyển trạng thái từ "${currentStatus}" sang "${targetStatus}". Theo quy trình làm việc (Workflow) của dự án, từ "${currentStatus}" bạn chỉ có thể chuyển sang: ${validListStr}.`;
+      }
+
+      // If a comment is required, prompt the user directly via prompt dialog
+      if (msg.includes('comment is required') || msg.toLowerCase().includes('bình luận')) {
+        const comment = window.prompt('Quy trình Scrum yêu cầu viết bình luận giải trình để chuyển sang trạng thái này:');
+        if (comment !== null && comment.trim() !== '') {
+          // Retry mutation with comment
+          updateStatusMutation.mutate({
+            customStatusId: variables.customStatusId,
+            transitionComment: comment,
+          });
+          return;
+        }
+      }
+
+      toast.error(msg);
+
       queryClient.invalidateQueries({ queryKey: queryKeys.projectSprints(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectBacklog(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
@@ -137,28 +182,85 @@ export function TaskRow({ task, index, droppableId, members, customStatuses, onT
         <div style={{ padding: '4px 10px 6px', fontSize: 10, fontWeight: 700, color: 'var(--trella-text-subtlest)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Change status
         </div>
-        {customStatuses.map(cs => {
-          const sc = STATUS_COLORS[(cs.canonicalStatus ?? 'TODO').toUpperCase()] ?? STATUS_COLORS['TODO'];
-          const isSelected = task.customStatusId === cs.id;
+        {(() => {
+          const validDestIds = transitions
+            .filter(t => t.fromStatusId === task.customStatusId || t.fromStatusId === null)
+            .map(t => t.toStatusId);
+          const validStatuses = customStatuses.filter(s => validDestIds.includes(s.id));
+          const validListStr = validStatuses.map(s => s.name).join(', ');
+          const isWorkflowActive = transitions.length > 0;
+
           return (
-            <div
-              key={cs.id}
-              onClick={() => { updateStatusMutation.mutate(cs.id); setStatusDropdownOpen(false); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '7px 12px', cursor: 'pointer', fontSize: 12,
-                color: 'var(--trella-text)',
-                fontWeight: isSelected ? 600 : 400,
-                backgroundColor: isSelected ? '#DEEBFF' : 'transparent',
-              }}
-              onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-selected)'; }}
-              onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
-            >
-              <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: sc.bg, flexShrink: 0 }} />
-              {cs.name}
-            </div>
+            <>
+              {customStatuses.map(cs => {
+                const colors = LOZENGE_COLORS[(cs.canonicalStatus ?? 'TODO').toUpperCase()] ?? LOZENGE_COLORS['TODO'];
+                const isSelected = task.customStatusId === cs.id;
+                const isValid = !isWorkflowActive || isSelected || validDestIds.includes(cs.id);
+
+                return (
+                  <div
+                    key={cs.id}
+                    onClick={() => {
+                      if (!isValid) return;
+                      updateStatusMutation.mutate({ customStatusId: cs.id });
+                      setStatusDropdownOpen(false);
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '7px 12px',
+                      cursor: isValid ? 'pointer' : 'not-allowed',
+                      fontSize: 12,
+                      color: 'var(--trella-text)',
+                      fontWeight: isSelected ? 600 : 400,
+                      backgroundColor: isSelected ? 'var(--trella-surface-selected)' : 'transparent',
+                      opacity: isValid ? 1 : 0.45,
+                    }}
+                    onMouseEnter={e => {
+                      if (isValid && !isSelected) {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--trella-surface-selected)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (isValid && !isSelected) {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    <span
+                      style={{
+                        backgroundColor: colors.bg,
+                        color: colors.text,
+                        padding: "2px 6px",
+                        borderRadius: 3,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        display: "inline-block",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {cs.name}
+                    </span>
+                    {!isValid && (
+                      <span style={{ fontSize: 9, color: 'var(--trella-text-subtlest)', fontStyle: 'italic', marginLeft: 'auto' }}>
+                        (Không hợp lệ)
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+
+              {isWorkflowActive && (
+                <>
+                  <div style={{ height: 1, backgroundColor: 'var(--trella-border)', margin: '4px 0' }} />
+                  <div style={{ padding: '6px 12px 8px', fontSize: 11, color: 'var(--trella-text-subtle)', lineHeight: 1.4, maxWidth: 220 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--trella-text)' }}>Gợi ý chuyển trạng thái:</span> Từ &quot;{task.customStatus?.name || 'To Do'}&quot; chỉ có thể chuyển sang: <span style={{ color: '#0052CC', fontWeight: 500 }}>{validListStr || 'không có'}</span>.
+                  </div>
+                </>
+              )}
+            </>
           );
-        })}
+        })()}
       </div>
     </>,
     document.body

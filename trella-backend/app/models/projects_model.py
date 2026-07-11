@@ -18,3 +18,9 @@ class Project(UUIDMixin, TimestampMixin, table=True):
     description: str | None = Field(default=None, sa_type=Text)
     created_by: uuid.UUID = Field(foreign_key="users.id")
     task_counter: int = Field(default=0, nullable=False)
+    workflow_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="workflows.id",
+        ondelete="SET NULL",
+        nullable=True,
+    )

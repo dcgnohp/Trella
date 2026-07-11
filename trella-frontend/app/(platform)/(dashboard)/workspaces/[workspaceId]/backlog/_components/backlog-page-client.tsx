@@ -14,6 +14,7 @@ import {
   CustomStatusesService,
   BoardsService,
   ColumnsService,
+  WorkflowsService,
 } from '@/lib/client';
 import type { SprintWithTasks, TaskPublic } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
@@ -68,6 +69,21 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     queryKey: queryKeys.boardColumns(firstBoardId ?? ''),
     queryFn: () => ColumnsService.Columns_columnsListColumns({ boardId: firstBoardId! }),
     enabled: !!firstBoardId,
+  });
+
+  const workflowsQuery = useQuery({
+    queryKey: ["workflows", workspaceId],
+    queryFn: () => WorkflowsService.Workflows_workflowsListWorkflows({ workspaceId }),
+  });
+
+  const activeWorkflow = useMemo(() => {
+    return workflowsQuery.data?.find((w) => w.isActive) || workflowsQuery.data?.[0];
+  }, [workflowsQuery.data]);
+
+  const workflowDetailQuery = useQuery({
+    queryKey: ["workflow", activeWorkflow?.id],
+    queryFn: () => WorkflowsService.Workflows_workflowsGetWorkflow({ workflowId: activeWorkflow!.id }),
+    enabled: !!activeWorkflow?.id,
   });
 
   const sprints: SprintWithTasks[] = useMemo(() => sprintsQuery.data ?? [], [sprintsQuery.data]);
@@ -232,7 +248,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {filteredSprints.map(sprint => (
+               {filteredSprints.map(sprint => (
                 <SprintSection
                   key={sprint.id}
                   sprint={sprint}
@@ -244,6 +260,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
                   onTaskClick={id => setSelectedTaskId(id)}
                   boardId={firstBoardId ?? ''}
                   todoColumnId={todoColumnId}
+                  transitions={workflowDetailQuery.data?.transitions || []}
                 />
               ))}
               <BacklogSection
@@ -256,6 +273,7 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
                 onCreateSprint={() => createSprintMutation.mutate()}
                 boardId={firstBoardId ?? ''}
                 todoColumnId={todoColumnId}
+                transitions={workflowDetailQuery.data?.transitions || []}
               />
             </div>
           </DragDropContext>

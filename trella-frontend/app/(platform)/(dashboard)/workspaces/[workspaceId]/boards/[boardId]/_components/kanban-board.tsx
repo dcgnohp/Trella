@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
   ColumnsService,
   TasksService,
+  ApiError,
+  WorkflowsService,
   type ColumnPublic,
   type CustomStatusEmbed,
   type TaskPublic,
@@ -43,6 +45,36 @@ export const KanbanBoard = ({
   boardIsEmpty,
 }: KanbanBoardProps) => {
   const queryClient = useQueryClient();
+
+  // Fetch active workflow and its transitions
+  const workflowsQuery = useQuery({
+    queryKey: ["workflows", workspaceId],
+    queryFn: () => WorkflowsService.Workflows_workflowsListWorkflows({ workspaceId }),
+    enabled: !!isScrum && !!workspaceId,
+  });
+
+  const activeWorkflow = useMemo(() => {
+    return workflowsQuery.data?.find((w) => w.isActive) || workflowsQuery.data?.[0];
+  }, [workflowsQuery.data]);
+
+  const workflowDetailQuery = useQuery({
+    queryKey: ["workflow", activeWorkflow?.id],
+    queryFn: () => WorkflowsService.Workflows_workflowsGetWorkflow({ workflowId: activeWorkflow!.id }),
+    enabled: !!isScrum && !!activeWorkflow?.id,
+  });
+
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+
+  const getColumnStatus = useCallback((col: ColumnPublic) => {
+    return (
+      customStatuses.find(
+        (cs) => cs.name && cs.name.toLowerCase() === col.name.toLowerCase(),
+      ) ||
+      customStatuses.find(
+        (cs) => cs.canonicalStatus && cs.canonicalStatus === col.statusKey,
+      )
+    );
+  }, [customStatuses]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [columnName, setColumnName] = useState("");
@@ -100,17 +132,60 @@ export const KanbanBoard = ({
       taskId,
       columnId,
       customStatusId,
+      transitionComment,
     }: {
       taskId: string;
       columnId: string;
       customStatusId: string | undefined;
+      transitionComment?: string;
     }) =>
       TasksService.Tasks_tasksUpdateTask({
         taskId,
-        requestBody: { columnId, customStatusId },
+        requestBody: { columnId, customStatusId, transitionComment },
       }),
-    onError: () => {
-      toast.error("Failed to move task");
+    onError: (error: any, variables) => {
+      let msg = "Không thể chuyển trạng thái công việc";
+      if (error instanceof ApiError) {
+        const body = error.body as { detail?: string } | undefined;
+        if (typeof body?.detail === "string") {
+          msg = body.detail;
+        }
+      }
+
+      const taskObj = tasks.find((t) => t.id === variables.taskId);
+      const currentStatus = customStatuses.find((s) => s.id === taskObj?.customStatusId)?.name || "Không rõ";
+      const targetStatus = customStatuses.find((s) => s.id === variables.customStatusId)?.name || "Không rõ";
+
+      if (msg === "Invalid workflow transition path" && taskObj) {
+        const transitions = workflowDetailQuery.data?.transitions || [];
+        const validDestIds = transitions
+          .filter((t) => t.fromStatusId === taskObj.customStatusId || t.fromStatusId === null)
+          .map((t) => t.toStatusId);
+        const validStatuses = customStatuses
+          .filter((s) => validDestIds.includes(s.id))
+          .map((s) => s.name);
+        
+        const validListStr = validStatuses.length > 0 ? validStatuses.join(", ") : "không có trạng thái nào";
+        msg = `Không thể chuyển trạng thái từ "${currentStatus}" sang "${targetStatus}". Theo quy trình làm việc (Workflow) của dự án, từ "${currentStatus}" bạn chỉ có thể chuyển sang: ${validListStr}.`;
+      }
+
+      // If a comment is required, prompt the user directly via prompt dialog
+      if (msg.includes("comment is required") || msg.toLowerCase().includes("bình luận")) {
+        const comment = window.prompt("Quy trình Scrum yêu cầu viết bình luận giải trình để chuyển sang trạng thái này:");
+        if (comment !== null && comment.trim() !== "") {
+          // Retry mutation with comment
+          moveTask.mutate({
+            taskId: variables.taskId,
+            columnId: variables.columnId,
+            customStatusId: variables.customStatusId,
+            transitionComment: comment,
+          });
+          return;
+        }
+      }
+
+      toast.error(msg);
+      // Revert optimistic update
       queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks(boardId) });
     },
     onSettled: () => {
@@ -196,8 +271,14 @@ export const KanbanBoard = ({
     handleAddColumn(trimmed, statusKey);
   };
 
+  const onDragStart = useCallback((start: any) => {
+    if (start.type === "COLUMN") return;
+    setDraggingTaskId(start.draggableId);
+  }, []);
+
   const onDragEnd = useCallback(
     (result: DropResult) => {
+      setDraggingTaskId(null);
       if (!result.destination) return;
 
       const { source, destination, type } = result;
@@ -267,7 +348,7 @@ export const KanbanBoard = ({
   }, [boardId, queryClient]);
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <Droppable droppableId="board" type="COLUMN" direction="horizontal">
         {(provided) => (
           <div
@@ -283,34 +364,60 @@ export const KanbanBoard = ({
               minHeight: 0,
             }}
           >
-            {columns.map((column, index) => (
-              <Draggable key={column.id} draggableId={column.id} index={index}>
-                {(dragProvided, dragSnapshot) => (
-                  <div
-                    ref={dragProvided.innerRef}
-                    {...dragProvided.draggableProps}
-                    style={{
-                      ...dragProvided.draggableProps.style,
-                      opacity: dragSnapshot.isDragging ? 0.85 : 1,
-                    }}
-                  >
-                    <KanbanColumn
-                      column={column}
-                      tasks={tasksByColumn.get(column.id) ?? []}
-                      subtasksByParent={subtasksByParent}
-                      boardId={boardId}
-                      workspaceId={workspaceId}
-                      projectMembers={projectMembers}
-                      dragHandleProps={dragProvided.dragHandleProps}
-                      onTaskClick={onTaskClick}
-                      onTaskCreated={handleTaskCreated}
-                      isScrum={isScrum}
-                      boardIsEmpty={boardIsEmpty}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
+            {columns.map((column, index) => {
+              const colStatus = getColumnStatus(column);
+              const draggingTask = draggingTaskId ? tasks.find((t) => t.id === draggingTaskId) : null;
+              
+              let isDimmed = false;
+              let isValidTarget = false;
+              
+              if (isScrum && draggingTask && colStatus && workflowDetailQuery.data) {
+                if (colStatus.id === draggingTask.customStatusId) {
+                  isDimmed = false;
+                  isValidTarget = false;
+                } else {
+                  const transitions = workflowDetailQuery.data.transitions || [];
+                  const hasTransition = transitions.some((t) => 
+                    (t.fromStatusId === draggingTask.customStatusId && t.toStatusId === colStatus.id) ||
+                    (t.fromStatusId === null && t.toStatusId === colStatus.id)
+                  );
+                  isDimmed = !hasTransition;
+                  isValidTarget = hasTransition;
+                }
+              }
+
+              return (
+                <Draggable key={column.id} draggableId={column.id} index={index}>
+                  {(dragProvided, dragSnapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      style={{
+                        ...dragProvided.draggableProps.style,
+                        opacity: dragSnapshot.isDragging ? 0.85 : 1,
+                      }}
+                    >
+                      <KanbanColumn
+                        column={column}
+                        tasks={tasksByColumn.get(column.id) ?? []}
+                        subtasksByParent={subtasksByParent}
+                        boardId={boardId}
+                        workspaceId={workspaceId}
+                        projectMembers={projectMembers}
+                        dragHandleProps={dragProvided.dragHandleProps}
+                        onTaskClick={onTaskClick}
+                        onTaskCreated={handleTaskCreated}
+                        isScrum={isScrum}
+                        boardIsEmpty={boardIsEmpty}
+                        isDimmed={isDimmed}
+                        isValidTarget={isValidTarget}
+                        isDraggingTask={!!draggingTaskId}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              );
+            })}
             {provided.placeholder}
 
             <div ref={containerRef} style={{ width: 272, flexShrink: 0, position: 'relative' }}>
