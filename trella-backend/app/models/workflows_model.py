@@ -1,5 +1,7 @@
 import uuid
+
 from sqlmodel import Field
+
 from app.core.base import TimestampMixin, UUIDMixin
 
 
@@ -32,4 +34,4 @@ class WorkflowTransition(UUIDMixin, TimestampMixin, table=True):
     # JSON strings storing arrays of configurations
     conditions: str = Field(default="[]")  # E.g., '[{"type": "ASSIGNEE_ONLY"}]'
     validators: str = Field(default="[]")  # E.g., '[{"type": "COMMENT_REQUIRED"}]'
-    actions: str = Field(default="[]")     # E.g., '[{"type": "AUTO_ASSIGN_TO_ACTOR"}]'
+    actions: str = Field(default="[]")  # E.g., '[{"type": "AUTO_ASSIGN_TO_ACTOR"}]'

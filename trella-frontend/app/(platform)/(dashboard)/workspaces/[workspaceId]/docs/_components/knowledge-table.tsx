@@ -8,12 +8,14 @@ import { getSourceType } from './source-type-registry'
 type UserPrefs = ReturnType<typeof useKnowledgePrefs>
 
 interface Props {
+  workspaceId: string
   docs: KnowledgeDoc[]
   collections: KnowledgeCollection[]
   userPrefs: UserPrefs
   sortBy: 'updated' | 'created' | 'title'
   onSelect: (id: string) => void
   onEdit: (id: string) => void
+  onOpenModal: (id: string) => void
   onPin: (id: string) => void
   onFavorite: (id: string) => void
 }
@@ -52,7 +54,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Meeting Notes':    '#5E6C84',
 }
 
-export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit, onPin, onFavorite }: Props) {
+export function KnowledgeTable({
+  workspaceId, docs, collections, userPrefs, sortBy, onSelect, onEdit, onOpenModal, onPin, onFavorite,
+}: Props) {
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
 
   const collectionMap = React.useMemo(() => {
@@ -76,7 +80,7 @@ export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit,
       >
         <span className="flex-1 min-w-0">Title</span>
         <span className="w-32 hidden sm:block">Category</span>
-        <span className="w-20 hidden md:block">Type</span>
+        <span className="w-24 hidden md:block">Type</span>
         <span className="w-28 hidden md:block">Linked To</span>
         <span className="w-20 hidden lg:block">Updated</span>
         <span className="w-28 hidden lg:block">Author</span>
@@ -88,20 +92,24 @@ export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit,
         const src = getSourceType(doc.sourceType)
         const col = doc.collectionId ? collectionMap[doc.collectionId] : null
         const catColor = doc.category ? (CATEGORY_COLORS[doc.category] ?? '#6554C0') : '#6554C0'
-        const av = avatarColor(doc.createdBy)
+        const authorDisplayName = doc.authorName || doc.createdBy.split('@')[0] || 'Unknown'
+        const av = avatarColor(doc.authorEmail || doc.createdBy)
 
         return (
           <div
             key={doc.id}
             role="row"
             onClick={() => onSelect(doc.id)}
+            onDoubleClick={(e) => { e.stopPropagation(); onOpenModal(doc.id) }}
             className="flex items-center gap-3 px-3 py-2.5 border-b border-border hover:bg-accent/50 cursor-pointer group transition-colors"
           >
             {/* Icon + title + description */}
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-base flex-shrink-0">{src.icon}</span>
+              <span className="flex-shrink-0 text-muted-foreground">
+                <src.icon className="w-4 h-4" style={{ color: src.color }} />
+              </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{doc.title || 'Untitled'}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{doc.title || 'Untitled'}</p>
                 {doc.content && (
                   <p className="text-xs text-muted-foreground truncate hidden sm:block"
                     dangerouslySetInnerHTML={{
@@ -131,13 +139,13 @@ export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit,
               ) : null}
             </div>
 
-            {/* Type badge — always shows "📄 Doc" style */}
-            <div className="w-20 hidden md:block">
+            {/* Type badge */}
+            <div className="w-24 hidden md:block">
               <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border"
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap"
                 style={{ borderColor: `${src.color}40`, color: src.color, background: `${src.color}0d` }}
               >
-                <span>{src.icon}</span>
+                <src.icon className="w-3 h-3 flex-shrink-0" />
                 <span>{src.label}</span>
               </span>
             </div>
@@ -145,9 +153,15 @@ export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit,
             {/* Linked To */}
             <div className="w-28 hidden md:block">
               {doc.linkedEntityLabel ? (
-                <span className="text-xs text-primary hover:underline truncate block">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    window.location.href = `/workspaces/${workspaceId}/boards`
+                  }}
+                  className="text-xs text-primary font-medium hover:underline text-left truncate block max-w-full"
+                >
                   {doc.linkedEntityLabel}
-                </span>
+                </button>
               ) : (
                 <span className="text-xs text-muted-foreground">—</span>
               )}
@@ -161,13 +175,13 @@ export function KnowledgeTable({ docs, collections, userPrefs, onSelect, onEdit,
             {/* Author avatar + name */}
             <div className="w-28 hidden lg:flex items-center gap-1.5">
               <span
-                title={doc.createdBy}
-                className="w-6 h-6 rounded-full text-white text-xs font-semibold flex items-center justify-center flex-shrink-0"
+                title={authorDisplayName}
+                className="w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
                 style={{ background: av }}
               >
-                {initials(doc.createdBy)}
+                {initials(authorDisplayName)}
               </span>
-              <span className="text-xs text-muted-foreground truncate">{doc.createdBy.split('@')[0]}</span>
+              <span className="text-xs text-muted-foreground truncate">{authorDisplayName}</span>
             </div>
 
             {/* 3-dot menu */}

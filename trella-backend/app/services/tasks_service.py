@@ -237,8 +237,12 @@ class TasksService:
         old_due_date = task.due_date
 
         # If custom_status_id changes, validate workflow transition rules first
-        if "custom_status_id" in updates and updates["custom_status_id"] != old_custom_status_id:
+        if (
+            "custom_status_id" in updates
+            and updates["custom_status_id"] != old_custom_status_id
+        ):
             from app.services.workflows_service import WorkflowsService
+
             wf_service = WorkflowsService()
             wf_service.validate_and_process_transition(
                 session,
@@ -252,7 +256,11 @@ class TasksService:
             )
 
         # When custom_status_id changes, find the matching board column and resolve column_id first.
-        if "custom_status_id" in updates and updates["custom_status_id"] is not None and "column_id" not in updates:
+        if (
+            "custom_status_id" in updates
+            and updates["custom_status_id"] is not None
+            and "column_id" not in updates
+        ):
             new_status = self.custom_statuses_repo.get(
                 session, updates["custom_status_id"]
             )
@@ -260,7 +268,8 @@ class TasksService:
                 columns = self.board_columns_repo.list_by_board(session, task.board_id)
                 # 1. Match by name (case-insensitive)
                 match = next(
-                    (c for c in columns if c.name.lower() == new_status.name.lower()), None
+                    (c for c in columns if c.name.lower() == new_status.name.lower()),
+                    None,
                 )
                 if not match and new_status.canonical_status:
                     # 2. Fall back to matching by canonical_status

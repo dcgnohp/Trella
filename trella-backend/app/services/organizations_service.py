@@ -153,7 +153,10 @@ class OrganizationsService:
         from app.models.enums import WorkspaceMode
 
         # Normalize legacy values
-        _legacy_map = {"TRELLO": WorkspaceMode.KANBAN.value, "JIRA": WorkspaceMode.SCRUM.value}
+        _legacy_map = {
+            "TRELLO": WorkspaceMode.KANBAN.value,
+            "JIRA": WorkspaceMode.SCRUM.value,
+        }
         new_mode = _legacy_map.get(new_mode, new_mode)
 
         member = self.member_service.assert_member(session, workspace_id, user.id)
@@ -193,9 +196,7 @@ class OrganizationsService:
         session.refresh(org)
         return org
 
-    def _migrate_to_scrum(
-        self, session: Session, workspace_id: uuid.UUID
-    ) -> None:
+    def _migrate_to_scrum(self, session: Session, workspace_id: uuid.UUID) -> None:
         """Create a default Sprint per project and move all tasks to backlog."""
         from sqlmodel import select
 
@@ -229,10 +230,11 @@ class OrganizationsService:
             for task in tasks:
                 task.sprint_id = None
                 session.add(task)
-        
+
         # Bootstrap default workflow template
         from app.services.workflows_service import WorkflowsService
+
         wf_service = WorkflowsService()
         wf_service.bootstrap_default_workflow(session, workspace_id)
-        
+
         session.flush()

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { Star } from 'lucide-react'
 import type { KnowledgeDoc, KnowledgeCollection } from './knowledge-center-client'
 import type { DocPref } from './use-knowledge-prefs'
 import { getSourceType } from './source-type-registry'
@@ -23,6 +24,7 @@ interface Props {
   onPin: () => void
   onFavorite: () => void
   onOpen: () => void
+  onOpenModal: () => void
 }
 
 function stripHtml(html: string): string {
@@ -33,7 +35,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function KnowledgeCard({ doc, collection, pref, onPin, onFavorite, onOpen }: Props) {
+export function KnowledgeCard({ doc, collection, pref, onPin, onFavorite, onOpen, onOpenModal }: Props) {
   const src = getSourceType(doc.sourceType)
   const preview = doc.content ? stripHtml(doc.content).slice(0, 100) : ''
   const catColor = doc.category
@@ -44,6 +46,7 @@ export function KnowledgeCard({ doc, collection, pref, onPin, onFavorite, onOpen
   return (
     <div
       onClick={onOpen}
+      onDoubleClick={(e) => { e.stopPropagation(); onOpenModal(); }}
       className="relative flex flex-col gap-2 p-3 rounded-lg border border-border bg-card hover:shadow-sm cursor-pointer transition-shadow group"
     >
       {/* Category badge */}
@@ -56,15 +59,20 @@ export function KnowledgeCard({ doc, collection, pref, onPin, onFavorite, onOpen
             {catLabel}
           </span>
         ) : (
-          <span className="text-base">{src.icon}</span>
+          <span className="text-muted-foreground flex-shrink-0">
+            <src.icon className="w-4 h-4" style={{ color: src.color }} />
+          </span>
         )}
         <button
           onClick={e => { e.stopPropagation(); onFavorite() }}
-          className={`text-sm transition-colors flex-shrink-0 ${pref.isFavorite ? 'text-yellow-400' : 'text-muted-foreground/40 hover:text-yellow-300'}`}
+          className="flex-shrink-0 p-1 rounded hover:bg-muted/40 transition-colors"
           title={pref.isFavorite ? 'Unfavorite' : 'Favorite'}
           aria-label={pref.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
-          {pref.isFavorite ? '★' : '☆'}
+          <Star 
+            className={`w-4 h-4 transition-colors ${pref.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/40 hover:text-yellow-400'}`} 
+            strokeWidth={1.5}
+          />
         </button>
       </div>
 

@@ -1,15 +1,20 @@
 import json
 import uuid
 from typing import Any
+
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
-from app.models.enums import WorkspaceMode
-from app.models.workflows_model import Workflow, WorkflowTransition
+
 from app.models.custom_statuses_model import CustomStatus
+from app.models.enums import WorkspaceMode
 from app.models.projects_model import Project
-from app.models.workspaces_model import Workspace
 from app.models.users_model import User
-from app.repositories.workflows_repository import WorkflowsRepository, WorkflowTransitionsRepository
+from app.models.workflows_model import Workflow, WorkflowTransition
+from app.models.workspaces_model import Workspace
+from app.repositories.workflows_repository import (
+    WorkflowsRepository,
+    WorkflowTransitionsRepository,
+)
 from app.services.organization_members_service import OrganizationMemberService
 
 
@@ -24,7 +29,9 @@ class WorkflowsService:
         self.transitions_repo = transitions_repo or WorkflowTransitionsRepository()
         self.member_service = member_service or OrganizationMemberService()
 
-    def _assert_admin_or_owner(self, session: Session, workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    def _assert_admin_or_owner(
+        self, session: Session, workspace_id: uuid.UUID, user_id: uuid.UUID
+    ) -> None:
         member = self.member_service.assert_member(session, workspace_id, user_id)
         if member.role not in {"OWNER", "ADMIN"}:
             raise HTTPException(
@@ -32,13 +39,15 @@ class WorkflowsService:
                 detail="Only workspace owners or administrators can manage workflows",
             )
 
-    def bootstrap_default_workflow(self, session: Session, workspace_id: uuid.UUID) -> Workflow:
+    def bootstrap_default_workflow(
+        self, session: Session, workspace_id: uuid.UUID
+    ) -> Workflow:
         """Create a default 'Standard Software Development Workflow' template for a workspace."""
         # Check if active workflow already exists
         existing = session.exec(
             select(Workflow).where(
                 Workflow.workspace_id == workspace_id,
-                Workflow.is_active == True,
+                Workflow.is_active,
             )
         ).first()
         if existing:
@@ -149,7 +158,9 @@ class WorkflowsService:
         session.refresh(workflow)
         return workflow
 
-    def create_workflow(self, session: Session, workspace_id: uuid.UUID, data: Any, user: User) -> Workflow:
+    def create_workflow(
+        self, session: Session, workspace_id: uuid.UUID, data: Any, user: User
+    ) -> Workflow:
         self._assert_admin_or_owner(session, workspace_id, user.id)
         workflow = Workflow(
             workspace_id=workspace_id,
@@ -162,11 +173,15 @@ class WorkflowsService:
         session.refresh(wf)
         return wf
 
-    def list_workflows(self, session: Session, workspace_id: uuid.UUID, user: User) -> list[Workflow]:
+    def list_workflows(
+        self, session: Session, workspace_id: uuid.UUID, user: User
+    ) -> list[Workflow]:
         self.member_service.assert_member(session, workspace_id, user.id)
         return self.workflows_repo.list_by_workspace(session, workspace_id)
 
-    def get_workflow(self, session: Session, workflow_id: uuid.UUID, user: User) -> Workflow:
+    def get_workflow(
+        self, session: Session, workflow_id: uuid.UUID, user: User
+    ) -> Workflow:
         workflow = self.workflows_repo.get(session, workflow_id)
         if not workflow:
             raise HTTPException(status_code=404, detail="Workflow not found")
@@ -176,39 +191,47 @@ class WorkflowsService:
         object.__setattr__(workflow, "transitions", transitions)
         return workflow
 
-    def update_workflow(self, session: Session, workflow_id: uuid.UUID, data: Any, user: User) -> Workflow:
+    def update_workflow(
+        self, session: Session, workflow_id: uuid.UUID, data: Any, user: User
+    ) -> Workflow:
         workflow = self.workflows_repo.get(session, workflow_id)
         if not workflow:
             raise HTTPException(status_code=404, detail="Workflow not found")
         self._assert_admin_or_owner(session, workflow.workspace_id, user.id)
-        
+
         updates = data.model_dump(exclude_unset=True)
         for field, value in updates.items():
             setattr(workflow, field, value)
-            
+
         wf = self.workflows_repo.update(session, workflow)
         session.commit()
         session.refresh(wf)
         return wf
 
-    def delete_workflow(self, session: Session, workflow_id: uuid.UUID, user: User) -> None:
+    def delete_workflow(
+        self, session: Session, workflow_id: uuid.UUID, user: User
+    ) -> None:
         workflow = self.workflows_repo.get(session, workflow_id)
         if not workflow:
             raise HTTPException(status_code=404, detail="Workflow not found")
         self._assert_admin_or_owner(session, workflow.workspace_id, user.id)
-        
+
         # Prevent deleting the active workflow if it's referenced by any projects
-        projects_using_it = session.exec(select(Project).where(Project.workflow_id == workflow_id)).first()
+        projects_using_it = session.exec(
+            select(Project).where(Project.workflow_id == workflow_id)
+        ).first()
         if projects_using_it:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Cannot delete a workflow that is currently in use by one or more projects.",
             )
-            
+
         self.workflows_repo.delete(session, workflow)
         session.commit()
 
-    def create_transition(self, session: Session, workflow_id: uuid.UUID, data: Any, user: User) -> WorkflowTransition:
+    def create_transition(
+        self, session: Session, workflow_id: uuid.UUID, data: Any, user: User
+    ) -> WorkflowTransition:
         workflow = self.workflows_repo.get(session, workflow_id)
         if not workflow:
             raise HTTPException(status_code=404, detail="Workflow not found")
@@ -228,7 +251,9 @@ class WorkflowsService:
         session.refresh(trans)
         return trans
 
-    def update_transition(self, session: Session, transition_id: uuid.UUID, data: Any, user: User) -> WorkflowTransition:
+    def update_transition(
+        self, session: Session, transition_id: uuid.UUID, data: Any, user: User
+    ) -> WorkflowTransition:
         transition = self.transitions_repo.get(session, transition_id)
         if not transition:
             raise HTTPException(status_code=404, detail="Workflow transition not found")
@@ -255,7 +280,9 @@ class WorkflowsService:
         session.refresh(transition)
         return transition
 
-    def delete_transition(self, session: Session, transition_id: uuid.UUID, user: User) -> None:
+    def delete_transition(
+        self, session: Session, transition_id: uuid.UUID, user: User
+    ) -> None:
         transition = self.transitions_repo.get(session, transition_id)
         if not transition:
             raise HTTPException(status_code=404, detail="Workflow transition not found")
@@ -293,7 +320,7 @@ class WorkflowsService:
             active_wf = session.exec(
                 select(Workflow).where(
                     Workflow.workspace_id == workspace_id,
-                    Workflow.is_active == True,
+                    Workflow.is_active,
                 )
             ).first()
             if not active_wf:
@@ -312,7 +339,7 @@ class WorkflowsService:
             transition = session.exec(
                 select(WorkflowTransition).where(
                     WorkflowTransition.workflow_id == workflow_id,
-                    WorkflowTransition.from_status_id == None,
+                    WorkflowTransition.from_status_id is None,
                     WorkflowTransition.to_status_id == to_status_id,
                 )
             ).first()
@@ -337,7 +364,10 @@ class WorkflowsService:
                     )
             elif cond_type == "ROLE_CHECK":
                 allowed_roles = cond.get("config", {}).get("roles", [])
-                from app.repositories.project_members_repository import ProjectMembersRepository
+                from app.repositories.project_members_repository import (
+                    ProjectMembersRepository,
+                )
+
                 pm_repo = ProjectMembersRepository()
                 member = pm_repo.get_active(session, project_id, user.id)
                 role = member.project_role if member else None

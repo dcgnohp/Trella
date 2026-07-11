@@ -1,7 +1,9 @@
 import json
 import uuid
 from typing import Any
+
 from pydantic import field_validator
+
 from app.core.base import CamelModel
 
 

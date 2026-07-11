@@ -25,7 +25,10 @@ class Doc(UUIDMixin, TimestampMixin, table=True):
     source_type: str = Field(default="MANUAL", max_length=50)
     category: str | None = Field(default=None, max_length=100, nullable=True)
     collection_id: uuid.UUID | None = Field(
-        default=None, foreign_key="knowledge_collections.id", ondelete="SET NULL", nullable=True
+        default=None,
+        foreign_key="knowledge_collections.id",
+        ondelete="SET NULL",
+        nullable=True,
     )
     sprint_id: uuid.UUID | None = Field(
         default=None, foreign_key="sprints.id", ondelete="SET NULL", nullable=True
@@ -37,3 +40,34 @@ class Doc(UUIDMixin, TimestampMixin, table=True):
         default=None, foreign_key="boards.id", ondelete="SET NULL", nullable=True
     )
     is_pinned_global: bool = Field(default=False)
+    @property
+    def author_name(self) -> str | None:
+        return getattr(self, "_author_name", None)
+
+    @author_name.setter
+    def author_name(self, value: str | None) -> None:
+        self._author_name = value
+
+    @property
+    def author_email(self) -> str | None:
+        return getattr(self, "_author_email", None)
+
+    @author_email.setter
+    def author_email(self, value: str | None) -> None:
+        self._author_email = value
+
+    @property
+    def linked_entity_label(self) -> str | None:
+        return getattr(self, "_linked_entity_label", None)
+
+    @linked_entity_label.setter
+    def linked_entity_label(self, value: str | None) -> None:
+        self._linked_entity_label = value
+
+    @property
+    def linked_entity_type(self) -> str | None:
+        return getattr(self, "_linked_entity_type", None)
+
+    @linked_entity_type.setter
+    def linked_entity_type(self, value: str | None) -> None:
+        self._linked_entity_type = value

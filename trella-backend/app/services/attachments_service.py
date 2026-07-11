@@ -116,6 +116,78 @@ class AttachmentsService:
         self.storage.save(key=storage_key, fileobj=upload.file, content_type=mime_type)
 
         try:
+            # Check if file is a document format and auto-create a Doc
+            lower_name = file_name.lower()
+            if lower_name.endswith(('.md', '.txt', '.html')):
+                try:
+                    upload.file.seek(0)
+                    file_content_bytes = upload.file.read()
+                    upload.file.seek(0)  # reset pointer for downstream
+                    
+                    file_content = file_content_bytes.decode('utf-8', errors='ignore')
+                    
+                    from sqlmodel import select
+                    from app.models.docs_model import Doc
+                    from app.models.knowledge_collections_model import KnowledgeCollection
+                    from app.models.tasks_model import Task as DBTask
+                    
+                    col = session.exec(
+                        select(KnowledgeCollection)
+                        .where(KnowledgeCollection.workspace_id == workspace_id)
+                        .order_by(KnowledgeCollection.position)
+                    ).first()
+                    col_id = col.id if col else None
+                    
+                    task = session.get(DBTask, task_id)
+                    board_id = task.board_id if task else None
+                    sprint_id = task.sprint_id if task else None
+                    
+                    formatted_content = file_content
+                    if lower_name.endswith('.txt'):
+                        paragraphs = file_content.split('\n\n')
+                        formatted_content = "".join(f"<p>{p.strip().replace('\n', '<br/>')}</p>" for p in paragraphs if p.strip())
+                    elif lower_name.endswith('.md'):
+                        # Simple markdown parse
+                        import re
+                        lines = file_content.split('\n')
+                        parsed_lines = []
+                        for line in lines:
+                            line = line.strip()
+                            if line.startswith('### '):
+                                parsed_lines.append(f"<h3>{line[4:]}</h3>")
+                            elif line.startswith('## '):
+                                parsed_lines.append(f"<h2>{line[3:]}</h2>")
+                            elif line.startswith('# '):
+                                parsed_lines.append(f"<h1>{line[2:]}</h1>")
+                            elif line.startswith('- '):
+                                parsed_lines.append(f"<li>{line[2:]}</li>")
+                            elif line.startswith('* '):
+                                parsed_lines.append(f"<li>{line[2:]}</li>")
+                            else:
+                                parsed_lines.append(line)
+                        formatted_content = "\n".join(parsed_lines)
+                        paragraphs = formatted_content.split('\n\n')
+                        formatted_content = "".join(
+                            p if p.startswith('<h') or p.startswith('<li') else f"<p>{p.replace('\n', '<br/>')}</p>"
+                            for p in paragraphs if p.strip()
+                        )
+                    
+                    new_doc = Doc(
+                        workspace_id=workspace_id,
+                        task_id=task_id,
+                        board_id=board_id,
+                        sprint_id=sprint_id,
+                        title=file_name.rsplit('.', 1)[0],
+                        content=formatted_content,
+                        created_by=user.id,
+                        source_type="TASK",
+                        category="Architecture" if lower_name.endswith('.md') else "Development",
+                        collection_id=col_id,
+                    )
+                    session.add(new_doc)
+                except Exception as e:
+                    logger.error(f"Failed to auto-create doc from uploaded attachment: {e}")
+
             attachment = self.repo.create(
                 session,
                 Attachment(

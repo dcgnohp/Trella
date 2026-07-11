@@ -1,8 +1,5 @@
 from sqlmodel import SQLModel
 
-from app.models.docs_model import Doc
-from app.models.knowledge_collections_model import KnowledgeCollection
-from app.models.knowledge_user_prefs_model import KnowledgeUserPref
 from app.models.activity_logs_model import ActivityLog
 from app.models.attachments_model import Attachment
 from app.models.audit_logs_model import AuditAction, AuditLog, EntityType
@@ -12,6 +9,9 @@ from app.models.boards_model import Board
 from app.models.comment_mentions_model import CommentMention
 from app.models.comments_model import Comment
 from app.models.custom_statuses_model import CustomStatus
+from app.models.docs_model import Doc
+from app.models.knowledge_collections_model import KnowledgeCollection
+from app.models.knowledge_user_prefs_model import KnowledgeUserPref
 from app.models.notifications_model import Notification
 from app.models.org_limits_model import OrgLimit
 from app.models.org_subscriptions_model import OrgSubscription

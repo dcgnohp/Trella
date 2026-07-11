@@ -98,6 +98,7 @@ export function DocsPageClient({ workspaceId }: { workspaceId: string }) {
   // Sync title draft
   React.useEffect(() => {
     if (selected) setTitleDraft(selected.title);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id]);
 
   const editor = useEditor({
@@ -128,6 +129,7 @@ export function DocsPageClient({ workspaceId }: { workspaceId: string }) {
     if (editor && selected) {
       editor.commands.setContent(selected.content ?? "");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id]);
 
   const roots = docs.filter(d => !d.parentId);
@@ -167,7 +169,7 @@ export function DocsPageClient({ workspaceId }: { workspaceId: string }) {
             <DocTreeNode
               key={doc.id}
               doc={doc}
-              children={children(doc.id)}
+              subDocs={children(doc.id)}
               selected={selectedId}
               onSelect={setSelectedId}
               onAddChild={(parentId) => createMut.mutate({ title: "Untitled", parentId })}
@@ -242,9 +244,9 @@ export function DocsPageClient({ workspaceId }: { workspaceId: string }) {
   );
 }
 
-function DocTreeNode({ doc, children, selected, onSelect, onAddChild, onDelete }: {
+function DocTreeNode({ doc, subDocs, selected, onSelect, onAddChild, onDelete }: {
   doc: Doc;
-  children: Doc[];
+  subDocs: Doc[];
   selected: string | null;
   onSelect: (id: string) => void;
   onAddChild: (parentId: string) => void;
@@ -287,13 +289,13 @@ function DocTreeNode({ doc, children, selected, onSelect, onAddChild, onDelete }
           </span>
         )}
       </div>
-      {children.length > 0 && (
+      {subDocs.length > 0 && (
         <div style={{ marginLeft: 16 }}>
-          {children.map(child => (
+          {subDocs.map(child => (
             <DocTreeNode
               key={child.id}
               doc={child}
-              children={[]}
+              subDocs={[]}
               selected={selected}
               onSelect={onSelect}
               onAddChild={onAddChild}

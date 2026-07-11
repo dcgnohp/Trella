@@ -1,12 +1,17 @@
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter
 
 from app.core.deps import CurrentUser, SessionDep
-from app.schemas.knowledge_user_prefs_schema import KnowledgeUserPrefPublic, KnowledgeUserPrefUpsert
+from app.schemas.knowledge_user_prefs_schema import (
+    KnowledgeUserPrefPublic,
+    KnowledgeUserPrefUpsert,
+)
 from app.services.knowledge_user_prefs_service import KnowledgeUserPrefsService
 
-router = APIRouter(prefix="/workspaces/{workspace_id}/docs/prefs", tags=["knowledge-prefs"])
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/docs/prefs", tags=["knowledge-prefs"]
+)
 _service = KnowledgeUserPrefsService()
 
 

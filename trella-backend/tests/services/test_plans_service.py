@@ -52,7 +52,9 @@ def _add_member(session: Session, workspace_id: uuid.UUID, user_id: uuid.UUID) -
     session.commit()
 
 
-def _seed_project(session: Session, workspace_id: uuid.UUID, creator_id: uuid.UUID) -> Project:
+def _seed_project(
+    session: Session, workspace_id: uuid.UUID, creator_id: uuid.UUID
+) -> Project:
     project = Project(
         workspace_id=workspace_id,
         name="Default Project",
@@ -110,7 +112,9 @@ def test_create_plan_success_creates_plan_boards(session: Session) -> None:
     board_b = _seed_board(session, project.id, "B")
 
     service = PlansService()
-    data = PlanCreate(name="Q1 Plan", description="desc", board_ids=[board_a.id, board_b.id])
+    data = PlanCreate(
+        name="Q1 Plan", description="desc", board_ids=[board_a.id, board_b.id]
+    )
     plan = service.create_plan(session, org.id, data, user)
 
     assert plan.id is not None
@@ -303,7 +307,7 @@ def test_list_epics_for_plan_excludes_subtasks(session: Session) -> None:
 
     linked_board = _seed_board(session, project.id, "Linked")
     linked_column = _seed_column(session, linked_board.id)
-    
+
     subtask = Task(
         project_id=project.id,
         board_id=linked_board.id,
@@ -326,7 +330,10 @@ def test_list_epics_for_plan_excludes_subtasks(session: Session) -> None:
 
     service = PlansService()
     plan = service.create_plan(
-        session, org.id, PlanCreate(name="Subtask filter", board_ids=[linked_board.id]), user
+        session,
+        org.id,
+        PlanCreate(name="Subtask filter", board_ids=[linked_board.id]),
+        user,
     )
 
     epics = service.list_epics_for_plan(session, plan.id, user)

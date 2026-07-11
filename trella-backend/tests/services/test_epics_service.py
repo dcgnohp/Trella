@@ -111,9 +111,7 @@ def test_update_epic_with_dates_persists_and_logs(session: Session) -> None:
     # raising TypeError on the datetime fields (the regression under test).
     from app.models.activity_logs_model import ActivityLog
 
-    logs = session.exec(
-        select(ActivityLog).where(ActivityLog.task_id == epic.id)
-    ).all()
+    logs = session.exec(select(ActivityLog).where(ActivityLog.task_id == epic.id)).all()
     assert len(logs) == 1
     assert isinstance(logs[0].new_value["start_date"], str)
     assert isinstance(logs[0].new_value["due_date"], str)

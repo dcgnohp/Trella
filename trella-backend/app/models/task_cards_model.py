@@ -66,7 +66,7 @@ def resolve_card_project_and_board(_mapper, _connection, target: Card) -> None:
 
                 # Auto resolve custom status based on column name or status_key
                 if target.custom_status_id is None:
-                    from sqlmodel import select, func
+                    from sqlmodel import func, select
 
                     from app.models.custom_statuses_model import CustomStatus
                     from app.models.projects_model import Project
@@ -83,7 +83,8 @@ def resolve_card_project_and_board(_mapper, _connection, target: Card) -> None:
                             # 2. Fallback to canonical status mapping
                             stmt_canonical = select(CustomStatus).where(
                                 CustomStatus.workspace_id == project.workspace_id,
-                                CustomStatus.canonical_status == column.status_key.upper(),
+                                CustomStatus.canonical_status
+                                == column.status_key.upper(),
                             )
                             cs = session.exec(stmt_canonical).first()
                         if cs:
@@ -112,7 +113,7 @@ def resolve_card_custom_status_on_update(_mapper, _connection, target: Card) -> 
                 if board:
                     target.project_id = board.project_id
 
-                    from sqlmodel import select, func
+                    from sqlmodel import func, select
 
                     from app.models.custom_statuses_model import CustomStatus
                     from app.models.projects_model import Project
@@ -137,7 +138,8 @@ def resolve_card_custom_status_on_update(_mapper, _connection, target: Card) -> 
                             # 2. Fallback to canonical status mapping
                             stmt_canonical = select(CustomStatus).where(
                                 CustomStatus.workspace_id == project.workspace_id,
-                                CustomStatus.canonical_status == column.status_key.upper(),
+                                CustomStatus.canonical_status
+                                == column.status_key.upper(),
                             )
                             cs = session.exec(stmt_canonical).first()
                         if cs:

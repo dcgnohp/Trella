@@ -1,12 +1,15 @@
 'use client'
 
-const ICONS: Record<string, string> = {
-  sprint: '🏃',
-  epic: '⚡',
-  board: '📋',
-  task: '✅',
-  workspace: '🏢',
-  project: '📁',
+import * as React from 'react'
+import { Timer, Zap, Kanban, CheckSquare, Building, Folder, Link2 } from 'lucide-react'
+
+const ICON_COMPONENTS: Record<string, React.ComponentType<{ className?: string }>> = {
+  sprint: Timer,
+  epic: Zap,
+  board: Kanban,
+  task: CheckSquare,
+  workspace: Building,
+  project: Folder,
 }
 
 interface Props {
@@ -16,9 +19,12 @@ interface Props {
 }
 
 export function LinkedEntityBadge({ type, label, href }: Props) {
+  const Icon = ICON_COMPONENTS[type] ?? Link2
+  
   const content = (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/80 transition-colors">
-      {ICONS[type] ?? '🔗'} {label}
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/80 transition-colors">
+      <Icon className="w-3 h-3 text-muted-foreground" />
+      <span>{label}</span>
     </span>
   )
   return href

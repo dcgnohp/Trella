@@ -161,7 +161,105 @@ body,
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .doc-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.45 !important;
+    color: var(--trella-text);
+  }
+
+  .doc-content h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.75rem;
+    margin-bottom: 1rem;
+    line-height: 1.45 !important;
+    color: var(--trella-text);
+    border-bottom: 1px solid var(--trella-border-subtle);
+    padding-bottom: 0.35rem;
+  }
+
+  .doc-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.45 !important;
+    color: var(--trella-text);
+  }
+
+  .doc-content p {
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+    color: var(--trella-text);
+  }
+
+  .doc-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-left: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-left: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-content li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    margin-left: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .doc-content code {
+    font-family: monospace;
+    background-color: var(--trella-surface-sunken);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+
+  .doc-content pre {
+    background-color: var(--trella-surface-sunken);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-content pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .doc-content a {
+    color: var(--trella-brand);
+    text-decoration: underline;
+  }
+
+  .doc-content blockquote {
+    border-left: 4px solid var(--trella-border-strong);
+    padding-left: 1rem;
+    color: var(--trella-text-subtle);
+    font-style: italic;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 }

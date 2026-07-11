@@ -166,12 +166,14 @@ def test_automatic_status_registration_on_column_ops(session: Session) -> None:
     session.refresh(user)
 
     # Make user workspace owner / member to pass RBAC
-    session.add(WorkspaceMember(
-        workspace_id=workspace.id,
-        user_id=user.id,
-        role="OWNER",
-        status="ACTIVE",
-    ))
+    session.add(
+        WorkspaceMember(
+            workspace_id=workspace.id,
+            user_id=user.id,
+            role="OWNER",
+            status="ACTIVE",
+        )
+    )
     session.commit()
 
     project = Project(
@@ -185,12 +187,14 @@ def test_automatic_status_registration_on_column_ops(session: Session) -> None:
     session.refresh(project)
 
     # Project member
-    session.add(ProjectMember(
-        project_id=project.id,
-        user_id=user.id,
-        project_role=ProjectRole.PROJECT_ADMIN.value,
-        status=MemberStatus.ACTIVE.value,
-    ))
+    session.add(
+        ProjectMember(
+            project_id=project.id,
+            user_id=user.id,
+            project_role=ProjectRole.PROJECT_ADMIN.value,
+            status=MemberStatus.ACTIVE.value,
+        )
+    )
     session.commit()
 
     board = Board(
@@ -233,7 +237,9 @@ def test_automatic_status_registration_on_column_ops(session: Session) -> None:
 
     # 5. Rename column, check new custom status registration and task remapping
     update_data = ColumnUpdate(name="Testing Column Renamed")
-    col1_updated = col_service.update_column(session, board.id, col1.id, update_data, user)
+    col1_updated = col_service.update_column(
+        session, board.id, col1.id, update_data, user
+    )
 
     # Verify new custom status is created
     stmt2 = select(CustomStatus).where(
@@ -249,7 +255,9 @@ def test_automatic_status_registration_on_column_ops(session: Session) -> None:
 
     # 6. Create an unmapped column and check custom status is unmapped
     create_data_unmapped = ColumnCreate(name="Unmapped Column", status_key="UNMAPPED")
-    col_unmapped = col_service.create_column(session, board.id, create_data_unmapped, user)
+    col_unmapped = col_service.create_column(
+        session, board.id, create_data_unmapped, user
+    )
 
     stmt_unmapped = select(CustomStatus).where(
         CustomStatus.workspace_id == workspace.id,
@@ -258,4 +266,3 @@ def test_automatic_status_registration_on_column_ops(session: Session) -> None:
     cs_unmapped = session.exec(stmt_unmapped).first()
     assert cs_unmapped is not None
     assert cs_unmapped.canonical_status is None
-

@@ -112,9 +112,10 @@ class BoardColumnsService:
             else self.repo.max_position(session, board_id) + 1
         )
         try:
+            from sqlmodel import func, select
+
             from app.models.custom_statuses_model import CustomStatus
             from app.models.enums import CanonicalStatus
-            from sqlmodel import select, func
 
             stmt = select(CustomStatus).where(
                 CustomStatus.workspace_id == workspace_id,
@@ -184,9 +185,10 @@ class BoardColumnsService:
         updates = data.model_dump(exclude_unset=True)
         new_cs_id = None
         if "name" in updates and updates["name"] and updates["name"] != column.name:
+            from sqlmodel import func, select
+
             from app.models.custom_statuses_model import CustomStatus
             from app.models.enums import CanonicalStatus
-            from sqlmodel import select, func
 
             new_name = updates["name"]
             stmt = select(CustomStatus).where(
@@ -222,8 +224,10 @@ class BoardColumnsService:
         try:
             column = self.repo.update(session, column)
             if new_cs_id:
-                from app.models.tasks_model import Task
                 from sqlmodel import select
+
+                from app.models.tasks_model import Task
+
                 stmt_tasks = select(Task).where(Task.column_id == column.id)
                 tasks_in_col = session.exec(stmt_tasks).all()
                 for t in tasks_in_col:

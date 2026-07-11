@@ -414,14 +414,69 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
 export interface LeftPanelProps {
   task: TaskPublic;
   open: boolean;
+  workspaceId?: string;
   actorNames?: Record<string, string>;
   onSubtaskClick?: (sub: TaskPublic) => void;
   onTaskUpdated?: (t: TaskPublic) => void;
 }
 
-export function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdated }: LeftPanelProps) {
+export function LeftPanel({ task, open, workspaceId, actorNames, onSubtaskClick, onTaskUpdated }: LeftPanelProps) {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = React.useState(0);
+
+  // Fetch workspace documents
+  const { data: workspaceDocs = [], refetch: refetchDocs } = useQuery<any[]>({
+    queryKey: ['workspace-docs', workspaceId],
+    queryFn: async () => {
+      if (!workspaceId) return [];
+      const res = await fetch(`/api/knowledge/${workspaceId}/docs`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!workspaceId,
+  });
+
+  const linkedDocs = React.useMemo(() => {
+    return workspaceDocs.filter(d => d.taskId === task.id && !d.isArchived);
+  }, [workspaceDocs, task.id]);
+
+  const unlinkedDocs = React.useMemo(() => {
+    return workspaceDocs.filter(d => d.taskId !== task.id && !d.isArchived);
+  }, [workspaceDocs, task.id]);
+
+  const linkDocMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const res = await fetch(`/api/knowledge/${workspaceId}/docs/${docId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      });
+      if (!res.ok) throw new Error();
+      return res.json();
+    },
+    onSuccess: () => {
+      refetchDocs();
+      toast.success("Document linked successfully");
+    },
+    onError: () => toast.error("Failed to link document"),
+  });
+
+  const unlinkDocMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const res = await fetch(`/api/knowledge/${workspaceId}/docs/${docId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: null }),
+      });
+      if (!res.ok) throw new Error();
+      return res.json();
+    },
+    onSuccess: () => {
+      refetchDocs();
+      toast.success("Document unlinked");
+    },
+    onError: () => toast.error("Failed to unlink document"),
+  });
 
   // Title inline edit
   const [editingTitle, setEditingTitle] = React.useState(false);
@@ -600,6 +655,90 @@ export function LeftPanel({ task, open, actorNames, onSubtaskClick, onTaskUpdate
       <div style={{ marginBottom: 24 }}>
         <SubtasksSection task={task} open={open} onSubtaskClick={onSubtaskClick} />
       </div>
+
+      {/* Linked Documents */}
+      {workspaceId && (
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Linked Documents</p>
+          
+          {linkedDocs.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+              {linkedDocs.map(doc => (
+                <div 
+                  key={doc.id} 
+                  style={{
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "space-between",
+                    padding: "6px 10px", 
+                    borderRadius: 4, 
+                    border: "1px solid var(--trella-border)",
+                    backgroundColor: "var(--trella-surface)",
+                  }}
+                >
+                  <a 
+                    href={`/workspaces/${workspaceId}/docs?docId=${doc.id}`}
+                    style={{ fontSize: 13, color: "#0052CC", textDecoration: "none", fontWeight: 500 }}
+                    onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                    onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                  >
+                    📄 {doc.title || 'Untitled'}
+                  </a>
+                  <button
+                    onClick={() => unlinkDocMutation.mutate(doc.id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#FF5630", fontSize: 11, padding: 0 }}
+                  >
+                    Unlink
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <a
+              href={`/workspaces/${workspaceId}/docs/new?taskId=${task.id}`}
+              style={{
+                fontSize: 12,
+                color: "var(--trella-text-subtle)",
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--trella-text)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--trella-text-subtle)")}
+            >
+              <span style={{ fontSize: 14 }}>+</span> Create new doc
+            </a>
+
+            {unlinkedDocs.length > 0 && (
+              <select
+                onChange={e => {
+                  if (e.target.value) {
+                    linkDocMutation.mutate(e.target.value);
+                    e.target.value = "";
+                  }
+                }}
+                style={{
+                  height: 24,
+                  fontSize: 11,
+                  border: "1px solid var(--trella-border)",
+                  borderRadius: 4,
+                  backgroundColor: "var(--trella-surface)",
+                  color: "var(--trella-text-subtle)",
+                  outline: "none",
+                }}
+              >
+                <option value="">+ Link existing doc...</option>
+                {unlinkedDocs.map(d => (
+                  <option key={d.id} value={d.id}>{d.title}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Linked work items */}
       <div style={{ marginBottom: 24 }}>
@@ -1496,6 +1635,7 @@ export function TaskDetailDrawer({
               <LeftPanel
                 task={displayTask}
                 open={open}
+                workspaceId={workspaceId}
                 actorNames={actorNames}
                 onSubtaskClick={(sub) => setTaskStack(prev => [...prev, sub])}
                 onTaskUpdated={(updated) => setTaskStack(prev => {

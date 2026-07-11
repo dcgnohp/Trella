@@ -14,7 +14,9 @@ from app.schemas.knowledge_collections_schema import (
 
 
 class KnowledgeCollectionsService:
-    def _assert_member(self, session: Session, workspace_id: uuid.UUID, user_id: uuid.UUID) -> WorkspaceMember:
+    def _assert_member(
+        self, session: Session, workspace_id: uuid.UUID, user_id: uuid.UUID
+    ) -> WorkspaceMember:
         member = session.exec(
             select(WorkspaceMember).where(
                 WorkspaceMember.workspace_id == workspace_id,
@@ -23,10 +25,14 @@ class KnowledgeCollectionsService:
             )
         ).first()
         if not member:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member"
+            )
         return member
 
-    def _assert_can_edit(self, session: Session, collection: KnowledgeCollection, user: User) -> None:
+    def _assert_can_edit(
+        self, session: Session, collection: KnowledgeCollection, user: User
+    ) -> None:
         """Creator or ADMIN/OWNER can edit."""
         if collection.created_by == user.id:
             return
@@ -44,7 +50,9 @@ class KnowledgeCollectionsService:
                 detail="Only the author, admins, or owners can edit this collection",
             )
 
-    def list_collections(self, session: Session, workspace_id: uuid.UUID, user: User) -> list[KnowledgeCollection]:
+    def list_collections(
+        self, session: Session, workspace_id: uuid.UUID, user: User
+    ) -> list[KnowledgeCollection]:
         self._assert_member(session, workspace_id, user.id)
         return list(
             session.exec(
@@ -82,7 +90,9 @@ class KnowledgeCollectionsService:
         self._assert_member(session, workspace_id, user.id)
         collection = session.get(KnowledgeCollection, collection_id)
         if not collection or collection.workspace_id != workspace_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Collection not found"
+            )
         return collection
 
     def update_collection(

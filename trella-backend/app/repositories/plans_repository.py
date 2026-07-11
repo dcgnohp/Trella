@@ -15,7 +15,9 @@ class PlansRepository:
         """Return the plan with the given id, or None if absent."""
         return session.get(Plan, plan_id)
 
-    def list_by_workspace(self, session: Session, workspace_id: uuid.UUID) -> list[Plan]:
+    def list_by_workspace(
+        self, session: Session, workspace_id: uuid.UUID
+    ) -> list[Plan]:
         """Return all plans of a workspace, ordered by created_at ascending."""
         statement = (
             select(Plan)

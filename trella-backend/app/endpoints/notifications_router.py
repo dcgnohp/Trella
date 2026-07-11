@@ -74,10 +74,11 @@ def mark_all_notifications_read(
 def send_notification(
     session: SessionDep,
     data: NotificationCreate,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict[str, bool]:
     """Send a notification to the specified recipient user."""
     from app.models.enums import NotificationType
+
     _service.emit(
         session,
         recipient_id=data.recipient_id,

@@ -63,3 +63,7 @@ class DocPublic(_Base):
     epic_id: uuid.UUID | None
     board_id: uuid.UUID | None
     is_pinned_global: bool
+    author_name: str | None = None
+    author_email: str | None = None
+    linked_entity_label: str | None = None
+    linked_entity_type: str | None = None

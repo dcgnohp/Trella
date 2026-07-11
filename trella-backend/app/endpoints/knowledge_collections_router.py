@@ -28,7 +28,9 @@ def list_collections(
     return [KnowledgeCollectionPublic.model_validate(c) for c in collections]
 
 
-@router.post("", response_model=KnowledgeCollectionPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=KnowledgeCollectionPublic, status_code=status.HTTP_201_CREATED
+)
 def create_collection(
     session: SessionDep,
     workspace_id: uuid.UUID,
@@ -47,7 +49,9 @@ def update_collection(
     data: KnowledgeCollectionUpdate,
     current_user: CurrentUser,
 ) -> KnowledgeCollectionPublic:
-    collection = _service.update_collection(session, workspace_id, collection_id, data, current_user)
+    collection = _service.update_collection(
+        session, workspace_id, collection_id, data, current_user
+    )
     return KnowledgeCollectionPublic.model_validate(collection)
 
 

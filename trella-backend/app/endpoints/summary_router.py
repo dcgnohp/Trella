@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Query
-from sqlmodel import select, func
+from sqlmodel import func, select
 
 from app.core.deps import CurrentUser, SessionDep
 from app.models.activity_logs_model import ActivityLog
@@ -19,7 +19,9 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _workspace_task_ids(session: SessionDep, workspace_id: uuid.UUID) -> list[uuid.UUID]:
+def _workspace_task_ids(
+    session: SessionDep, workspace_id: uuid.UUID
+) -> list[uuid.UUID]:
     """Return all task IDs belonging to this workspace via boards -> tasks join."""
     stmt = (
         select(Task.id)
@@ -34,7 +36,7 @@ def _workspace_task_ids(session: SessionDep, workspace_id: uuid.UUID) -> list[uu
 def get_stats(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict:
     now = _utcnow()
     week_ago = now - timedelta(days=7)
@@ -62,14 +64,12 @@ def get_stats(
     all_tasks = list(session.exec(base).all())
 
     completed_7d = sum(
-        1 for t in all_tasks
-        if t.column_id in done_col_ids and t.updated_at >= week_ago
+        1 for t in all_tasks if t.column_id in done_col_ids and t.updated_at >= week_ago
     )
     updated_7d = sum(1 for t in all_tasks if t.updated_at >= week_ago)
     created_7d = sum(1 for t in all_tasks if t.created_at >= week_ago)
     due_soon_7d = sum(
-        1 for t in all_tasks
-        if t.due_date and now <= t.due_date <= week_ahead
+        1 for t in all_tasks if t.due_date and now <= t.due_date <= week_ahead
     )
 
     return {
@@ -84,7 +84,7 @@ def get_stats(
 def get_status_overview(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict:
     stmt = (
         select(BoardColumn.status_key, func.count(Task.id).label("cnt"))
@@ -138,7 +138,7 @@ def _time_ago(dt: datetime) -> str:
 def get_activity(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
     limit: int = Query(default=20, le=100),
 ) -> dict:
     stmt = (
@@ -158,16 +158,18 @@ def get_activity(
             keys = list(log.new_value.keys())
             field = keys[0] if keys else log.action
 
-        items.append({
-            "user_name": user.full_name or user.email,
-            "user_avatar_url": getattr(user, "avatar_url", None),
-            "field": field,
-            "task_key": task.issue_key if task else None,
-            "task_title": task.title if task else None,
-            "task_status": task.custom_status_id if task else None,
-            "time_ago": _time_ago(log.created_at),
-            "created_at": log.created_at.isoformat(),
-        })
+        items.append(
+            {
+                "user_name": user.full_name or user.email,
+                "user_avatar_url": getattr(user, "avatar_url", None),
+                "field": field,
+                "task_key": task.issue_key if task else None,
+                "task_title": task.title if task else None,
+                "task_status": task.custom_status_id if task else None,
+                "time_ago": _time_ago(log.created_at),
+                "created_at": log.created_at.isoformat(),
+            }
+        )
 
     return {"items": items}
 
@@ -176,7 +178,7 @@ def get_activity(
 def get_priority_breakdown(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict:
     stmt = (
         select(Task.priority, func.count(Task.id).label("cnt"))
@@ -190,10 +192,7 @@ def get_priority_breakdown(
     priority_order = ["HIGHEST", "HIGH", "MEDIUM", "LOW", "LOWEST"]
     counts = {r.priority: r.cnt for r in rows}
 
-    by_priority = [
-        {"priority": p, "count": counts.get(p, 0)}
-        for p in priority_order
-    ]
+    by_priority = [{"priority": p, "count": counts.get(p, 0)} for p in priority_order]
     # Add None/unknown
     none_count = counts.get(None, 0) + counts.get("NONE", 0)
     by_priority.append({"priority": "None", "count": none_count})
@@ -205,7 +204,7 @@ def get_priority_breakdown(
 def get_work_types(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict:
     stmt = (
         select(Task.type, func.count(Task.id).label("cnt"))
@@ -232,7 +231,7 @@ def get_work_types(
 def get_team_workload(
     session: SessionDep,
     workspace_id: uuid.UUID,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> dict:
     stmt = (
         select(User, func.count(Task.id).label("cnt"))

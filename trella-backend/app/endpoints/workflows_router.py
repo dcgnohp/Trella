@@ -1,14 +1,15 @@
 import uuid
-from fastapi import APIRouter, Depends, status
 
-from app.core.deps import CurrentUser, SessionDep, get_current_user
+from fastapi import APIRouter, status
+
+from app.core.deps import CurrentUser, SessionDep
 from app.schemas.workflows_schema import (
     WorkflowCreate,
     WorkflowPublic,
-    WorkflowUpdate,
     WorkflowTransitionCreate,
     WorkflowTransitionPublic,
     WorkflowTransitionUpdate,
+    WorkflowUpdate,
 )
 from app.services.workflows_service import WorkflowsService
 
@@ -57,9 +58,10 @@ def bootstrap_default_workflow(
     """Bootstrap a default standard workflow template if none exists."""
     # Ensure active member
     from app.services.organization_members_service import OrganizationMemberService
+
     member_service = OrganizationMemberService()
     member_service.assert_member(session, workspace_id, current_user.id)
-    
+
     wf = _service.bootstrap_default_workflow(session, workspace_id)
     return WorkflowPublic.model_validate(wf)
 

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { Search, List, Grid } from 'lucide-react'
 import type { KnowledgeCollection } from './knowledge-center-client'
 
 const SOURCE_TYPES = [
@@ -36,7 +37,9 @@ export function KnowledgeSearchBar({
     <div className="flex flex-wrap items-center gap-2">
       {/* Search input */}
       <div className="relative flex-1 min-w-48">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center">
+          <Search className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+        </span>
         <input
           type="text"
           value={searchQuery}
@@ -89,13 +92,17 @@ export function KnowledgeSearchBar({
         <button
           onClick={() => onViewModeChange('list')}
           title="List view"
-          className={`px-2 h-8 text-sm transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}`}
-        >☰</button>
+          className={`px-2 h-8 text-sm transition-colors flex items-center justify-center ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}`}
+        >
+          <List className="w-4 h-4" strokeWidth={1.5} />
+        </button>
         <button
           onClick={() => onViewModeChange('grid')}
           title="Grid view"
-          className={`px-2 h-8 text-sm transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}`}
-        >⊞</button>
+          className={`px-2 h-8 text-sm transition-colors flex items-center justify-center ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}`}
+        >
+          <Grid className="w-4 h-4" strokeWidth={1.5} />
+        </button>
       </div>
     </div>
   )
