@@ -40,6 +40,7 @@ class Doc(UUIDMixin, TimestampMixin, table=True):
         default=None, foreign_key="boards.id", ondelete="SET NULL", nullable=True
     )
     is_pinned_global: bool = Field(default=False)
+
     @property
     def author_name(self) -> str | None:
         return getattr(self, "_author_name", None)

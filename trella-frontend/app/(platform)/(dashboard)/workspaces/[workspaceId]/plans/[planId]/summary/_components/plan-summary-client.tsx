@@ -115,14 +115,14 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
   const radius = 42;
   const circ = 2 * Math.PI * radius; // 263.89
 
-  let accumulatedPercent = 0;
   const slices = useMemo(() => {
+    let accumulated = 0;
     return statuses.map(status => {
       const count = statusStats[status.id] || 0;
       const percent = totalFiltered > 0 ? count / totalFiltered : 0;
       const strokeDasharray = `${percent * circ} ${circ}`;
-      const strokeDashoffset = circ - (accumulatedPercent * circ);
-      accumulatedPercent += percent;
+      const strokeDashoffset = circ - (accumulated * circ);
+      accumulated += percent;
 
       return {
         id: status.id,

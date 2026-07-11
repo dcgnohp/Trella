@@ -13,12 +13,14 @@ _service = DocsService()
 
 @router.get("", response_model=list[DocPublic])
 def list_docs(
-    session: SessionDep, 
-    workspace_id: uuid.UUID, 
+    session: SessionDep,
+    workspace_id: uuid.UUID,
     current_user: CurrentUser,
     include_archived: bool = False,
 ) -> list[DocPublic]:
-    docs = _service.list_docs(session, workspace_id, current_user, include_archived=include_archived)
+    docs = _service.list_docs(
+        session, workspace_id, current_user, include_archived=include_archived
+    )
     return [DocPublic.model_validate(d) for d in docs]
 
 

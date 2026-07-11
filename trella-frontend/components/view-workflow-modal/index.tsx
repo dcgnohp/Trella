@@ -164,7 +164,7 @@ export function ViewWorkflowModal({
     return customStatuses.find((s) => s.id === currentStatusId);
   }, [customStatuses, currentStatusId]);
 
-  const transitions = workflowDetailQuery.data?.transitions || [];
+  const transitions = useMemo(() => workflowDetailQuery.data?.transitions ?? [], [workflowDetailQuery.data]);
   
   // Pre-calculate valid target statuses from current status
   const validTargets = useMemo(() => {

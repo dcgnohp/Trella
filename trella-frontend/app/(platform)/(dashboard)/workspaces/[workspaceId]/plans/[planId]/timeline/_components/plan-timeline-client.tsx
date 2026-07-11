@@ -69,7 +69,7 @@ export function PlanTimelineClient({ planId, workspaceId }: PlanTimelineClientPr
     queryKey: queryKeys.workspaceMembers(workspaceId),
     queryFn: () => WorkspaceMembersService.WorkspaceMembers_workspaceMembersListMembers({ workspaceId }),
   });
-  const workspaceMembers = workspaceMembersQuery.data ?? [];
+  const workspaceMembers = useMemo(() => workspaceMembersQuery.data ?? [], [workspaceMembersQuery.data]);
 
   const customStatusesQuery = useQuery({
     queryKey: queryKeys.customStatuses(workspaceId),

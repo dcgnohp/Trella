@@ -55,13 +55,20 @@ class DocsService:
         collection_id: uuid.UUID | None = None,
     ) -> list[Doc]:
         self._assert_member(session, workspace_id, user.id)
-        from app.models.tasks_model import Task as DBTask
-        from app.models.users_model import User as DBUser
         from app.models.boards_model import Board as DBBoard
         from app.models.sprints_model import Sprint as DBSprint
+        from app.models.tasks_model import Task as DBTask
+        from app.models.users_model import User as DBUser
 
         query = (
-            select(Doc, DBUser.full_name, DBUser.email, DBTask.issue_key, DBBoard.title, DBSprint.name)
+            select(
+                Doc,
+                DBUser.full_name,
+                DBUser.email,
+                DBTask.issue_key,
+                DBBoard.title,
+                DBSprint.name,
+            )
             .join(DBUser, Doc.created_by == DBUser.id)
             .outerjoin(DBTask, Doc.task_id == DBTask.id)
             .outerjoin(DBBoard, Doc.board_id == DBBoard.id)
@@ -100,13 +107,20 @@ class DocsService:
         self, session: Session, workspace_id: uuid.UUID, doc_id: uuid.UUID, user: User
     ) -> Doc:
         self._assert_member(session, workspace_id, user.id)
-        from app.models.tasks_model import Task as DBTask
-        from app.models.users_model import User as DBUser
         from app.models.boards_model import Board as DBBoard
         from app.models.sprints_model import Sprint as DBSprint
+        from app.models.tasks_model import Task as DBTask
+        from app.models.users_model import User as DBUser
 
         result = session.exec(
-            select(Doc, DBUser.full_name, DBUser.email, DBTask.issue_key, DBBoard.title, DBSprint.name)
+            select(
+                Doc,
+                DBUser.full_name,
+                DBUser.email,
+                DBTask.issue_key,
+                DBBoard.title,
+                DBSprint.name,
+            )
             .join(DBUser, Doc.created_by == DBUser.id)
             .outerjoin(DBTask, Doc.task_id == DBTask.id)
             .outerjoin(DBBoard, Doc.board_id == DBBoard.id)
@@ -149,9 +163,9 @@ class DocsService:
         session.commit()
         session.refresh(doc)
 
-        from app.models.tasks_model import Task as DBTask
         from app.models.boards_model import Board as DBBoard
         from app.models.sprints_model import Sprint as DBSprint
+        from app.models.tasks_model import Task as DBTask
 
         issue_key = None
         if doc.task_id:
@@ -216,11 +230,12 @@ class DocsService:
         self, session: Session, workspace_id: uuid.UUID, user: User
     ) -> None:
         # Check if user has permission to manage workspace (optional, assuming they can delete)
-        from app.models.docs_model import Doc
         from sqlmodel import delete
 
+        from app.models.docs_model import Doc
+
         statement = delete(Doc).where(
-            Doc.workspace_id == workspace_id, Doc.is_archived == True
+            Doc.workspace_id == workspace_id, Doc.is_archived
         )
         session.exec(statement)
         session.commit()

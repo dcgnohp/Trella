@@ -221,7 +221,7 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
     enabled: !!isScrum && !!activeWorkflow?.id,
   });
 
-  const transitions = workflowDetailQuery.data?.transitions || [];
+  const transitions = React.useMemo(() => workflowDetailQuery.data?.transitions ?? [], [workflowDetailQuery.data]);
   const validDestIds = React.useMemo(() => {
     return transitions
       .filter((t) => t.fromStatusId === task.customStatusId || t.fromStatusId === null)

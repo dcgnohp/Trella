@@ -164,26 +164,36 @@ def seed(workspace_id: str, user_id: str):
             {"email": "ngoctram@example.com", "full_name": "Ngọc Trâm"},
             {"email": "haidang@example.com", "full_name": "Hải Đăng"},
         ]
-        
+
         user_map = {"default": user_id}
-        
+
         for mu in mock_users:
-            res = session.exec(text(f"SELECT id, full_name FROM users WHERE email = '{mu['email']}'")).first()
+            res = session.exec(
+                text(f"SELECT id, full_name FROM users WHERE email = '{mu['email']}'")
+            ).first()
             if res:
                 uid = str(res[0])
                 # Ensure full_name is correct
                 if not res[1]:
-                    session.exec(text(f"UPDATE users SET full_name = '{mu['full_name']}' WHERE id = '{uid}'"))
+                    session.exec(
+                        text(
+                            f"UPDATE users SET full_name = '{mu['full_name']}' WHERE id = '{uid}'"
+                        )
+                    )
             else:
                 uid = str(uuid.uuid4())
                 sql = text(f"""
                     INSERT INTO users (id, email, full_name, hashed_password, is_active, is_superuser, status, created_at, updated_at)
-                    VALUES ('{uid}', '{mu['email']}', '{mu['full_name']}', 'mock_hash', true, false, 'ACTIVE', NOW(), NOW())
+                    VALUES ('{uid}', '{mu["email"]}', '{mu["full_name"]}', 'mock_hash', true, false, 'ACTIVE', NOW(), NOW())
                 """)
                 session.exec(sql)
-            
+
             # Ensure workspace member exists and is ACTIVE
-            m_res = session.exec(text(f"SELECT id FROM workspace_members WHERE workspace_id = '{workspace_id}' AND user_id = '{uid}'")).first()
+            m_res = session.exec(
+                text(
+                    f"SELECT id FROM workspace_members WHERE workspace_id = '{workspace_id}' AND user_id = '{uid}'"
+                )
+            ).first()
             if not m_res:
                 mid = str(uuid.uuid4())
                 sql = text(f"""
@@ -193,30 +203,52 @@ def seed(workspace_id: str, user_id: str):
                 session.exec(sql)
             else:
                 # Ensure ACTIVE status
-                session.exec(text(f"UPDATE workspace_members SET status = 'ACTIVE' WHERE workspace_id = '{workspace_id}' AND user_id = '{uid}'"))
-            
+                session.exec(
+                    text(
+                        f"UPDATE workspace_members SET status = 'ACTIVE' WHERE workspace_id = '{workspace_id}' AND user_id = '{uid}'"
+                    )
+                )
+
             user_map[mu["full_name"]] = uid
 
         session.commit()
 
         # 2. Delete existing seed data
-        session.exec(text(f"DELETE FROM knowledge_user_prefs WHERE workspace_id = '{workspace_id}'"))  # type: ignore
+        session.exec(
+            text(
+                f"DELETE FROM knowledge_user_prefs WHERE workspace_id = '{workspace_id}'"
+            )
+        )  # type: ignore
         session.exec(text(f"DELETE FROM docs WHERE workspace_id = '{workspace_id}'"))  # type: ignore
-        session.exec(text(f"DELETE FROM knowledge_collections WHERE workspace_id = '{workspace_id}'"))  # type: ignore
+        session.exec(
+            text(
+                f"DELETE FROM knowledge_collections WHERE workspace_id = '{workspace_id}'"
+            )
+        )  # type: ignore
         session.commit()
 
         # Get first project, board, and column belonging to this workspace
-        project_row = session.exec(text(f"SELECT id FROM projects WHERE workspace_id = '{workspace_id}' LIMIT 1")).first()
+        project_row = session.exec(
+            text(
+                f"SELECT id FROM projects WHERE workspace_id = '{workspace_id}' LIMIT 1"
+            )
+        ).first()
         board_row = None
         column_row = None
         bid = None
         if project_row:
             pid = str(project_row[0])
-            board_res = session.exec(text(f"SELECT id FROM boards WHERE project_id = '{pid}' LIMIT 1")).first()
+            board_res = session.exec(
+                text(f"SELECT id FROM boards WHERE project_id = '{pid}' LIMIT 1")
+            ).first()
             if board_res:
                 bid = str(board_res[0])
                 board_row = board_res
-                col_res = session.exec(text(f"SELECT id FROM board_columns WHERE board_id = '{bid}' LIMIT 1")).first()
+                col_res = session.exec(
+                    text(
+                        f"SELECT id FROM board_columns WHERE board_id = '{bid}' LIMIT 1"
+                    )
+                ).first()
                 if col_res:
                     column_row = col_res
 
@@ -224,7 +256,11 @@ def seed(workspace_id: str, user_id: str):
         sprint_id = None
         if project_row:
             pid = str(project_row[0])
-            s_res = session.exec(text(f"SELECT id FROM sprints WHERE name = 'Sprint 11' AND project_id = '{pid}'")).first()
+            s_res = session.exec(
+                text(
+                    f"SELECT id FROM sprints WHERE name = 'Sprint 11' AND project_id = '{pid}'"
+                )
+            ).first()
             if s_res:
                 sprint_id = str(s_res[0])
             else:
@@ -241,24 +277,28 @@ def seed(workspace_id: str, user_id: str):
         if project_row and board_row and column_row:
             pid = str(project_row[0])
             cid = str(column_row[0])
-            
+
             mock_tasks = [
                 {"key": "AUTH-15", "title": "User Authentication Flow"},
                 {"key": "FILE-23", "title": "File Upload Service Design"},
-                {"key": "UI-34", "title": "UI Components Library"}
+                {"key": "UI-34", "title": "UI Components Library"},
             ]
             for mt in mock_tasks:
-                res = session.exec(text(f"SELECT id FROM tasks WHERE issue_key = '{mt['key']}' AND project_id = '{pid}'")).first()
+                res = session.exec(
+                    text(
+                        f"SELECT id FROM tasks WHERE issue_key = '{mt['key']}' AND project_id = '{pid}'"
+                    )
+                ).first()
                 if res:
-                    task_ids[mt['key']] = str(res[0])
+                    task_ids[mt["key"]] = str(res[0])
                 else:
                     tid = str(uuid.uuid4())
                     sql = text(f"""
                         INSERT INTO tasks (id, project_id, board_id, column_id, title, position, issue_key, created_at, updated_at)
-                        VALUES ('{tid}', '{pid}', '{bid}', '{cid}', '{mt['title']}', 0, '{mt['key']}', NOW(), NOW())
+                        VALUES ('{tid}', '{pid}', '{bid}', '{cid}', '{mt["title"]}', 0, '{mt["key"]}', NOW(), NOW())
                     """)
                     session.exec(sql)
-                    task_ids[mt['key']] = tid
+                    task_ids[mt["key"]] = tid
             session.commit()
 
         now = datetime.now(timezone.utc)
@@ -288,17 +328,17 @@ def seed(workspace_id: str, user_id: str):
             title = tmpl["title"].replace("'", "''")
             content = SAMPLE_CONTENT.replace("'", "''")
             category = tmpl["category"].replace("'", "''")
-            
+
             author_id = user_map.get(tmpl["author"], user_id)
             doc_task_id = task_ids.get(tmpl["task_key"]) if tmpl["task_key"] else None
             doc_sprint_id = sprint_id if tmpl["link_type"] == "sprint" else None
             doc_board_id = bid if tmpl["link_type"] == "board" else None
-            
+
             # Format insert statement safely
             task_val = f"'{doc_task_id}'" if doc_task_id else "NULL"
             sprint_val = f"'{doc_sprint_id}'" if doc_sprint_id else "NULL"
             board_val = f"'{doc_board_id}'" if doc_board_id else "NULL"
-            
+
             sql = text(f"""
                 INSERT INTO docs (
                     id, workspace_id, title, content, source_type, category,
