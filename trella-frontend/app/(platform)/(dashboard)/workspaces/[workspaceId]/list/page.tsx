@@ -29,8 +29,17 @@ import { queryKeys } from '@/lib/query-keys';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useWorkspaceMode } from '@/lib/workspace-mode/use-workspace-mode';
 
-// Sub-components
-import { LeftPanel, RightPanel } from '@/components/task-detail-drawer';
+// Sub-components — lazy loaded since they carry TipTap + @xyflow (~200kB), only needed when a task is opened
+import dynamic from 'next/dynamic';
+
+const LeftPanel = dynamic(
+  () => import('@/components/task-detail-drawer').then(m => ({ default: m.LeftPanel })),
+  { ssr: false }
+);
+const RightPanel = dynamic(
+  () => import('@/components/task-detail-drawer').then(m => ({ default: m.RightPanel })),
+  { ssr: false }
+);
 
 // Priorities Colors Mapping matching task detail
 const PRIORITY_COLORS: Record<string, string> = {

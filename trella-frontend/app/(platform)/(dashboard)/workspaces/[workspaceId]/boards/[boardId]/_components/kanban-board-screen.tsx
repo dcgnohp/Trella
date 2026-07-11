@@ -15,14 +15,25 @@ import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { setLastVisitedCookie } from "@/lib/last-visited";
 import { useWorkspaceMode } from "@/lib/workspace-mode/use-workspace-mode";
 import { isTaskVisibleOnScrumBoard } from "@/lib/board/scrum-board-filter";
-import { TaskDetailDrawer } from "@/components/task-detail-drawer";
 import { useAuth } from "@/components/providers/auth-provider";
+import dynamic from "next/dynamic";
 
 import { BoardHeader } from "./board-header";
-import { KanbanBoard } from "./kanban-board";
 import { StandupPanel } from "./standup-panel";
-import { ManageWorkflowModal } from "./manage-workflow-modal";
 import { EMPTY_FILTERS, type FilterState } from "./filter-panel";
+
+const TaskDetailDrawer = dynamic(
+  () => import("@/components/task-detail-drawer").then(m => ({ default: m.TaskDetailDrawer })),
+  { ssr: false }
+);
+const KanbanBoard = dynamic(
+  () => import("./kanban-board").then(m => ({ default: m.KanbanBoard })),
+  { ssr: false }
+);
+const ManageWorkflowModal = dynamic(
+  () => import("./manage-workflow-modal").then(m => ({ default: m.ManageWorkflowModal })),
+  { ssr: false }
+);
 
 interface KanbanBoardScreenProps {
   workspaceId: string;

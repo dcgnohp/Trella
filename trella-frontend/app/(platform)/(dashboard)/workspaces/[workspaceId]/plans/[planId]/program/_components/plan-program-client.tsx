@@ -19,8 +19,13 @@ import {
   type CustomStatusPublic,
 } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
-import { TaskDetailDrawer } from '@/components/task-detail-drawer';
+import dynamic from 'next/dynamic';
 import { usePlanStaging } from '../../_hooks/use-plan-staging';
+
+const TaskDetailDrawer = dynamic(
+  () => import('@/components/task-detail-drawer').then(m => ({ default: m.TaskDetailDrawer })),
+  { ssr: false }
+);
 
 interface PlanProgramClientProps {
   planId: string;

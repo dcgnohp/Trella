@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
+import dynamic from 'next/dynamic';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import GraphLineIcon from '@atlaskit/icon/core/chart-bar';
@@ -17,12 +17,28 @@ import {
   WorkflowsService,
 } from '@/lib/client';
 import type { SprintWithTasks, TaskPublic } from '@/lib/client';
+import type { DropResult } from '@hello-pangea/dnd';
 import { queryKeys } from '@/lib/query-keys';
 import { toast } from 'sonner';
-import { TaskDetailDrawer } from '@/components/task-detail-drawer';
 
-import { SprintSection } from './sprint-section';
-import { BacklogSection } from './backlog-section';
+// Heavy components — lazy loaded to cut ~250kB from initial bundle
+const TaskDetailDrawer = dynamic(
+  () => import('@/components/task-detail-drawer').then(m => ({ default: m.TaskDetailDrawer })),
+  { ssr: false }
+);
+const DragDropContext = dynamic(
+  () => import('@hello-pangea/dnd').then(m => ({ default: m.DragDropContext })),
+  { ssr: false }
+);
+const SprintSection = dynamic(
+  () => import('./sprint-section').then(m => ({ default: m.SprintSection })),
+  { ssr: false }
+);
+const BacklogSection = dynamic(
+  () => import('./backlog-section').then(m => ({ default: m.BacklogSection })),
+  { ssr: false }
+);
+
 import { InsightsPanel } from './insights-panel';
 
 interface BacklogPageClientProps {

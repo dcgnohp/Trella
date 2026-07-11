@@ -3,8 +3,13 @@
 import * as React from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { KnowledgeEditor } from '../_components/knowledge-editor'
+import dynamic from 'next/dynamic'
 import type { KnowledgeCollection } from '../_components/knowledge-center-client'
+
+const KnowledgeEditor = dynamic(
+  () => import('../_components/knowledge-editor').then(m => ({ default: m.KnowledgeEditor })),
+  { ssr: false }
+);
 
 async function fetchCollections(workspaceId: string): Promise<KnowledgeCollection[]> {
   const res = await fetch(`/api/knowledge/${workspaceId}/collections`, { cache: 'no-store' })

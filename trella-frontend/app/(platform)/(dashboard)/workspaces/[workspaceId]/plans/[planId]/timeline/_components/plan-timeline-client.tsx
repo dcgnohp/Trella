@@ -14,9 +14,17 @@ import {
   type WorkspaceMemberPublic,
 } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
-import { TaskDetailDrawer } from '@/components/task-detail-drawer';
-import { GanttChart } from './gantt-chart';
 import { usePlanStaging, type StagedFields } from '../../_hooks/use-plan-staging';
+import dynamic from 'next/dynamic';
+
+const TaskDetailDrawer = dynamic(
+  () => import('@/components/task-detail-drawer').then(m => ({ default: m.TaskDetailDrawer })),
+  { ssr: false }
+);
+const GanttChart = dynamic(
+  () => import('./gantt-chart').then(m => ({ default: m.GanttChart })),
+  { ssr: false }
+);
 
 // ADS Design Icons
 import BugIcon from '@atlaskit/icon/core/bug';
