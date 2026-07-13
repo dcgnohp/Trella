@@ -17,6 +17,27 @@ export type ActivityLogPublic = {
     updatedAt: string;
 };
 
+/**
+ * A generic generation request reused by future AI features.
+ */
+export type AIRequest = {
+    prompt: string;
+    model?: (string | null);
+    variables?: ({
+    [key: string]: (string);
+} | null);
+};
+
+/**
+ * A generated result plus lightweight, non-sensitive metadata.
+ */
+export type AIResponse = {
+    content: string;
+    model: string;
+    provider: string;
+    latencyMs: number;
+};
+
 export type app__schemas__boards_schema__CardPublic = {
     id: string;
     title: string;
@@ -263,6 +284,72 @@ export type CustomStatusUpdate = {
     canonicalStatus?: (CanonicalStatus | null);
 };
 
+/**
+ * Feature 1 output: a structured task description.
+ */
+export type DescriptionResponse = {
+    description: string;
+    acceptanceCriteria: Array<(string)>;
+    technicalNotes: Array<(string)>;
+    definitionOfDone: Array<(string)>;
+};
+
+export type DocCreate = {
+    title: string;
+    content?: (string | null);
+    parentId?: (string | null);
+    taskId?: (string | null);
+    position?: number;
+    sourceType?: string;
+    category?: (string | null);
+    collectionId?: (string | null);
+    sprintId?: (string | null);
+    epicId?: (string | null);
+    boardId?: (string | null);
+    isPinnedGlobal?: boolean;
+};
+
+export type DocPublic = {
+    id: string;
+    workspaceId: string;
+    parentId: (string | null);
+    taskId: (string | null);
+    title: string;
+    content: (string | null);
+    createdBy: string;
+    position: number;
+    isArchived: boolean;
+    createdAt: string;
+    updatedAt: string;
+    sourceType: string;
+    category: (string | null);
+    collectionId: (string | null);
+    sprintId: (string | null);
+    epicId: (string | null);
+    boardId: (string | null);
+    isPinnedGlobal: boolean;
+    authorName?: (string | null);
+    authorEmail?: (string | null);
+    linkedEntityLabel?: (string | null);
+    linkedEntityType?: (string | null);
+};
+
+export type DocUpdate = {
+    title?: (string | null);
+    content?: (string | null);
+    parentId?: (string | null);
+    taskId?: (string | null);
+    position?: (number | null);
+    isArchived?: (boolean | null);
+    sourceType?: (string | null);
+    category?: (string | null);
+    collectionId?: (string | null);
+    sprintId?: (string | null);
+    epicId?: (string | null);
+    boardId?: (string | null);
+    isPinnedGlobal?: (boolean | null);
+};
+
 export type EpicCreate = {
     title: string;
     description?: (string | null);
@@ -333,6 +420,17 @@ export type EpicWithTasksPublic = {
     childTasks?: Array<TaskPublic>;
 };
 
+/**
+ * Feature 1 input: seed context for description generation.
+ */
+export type GenerateDescriptionRequest = {
+    title: string;
+    description?: (string | null);
+    labels?: Array<(string)>;
+    priority?: (string | null);
+    sprint?: (string | null);
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -349,6 +447,53 @@ export type InvitationPublic = {
 };
 
 export type scope = 'WORKSPACE' | 'PROJECT';
+
+export type KnowledgeCollectionCreate = {
+    name: string;
+    description?: (string | null);
+    icon?: (string | null);
+    color?: (string | null);
+    position?: number;
+};
+
+export type KnowledgeCollectionPublic = {
+    id: string;
+    workspaceId: string;
+    name: string;
+    description: (string | null);
+    icon: (string | null);
+    color: (string | null);
+    createdBy: string;
+    position: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type KnowledgeCollectionUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    icon?: (string | null);
+    color?: (string | null);
+    position?: (number | null);
+};
+
+export type KnowledgeUserPrefPublic = {
+    id: string;
+    workspaceId: string;
+    userId: string;
+    docId: string;
+    isPinned: boolean;
+    isFavorite: boolean;
+    lastViewedAt: (string | null);
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type KnowledgeUserPrefUpsert = {
+    docId: string;
+    isPinned?: boolean;
+    isFavorite?: boolean;
+};
 
 export type ListCreate = {
     title: string;
@@ -505,6 +650,15 @@ export type ProjectPublic = {
     updatedAt: string;
 };
 
+/**
+ * Reported by ``GET /ai/health``.
+ */
+export type ProviderHealthResponse = {
+    provider: string;
+    model: string;
+    healthy: boolean;
+};
+
 export type SprintComplete = {
     moveOpenTo?: string;
 };
@@ -572,6 +726,23 @@ export type SprintWithTasks = {
 
 export type StoryPointUpdate = {
     storyPoint: number;
+};
+
+/**
+ * Feature 2 input: text to summarize.
+ */
+export type SummarizeRequest = {
+    description: string;
+    title?: (string | null);
+};
+
+/**
+ * Feature 2 output: a concise summary plus derived signals.
+ */
+export type SummaryResponse = {
+    summary: string;
+    risks: Array<(string)>;
+    actionItems: Array<(string)>;
 };
 
 export type TaskCreate = {
@@ -786,6 +957,26 @@ export type ActivityLogsListProjectActivityData = {
 };
 
 export type ActivityLogsListProjectActivityResponse = (Array<ActivityLogPublic>);
+
+export type AiAiHealthResponse = (ProviderHealthResponse);
+
+export type AiAiGenerateData = {
+    requestBody: AIRequest;
+};
+
+export type AiAiGenerateResponse = (AIResponse);
+
+export type AiAiGenerateDescriptionData = {
+    requestBody: GenerateDescriptionRequest;
+};
+
+export type AiAiGenerateDescriptionResponse = (DescriptionResponse);
+
+export type AiAiSummarizeTaskData = {
+    requestBody: SummarizeRequest;
+};
+
+export type AiAiSummarizeTaskResponse = (SummaryResponse);
 
 export type AttachmentsUploadAttachmentData = {
     formData: Body_attachments_upload_attachment;
@@ -1074,6 +1265,48 @@ export type CustomStatusesSetCustomStatusMappingData = {
 
 export type CustomStatusesSetCustomStatusMappingResponse = (CustomStatusPublic);
 
+export type DocsListDocsData = {
+    includeArchived?: boolean;
+    workspaceId: string;
+};
+
+export type DocsListDocsResponse = (Array<DocPublic>);
+
+export type DocsCreateDocData = {
+    requestBody: DocCreate;
+    workspaceId: string;
+};
+
+export type DocsCreateDocResponse = (DocPublic);
+
+export type DocsGetDocData = {
+    docId: string;
+    workspaceId: string;
+};
+
+export type DocsGetDocResponse = (DocPublic);
+
+export type DocsUpdateDocData = {
+    docId: string;
+    requestBody: DocUpdate;
+    workspaceId: string;
+};
+
+export type DocsUpdateDocResponse = (DocPublic);
+
+export type DocsDeleteDocData = {
+    docId: string;
+    workspaceId: string;
+};
+
+export type DocsDeleteDocResponse = (void);
+
+export type DocsHardDeleteTrashData = {
+    workspaceId: string;
+};
+
+export type DocsHardDeleteTrashResponse = (void);
+
 export type EpicsCreateEpicData = {
     projectId: string;
     requestBody: EpicCreate;
@@ -1127,6 +1360,54 @@ export type EpicsRemoveTaskFromEpicData = {
 };
 
 export type EpicsRemoveTaskFromEpicResponse = (void);
+
+export type KnowledgeCollectionsListCollectionsData = {
+    workspaceId: string;
+};
+
+export type KnowledgeCollectionsListCollectionsResponse = (Array<KnowledgeCollectionPublic>);
+
+export type KnowledgeCollectionsCreateCollectionData = {
+    requestBody: KnowledgeCollectionCreate;
+    workspaceId: string;
+};
+
+export type KnowledgeCollectionsCreateCollectionResponse = (KnowledgeCollectionPublic);
+
+export type KnowledgeCollectionsUpdateCollectionData = {
+    collectionId: string;
+    requestBody: KnowledgeCollectionUpdate;
+    workspaceId: string;
+};
+
+export type KnowledgeCollectionsUpdateCollectionResponse = (KnowledgeCollectionPublic);
+
+export type KnowledgeCollectionsDeleteCollectionData = {
+    collectionId: string;
+    workspaceId: string;
+};
+
+export type KnowledgeCollectionsDeleteCollectionResponse = (void);
+
+export type KnowledgePrefsListPrefsData = {
+    workspaceId: string;
+};
+
+export type KnowledgePrefsListPrefsResponse = (Array<KnowledgeUserPrefPublic>);
+
+export type KnowledgePrefsUpsertPrefData = {
+    requestBody: KnowledgeUserPrefUpsert;
+    workspaceId: string;
+};
+
+export type KnowledgePrefsUpsertPrefResponse = (KnowledgeUserPrefPublic);
+
+export type KnowledgePrefsMarkViewedData = {
+    docId: string;
+    workspaceId: string;
+};
+
+export type KnowledgePrefsMarkViewedResponse = (KnowledgeUserPrefPublic);
 
 export type ListsCreateListData = {
     requestBody: ListCreate;
@@ -1315,6 +1596,31 @@ export type ProjectsGetProjectData = {
 };
 
 export type ProjectsGetProjectResponse = (ProjectPublic);
+
+export type ReportsGetSprintVelocityData = {
+    workspaceId: string;
+};
+
+export type ReportsGetSprintVelocityResponse = ({
+    [key: string]: unknown;
+});
+
+export type ReportsGetSprintBurndownData = {
+    sprintId: string;
+    workspaceId: string;
+};
+
+export type ReportsGetSprintBurndownResponse = ({
+    [key: string]: unknown;
+});
+
+export type ReportsGetCompletionTrendData = {
+    workspaceId: string;
+};
+
+export type ReportsGetCompletionTrendResponse = ({
+    [key: string]: unknown;
+});
 
 export type SprintsCreateSprintData = {
     projectId: string;

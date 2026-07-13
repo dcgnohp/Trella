@@ -29,6 +29,8 @@ import { CommentsTab } from "../modals/task-detail-modal/comments-tab";
 import { AttachmentsTab } from "../modals/task-detail-modal/attachments-tab";
 import { ActivityTab } from "../modals/task-detail-modal/activity-tab";
 import { DescriptionEditor } from "./description-editor";
+import { AiDescriptionGenerator } from "./ai-description-generator";
+import { AiSummaryCard } from "./ai-summary-card";
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -483,7 +485,9 @@ export function LeftPanel({ task, open, workspaceId, actorNames, onSubtaskClick,
   const [titleVal, setTitleVal] = React.useState(task.title);
   React.useEffect(() => { setTitleVal(task.title); }, [task.title]);
 
-  // Description — handled by DescriptionEditor component
+  // Description — handled by DescriptionEditor component.
+  // AI-generated draft staged for the editor (Apply populates, never saves).
+  const [pendingDraft, setPendingDraft] = React.useState<string | null>(null);
 
   // Work type dropdown
   const [typeDropOpen, setTypeDropOpen] = React.useState(false);
@@ -644,11 +648,25 @@ export function LeftPanel({ task, open, workspaceId, actorNames, onSubtaskClick,
 
       {/* Description */}
       <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <AiDescriptionGenerator
+            title={task.title}
+            description={task.description}
+            priority={task.priority}
+            onApply={setPendingDraft}
+            testId="ai-desc-generate"
+          />
+        </div>
         <DescriptionEditor
           value={task.description}
+          draft={pendingDraft}
+          onDraftConsumed={() => setPendingDraft(null)}
           onSave={(html) => patchMutation.mutate({ description: html })}
           disabled={patchMutation.isPending}
         />
+        <div style={{ marginTop: 16 }}>
+          <AiSummaryCard description={task.description} title={task.title} />
+        </div>
       </div>
 
       {/* Subtasks */}

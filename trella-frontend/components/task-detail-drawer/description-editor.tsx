@@ -10,6 +10,26 @@ interface DescriptionEditorProps {
   value: string | null;
   onSave: (html: string | null) => void;
   disabled?: boolean;
+  /**
+   * External draft (e.g. AI-generated text) to load into the editor. When it
+   * changes to a non-null value the editor is populated and switched into edit
+   * mode WITHOUT saving — the user still has to click Save. The parent should
+   * clear it via `onDraftConsumed` so the same draft isn't re-applied.
+   */
+  draft?: string | null;
+  onDraftConsumed?: () => void;
+}
+
+/** Convert untrusted plain text into safe HTML paragraphs for the editor.
+ *  Escapes HTML (the text may be model-generated), maps blank lines to
+ *  paragraphs and single newlines to <br>. */
+function draftTextToHtml(text: string): string {
+  const escape = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text
+    .split(/\n{2,}/)
+    .map((block) => `<p>${escape(block).replace(/\n/g, "<br>")}</p>`)
+    .join("");
 }
 
 const TB_BTN: React.CSSProperties = {
@@ -20,7 +40,7 @@ const TB_BTN: React.CSSProperties = {
   color: "var(--trella-text-subtle)", transition: "background 0.1s",
 };
 
-export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditorProps) {
+export function DescriptionEditor({ value, onSave, disabled, draft, onDraftConsumed }: DescriptionEditorProps) {
   const [editing, setEditing] = React.useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState("");
@@ -46,6 +66,17 @@ export function DescriptionEditor({ value, onSave, disabled }: DescriptionEditor
       editor.commands.setContent(value ?? "");
     }
   }, [value, editor, editing]);
+
+  // Load an external draft (AI-generated): populate + enter edit mode, never
+  // save. The parent clears the draft via onDraftConsumed so it applies once.
+  React.useEffect(() => {
+    if (editor && draft != null) {
+      editor.commands.setContent(draftTextToHtml(draft));
+      setEditing(true);
+      setTimeout(() => editor.commands.focus("end"), 0);
+      onDraftConsumed?.();
+    }
+  }, [draft, editor, onDraftConsumed]);
 
   const handleSave = () => {
     if (!editor) return;

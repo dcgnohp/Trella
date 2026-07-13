@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BacklogGetBacklogData, BacklogGetBacklogResponse, BacklogGetWorkspaceBacklogData, BacklogGetWorkspaceBacklogResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, EpicsCreateEpicData, EpicsCreateEpicResponse, EpicsListEpicsData, EpicsListEpicsResponse, EpicsGetEpicData, EpicsGetEpicResponse, EpicsUpdateEpicData, EpicsUpdateEpicResponse, EpicsDeleteEpicData, EpicsDeleteEpicResponse, EpicsGetEpicProgressData, EpicsGetEpicProgressResponse, EpicsAddTaskToEpicData, EpicsAddTaskToEpicResponse, EpicsRemoveTaskFromEpicData, EpicsRemoveTaskFromEpicResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, NotificationsSendNotificationData, NotificationsSendNotificationResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, PlansCreatePlanData, PlansCreatePlanResponse, PlansListPlansData, PlansListPlansResponse, PlansGetPlanData, PlansGetPlanResponse, PlansUpdatePlanData, PlansUpdatePlanResponse, PlansDeletePlanData, PlansDeletePlanResponse, PlansListEpicsForPlanData, PlansListEpicsForPlanResponse, ProjectMembersSearchMembersData, ProjectMembersSearchMembersResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, SprintsCreateSprintData, SprintsCreateSprintResponse, SprintsListSprintsData, SprintsListSprintsResponse, SprintsGetSprintData, SprintsGetSprintResponse, SprintsUpdateSprintData, SprintsUpdateSprintResponse, SprintsDeleteSprintData, SprintsDeleteSprintResponse, SprintsStartSprintData, SprintsStartSprintResponse, SprintsCompleteSprintData, SprintsCompleteSprintResponse, SprintsAddTaskToSprintData, SprintsAddTaskToSprintResponse, SprintsRemoveTaskFromSprintData, SprintsRemoveTaskFromSprintResponse, SprintsGetSprintInsightsData, SprintsGetSprintInsightsResponse, SprintsListWorkspaceSprintsData, SprintsListWorkspaceSprintsResponse, SprintsCreateWorkspaceSprintData, SprintsCreateWorkspaceSprintResponse, SummaryGetStatsData, SummaryGetStatsResponse, SummaryGetStatusOverviewData, SummaryGetStatusOverviewResponse, SummaryGetActivityData, SummaryGetActivityResponse, SummaryGetPriorityBreakdownData, SummaryGetPriorityBreakdownResponse, SummaryGetWorkTypesData, SummaryGetWorkTypesResponse, SummaryGetTeamWorkloadData, SummaryGetTeamWorkloadResponse, TasksGetTaskData, TasksGetTaskResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, TasksSetParentData, TasksSetParentResponse, TasksUpdateStoryPointData, TasksUpdateStoryPointResponse, TasksListSubtasksData, TasksListSubtasksResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, VelocityConfigGetVelocityConfigData, VelocityConfigGetVelocityConfigResponse, VelocityConfigUpdateVelocityConfigData, VelocityConfigUpdateVelocityConfigResponse, WorkflowsCreateWorkflowData, WorkflowsCreateWorkflowResponse, WorkflowsListWorkflowsData, WorkflowsListWorkflowsResponse, WorkflowsBootstrapDefaultWorkflowData, WorkflowsBootstrapDefaultWorkflowResponse, WorkflowsGetWorkflowData, WorkflowsGetWorkflowResponse, WorkflowsUpdateWorkflowData, WorkflowsUpdateWorkflowResponse, WorkflowsDeleteWorkflowData, WorkflowsDeleteWorkflowResponse, WorkflowsCreateTransitionData, WorkflowsCreateTransitionResponse, WorkflowsUpdateTransitionData, WorkflowsUpdateTransitionResponse, WorkflowsDeleteTransitionData, WorkflowsDeleteTransitionResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspacesSwitchWorkspaceModeData, WorkspacesSwitchWorkspaceModeResponse, WorkspacesGetWorkspaceData, WorkspacesGetWorkspaceResponse } from './types.gen';
+import type { ActivityLogsListTaskActivityData, ActivityLogsListTaskActivityResponse, ActivityLogsListProjectActivityData, ActivityLogsListProjectActivityResponse, AiAiHealthResponse, AiAiGenerateData, AiAiGenerateResponse, AiAiGenerateDescriptionData, AiAiGenerateDescriptionResponse, AiAiSummarizeTaskData, AiAiSummarizeTaskResponse, AttachmentsUploadAttachmentData, AttachmentsUploadAttachmentResponse, AttachmentsListAttachmentsData, AttachmentsListAttachmentsResponse, AttachmentsGetAttachmentDownloadUrlData, AttachmentsGetAttachmentDownloadUrlResponse, AttachmentsDeleteAttachmentData, AttachmentsDeleteAttachmentResponse, AuditLogsListOrgAuditLogsData, AuditLogsListOrgAuditLogsResponse, AuditLogsListBoardAuditLogsData, AuditLogsListBoardAuditLogsResponse, AuditLogsListCardAuditLogsData, AuditLogsListCardAuditLogsResponse, BacklogGetBacklogData, BacklogGetBacklogResponse, BacklogGetWorkspaceBacklogData, BacklogGetWorkspaceBacklogResponse, BoardMembersAddMemberData, BoardMembersAddMemberResponse, BoardMembersListMembersData, BoardMembersListMembersResponse, BoardMembersChangeRoleData, BoardMembersChangeRoleResponse, BoardMembersRemoveMemberData, BoardMembersRemoveMemberResponse, BoardMembersAcceptInvitationData, BoardMembersAcceptInvitationResponse, BoardMembersDeclineInvitationData, BoardMembersDeclineInvitationResponse, BoardsCreateBoardData, BoardsCreateBoardResponse, BoardsListBoardsData, BoardsListBoardsResponse, BoardsGetBoardData, BoardsGetBoardResponse, BoardsUpdateBoardData, BoardsUpdateBoardResponse, BoardsDeleteBoardData, BoardsDeleteBoardResponse, BoardsListBoardTasksData, BoardsListBoardTasksResponse, CanonicalStatusesListCanonicalStatusesResponse, CardsCreateCardData, CardsCreateCardResponse, CardsReorderCardsData, CardsReorderCardsResponse, CardsUpdateCardData, CardsUpdateCardResponse, CardsDeleteCardData, CardsDeleteCardResponse, CardsCopyCardData, CardsCopyCardResponse, ColumnsListColumnsData, ColumnsListColumnsResponse, ColumnsCreateColumnData, ColumnsCreateColumnResponse, ColumnsReorderColumnsData, ColumnsReorderColumnsResponse, ColumnsUpdateColumnData, ColumnsUpdateColumnResponse, ColumnsDeleteColumnData, ColumnsDeleteColumnResponse, ColumnsCreateTaskData, ColumnsCreateTaskResponse, CommentsCreateCommentData, CommentsCreateCommentResponse, CommentsListCommentsData, CommentsListCommentsResponse, CommentsUpdateCommentData, CommentsUpdateCommentResponse, CommentsDeleteCommentData, CommentsDeleteCommentResponse, CustomStatusesCreateCustomStatusData, CustomStatusesCreateCustomStatusResponse, CustomStatusesListCustomStatusesData, CustomStatusesListCustomStatusesResponse, CustomStatusesGetMappingSummaryData, CustomStatusesGetMappingSummaryResponse, CustomStatusesGetCustomStatusData, CustomStatusesGetCustomStatusResponse, CustomStatusesUpdateCustomStatusData, CustomStatusesUpdateCustomStatusResponse, CustomStatusesDeleteCustomStatusData, CustomStatusesDeleteCustomStatusResponse, CustomStatusesSetCustomStatusMappingData, CustomStatusesSetCustomStatusMappingResponse, DocsListDocsData, DocsListDocsResponse, DocsCreateDocData, DocsCreateDocResponse, DocsGetDocData, DocsGetDocResponse, DocsUpdateDocData, DocsUpdateDocResponse, DocsDeleteDocData, DocsDeleteDocResponse, DocsHardDeleteTrashData, DocsHardDeleteTrashResponse, EpicsCreateEpicData, EpicsCreateEpicResponse, EpicsListEpicsData, EpicsListEpicsResponse, EpicsGetEpicData, EpicsGetEpicResponse, EpicsUpdateEpicData, EpicsUpdateEpicResponse, EpicsDeleteEpicData, EpicsDeleteEpicResponse, EpicsGetEpicProgressData, EpicsGetEpicProgressResponse, EpicsAddTaskToEpicData, EpicsAddTaskToEpicResponse, EpicsRemoveTaskFromEpicData, EpicsRemoveTaskFromEpicResponse, KnowledgeCollectionsListCollectionsData, KnowledgeCollectionsListCollectionsResponse, KnowledgeCollectionsCreateCollectionData, KnowledgeCollectionsCreateCollectionResponse, KnowledgeCollectionsUpdateCollectionData, KnowledgeCollectionsUpdateCollectionResponse, KnowledgeCollectionsDeleteCollectionData, KnowledgeCollectionsDeleteCollectionResponse, KnowledgePrefsListPrefsData, KnowledgePrefsListPrefsResponse, KnowledgePrefsUpsertPrefData, KnowledgePrefsUpsertPrefResponse, KnowledgePrefsMarkViewedData, KnowledgePrefsMarkViewedResponse, ListsCreateListData, ListsCreateListResponse, ListsReorderListsData, ListsReorderListsResponse, ListsUpdateListData, ListsUpdateListResponse, ListsDeleteListData, ListsDeleteListResponse, ListsCopyListData, ListsCopyListResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsGetUnreadCountResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsMarkAllNotificationsReadResponse, NotificationsSendNotificationData, NotificationsSendNotificationResponse, OrganizationsListOrganizationsResponse, OrganizationsCreateOrganizationData, OrganizationsCreateOrganizationResponse, OrganizationsGetOrganizationData, OrganizationsGetOrganizationResponse, OrganizationsDeleteOrganizationData, OrganizationsDeleteOrganizationResponse, PlansCreatePlanData, PlansCreatePlanResponse, PlansListPlansData, PlansListPlansResponse, PlansGetPlanData, PlansGetPlanResponse, PlansUpdatePlanData, PlansUpdatePlanResponse, PlansDeletePlanData, PlansDeletePlanResponse, PlansListEpicsForPlanData, PlansListEpicsForPlanResponse, ProjectMembersSearchMembersData, ProjectMembersSearchMembersResponse, ProjectMembersAddMemberData, ProjectMembersAddMemberResponse, ProjectMembersListMembersData, ProjectMembersListMembersResponse, ProjectMembersChangeRoleData, ProjectMembersChangeRoleResponse, ProjectMembersRemoveMemberData, ProjectMembersRemoveMemberResponse, ProjectMembersAcceptInvitationData, ProjectMembersAcceptInvitationResponse, ProjectMembersDeclineInvitationData, ProjectMembersDeclineInvitationResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsGetProjectData, ProjectsGetProjectResponse, ReportsGetSprintVelocityData, ReportsGetSprintVelocityResponse, ReportsGetSprintBurndownData, ReportsGetSprintBurndownResponse, ReportsGetCompletionTrendData, ReportsGetCompletionTrendResponse, SprintsCreateSprintData, SprintsCreateSprintResponse, SprintsListSprintsData, SprintsListSprintsResponse, SprintsGetSprintData, SprintsGetSprintResponse, SprintsUpdateSprintData, SprintsUpdateSprintResponse, SprintsDeleteSprintData, SprintsDeleteSprintResponse, SprintsStartSprintData, SprintsStartSprintResponse, SprintsCompleteSprintData, SprintsCompleteSprintResponse, SprintsAddTaskToSprintData, SprintsAddTaskToSprintResponse, SprintsRemoveTaskFromSprintData, SprintsRemoveTaskFromSprintResponse, SprintsGetSprintInsightsData, SprintsGetSprintInsightsResponse, SprintsListWorkspaceSprintsData, SprintsListWorkspaceSprintsResponse, SprintsCreateWorkspaceSprintData, SprintsCreateWorkspaceSprintResponse, SummaryGetStatsData, SummaryGetStatsResponse, SummaryGetStatusOverviewData, SummaryGetStatusOverviewResponse, SummaryGetActivityData, SummaryGetActivityResponse, SummaryGetPriorityBreakdownData, SummaryGetPriorityBreakdownResponse, SummaryGetWorkTypesData, SummaryGetWorkTypesResponse, SummaryGetTeamWorkloadData, SummaryGetTeamWorkloadResponse, TasksGetTaskData, TasksGetTaskResponse, TasksUpdateTaskData, TasksUpdateTaskResponse, TasksSetAssigneeData, TasksSetAssigneeResponse, TasksUnsetAssigneeData, TasksUnsetAssigneeResponse, TasksSetParentData, TasksSetParentResponse, TasksUpdateStoryPointData, TasksUpdateStoryPointResponse, TasksListSubtasksData, TasksListSubtasksResponse, UsersSignupData, UsersSignupResponse, UsersReadCurrentUserResponse, VelocityConfigGetVelocityConfigData, VelocityConfigGetVelocityConfigResponse, VelocityConfigUpdateVelocityConfigData, VelocityConfigUpdateVelocityConfigResponse, WorkflowsCreateWorkflowData, WorkflowsCreateWorkflowResponse, WorkflowsListWorkflowsData, WorkflowsListWorkflowsResponse, WorkflowsBootstrapDefaultWorkflowData, WorkflowsBootstrapDefaultWorkflowResponse, WorkflowsGetWorkflowData, WorkflowsGetWorkflowResponse, WorkflowsUpdateWorkflowData, WorkflowsUpdateWorkflowResponse, WorkflowsDeleteWorkflowData, WorkflowsDeleteWorkflowResponse, WorkflowsCreateTransitionData, WorkflowsCreateTransitionResponse, WorkflowsUpdateTransitionData, WorkflowsUpdateTransitionResponse, WorkflowsDeleteTransitionData, WorkflowsDeleteTransitionResponse, WorkspaceMembersInviteMemberData, WorkspaceMembersInviteMemberResponse, WorkspaceMembersListMembersData, WorkspaceMembersListMembersResponse, WorkspaceMembersAcceptInvitationData, WorkspaceMembersAcceptInvitationResponse, WorkspaceMembersDeclineInvitationData, WorkspaceMembersDeclineInvitationResponse, WorkspaceMembersListInvitationsData, WorkspaceMembersListInvitationsResponse, WorkspaceMembersRemoveMemberData, WorkspaceMembersRemoveMemberResponse, WorkspacesSwitchWorkspaceModeData, WorkspacesSwitchWorkspaceModeResponse, WorkspacesGetWorkspaceData, WorkspacesGetWorkspaceResponse } from './types.gen';
 
 export class ActivityLogsService {
     /**
@@ -54,6 +54,77 @@ export class ActivityLogsService {
                 limit: data.limit,
                 cursor: data.cursor
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class AiService {
+    /**
+     * Ai Health
+     * @returns ProviderHealthResponse Successful Response
+     * @throws ApiError
+     */
+    public static Ai_aiAiHealth(): CancelablePromise<AiAiHealthResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/ai/health'
+        });
+    }
+    
+    /**
+     * Ai Generate
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns AIResponse Successful Response
+     * @throws ApiError
+     */
+    public static Ai_aiAiGenerate(data: AiAiGenerateData): CancelablePromise<AiAiGenerateResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/ai/generate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Ai Generate Description
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns DescriptionResponse Successful Response
+     * @throws ApiError
+     */
+    public static Ai_aiAiGenerateDescription(data: AiAiGenerateDescriptionData): CancelablePromise<AiAiGenerateDescriptionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/ai/tasks/generate-description',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Ai Summarize Task
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SummaryResponse Successful Response
+     * @throws ApiError
+     */
+    public static Ai_aiAiSummarizeTask(data: AiAiSummarizeTaskData): CancelablePromise<AiAiSummarizeTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/ai/tasks/summarize',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -1029,6 +1100,144 @@ export class CustomStatusesService {
     }
 }
 
+export class DocsService {
+    /**
+     * List Docs
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.includeArchived
+     * @returns DocPublic Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsListDocs(data: DocsListDocsData): CancelablePromise<DocsListDocsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/docs',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            query: {
+                include_archived: data.includeArchived
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Doc
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns DocPublic Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsCreateDoc(data: DocsCreateDocData): CancelablePromise<DocsCreateDocResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/docs',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Doc
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.docId
+     * @returns DocPublic Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsGetDoc(data: DocsGetDocData): CancelablePromise<DocsGetDocResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/docs/{doc_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                doc_id: data.docId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Doc
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.docId
+     * @param data.requestBody
+     * @returns DocPublic Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsUpdateDoc(data: DocsUpdateDocData): CancelablePromise<DocsUpdateDocResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workspaces/{workspace_id}/docs/{doc_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                doc_id: data.docId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Doc
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.docId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsDeleteDoc(data: DocsDeleteDocData): CancelablePromise<DocsDeleteDocResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workspaces/{workspace_id}/docs/{doc_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                doc_id: data.docId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Hard Delete Trash
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static Docs_docsHardDeleteTrash(data: DocsHardDeleteTrashData): CancelablePromise<DocsHardDeleteTrashResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workspaces/{workspace_id}/docs/trash/clear',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class EpicsService {
     /**
      * Create Epic
@@ -1193,6 +1402,165 @@ export class EpicsService {
             path: {
                 epic_id: data.epicId,
                 task_id: data.taskId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class KnowledgeCollectionsService {
+    /**
+     * List Collections
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns KnowledgeCollectionPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgeCollections_knowledgeCollectionsListCollections(data: KnowledgeCollectionsListCollectionsData): CancelablePromise<KnowledgeCollectionsListCollectionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/knowledge-collections',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Collection
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns KnowledgeCollectionPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgeCollections_knowledgeCollectionsCreateCollection(data: KnowledgeCollectionsCreateCollectionData): CancelablePromise<KnowledgeCollectionsCreateCollectionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/knowledge-collections',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Collection
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.collectionId
+     * @param data.requestBody
+     * @returns KnowledgeCollectionPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgeCollections_knowledgeCollectionsUpdateCollection(data: KnowledgeCollectionsUpdateCollectionData): CancelablePromise<KnowledgeCollectionsUpdateCollectionResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/workspaces/{workspace_id}/knowledge-collections/{collection_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                collection_id: data.collectionId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Collection
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.collectionId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgeCollections_knowledgeCollectionsDeleteCollection(data: KnowledgeCollectionsDeleteCollectionData): CancelablePromise<KnowledgeCollectionsDeleteCollectionResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/workspaces/{workspace_id}/knowledge-collections/{collection_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                collection_id: data.collectionId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class KnowledgePrefsService {
+    /**
+     * List Prefs
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns KnowledgeUserPrefPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgePrefs_knowledgePrefsListPrefs(data: KnowledgePrefsListPrefsData): CancelablePromise<KnowledgePrefsListPrefsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/docs/prefs',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Upsert Pref
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.requestBody
+     * @returns KnowledgeUserPrefPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgePrefs_knowledgePrefsUpsertPref(data: KnowledgePrefsUpsertPrefData): CancelablePromise<KnowledgePrefsUpsertPrefResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/docs/prefs',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Mark Viewed
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.docId
+     * @returns KnowledgeUserPrefPublic Successful Response
+     * @throws ApiError
+     */
+    public static KnowledgePrefs_knowledgePrefsMarkViewed(data: KnowledgePrefsMarkViewedData): CancelablePromise<KnowledgePrefsMarkViewedResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/workspaces/{workspace_id}/docs/prefs/{doc_id}/viewed',
+            path: {
+                workspace_id: data.workspaceId,
+                doc_id: data.docId
             },
             errors: {
                 422: 'Validation Error'
@@ -1840,6 +2208,73 @@ export class ProjectsService {
             url: '/api/v1/projects/{project_id}',
             path: {
                 project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ReportsService {
+    /**
+     * Get Sprint Velocity
+     * Committed vs completed story points per completed sprint.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static Reports_reportsGetSprintVelocity(data: ReportsGetSprintVelocityData): CancelablePromise<ReportsGetSprintVelocityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/reports/sprint-velocity',
+            path: {
+                workspace_id: data.workspaceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Sprint Burndown
+     * Task counts by status for a specific sprint (snapshot — not historical).
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @param data.sprintId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static Reports_reportsGetSprintBurndown(data: ReportsGetSprintBurndownData): CancelablePromise<ReportsGetSprintBurndownResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/reports/sprint-burndown/{sprint_id}',
+            path: {
+                workspace_id: data.workspaceId,
+                sprint_id: data.sprintId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Completion Trend
+     * Tasks created vs completed grouped by sprint.
+     * @param data The data for the request.
+     * @param data.workspaceId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static Reports_reportsGetCompletionTrend(data: ReportsGetCompletionTrendData): CancelablePromise<ReportsGetCompletionTrendResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workspaces/{workspace_id}/reports/completion-trend',
+            path: {
+                workspace_id: data.workspaceId
             },
             errors: {
                 422: 'Validation Error'

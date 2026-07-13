@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.ai.routers.ai_router import router as ai_router
 from app.endpoints.activity_logs_router import router as activity_logs_router
 from app.endpoints.attachments_router import router as attachments_router
 from app.endpoints.audit_logs_router import router as audit_logs_router
@@ -42,6 +43,9 @@ from app.endpoints.workspace_members_router import router as workspace_members_r
 
 api_router = APIRouter()
 
+
+# --- AI platform (reusable, provider-agnostic) ---
+api_router.include_router(ai_router)
 
 # --- Core / preserved domains ---
 api_router.include_router(auth_router)

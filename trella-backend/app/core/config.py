@@ -46,6 +46,17 @@ class Settings(BaseSettings):
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
+    # --- AI Platform (Phase 0) ---
+    # Provider is kept as an enum-like Literal so future providers (gemini,
+    # ollama, ...) can be added without changing the config surface.
+    AI_PROVIDER: Literal["openai"] = "openai"
+    # Optional so the app still boots without a key; the AI health endpoint
+    # reports "unhealthy" until this is set.
+    OPENAI_API_KEY: str | None = None
+    AI_DEFAULT_MODEL: str = "gpt-4.1"
+    AI_MINI_MODEL: str = "gpt-4.1-mini"
+    AI_REQUEST_TIMEOUT: float = 30.0
+
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
