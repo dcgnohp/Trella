@@ -34,15 +34,52 @@ const SUMMARY_RESULT = {
   actionItems: ["Wire up the OAuth callback"],
 };
 
-// TODO(env): implement against your auth + navigation.
+const API_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:8000";
+const E2E_EMAIL = process.env.E2E_EMAIL ?? "";
+const E2E_PASSWORD = process.env.E2E_PASSWORD ?? "";
+// A board that belongs to a workspace, plus a task on it to open.
+const WORKSPACE_ID = process.env.E2E_WORKSPACE_ID ?? "";
+const BOARD_ID = process.env.E2E_BOARD_ID ?? "";
+const TASK_TITLE = process.env.E2E_TASK_TITLE ?? "";
+
+/** Log in by exchanging credentials for a JWT and injecting the auth cookie —
+ *  avoids driving the sign-in UI. Requires E2E_EMAIL / E2E_PASSWORD. */
 async function login(page: Page): Promise<void> {
-  // e.g. set the access_token cookie or drive the login form.
-  throw new Error("login(page) not implemented for this environment");
+  if (!E2E_EMAIL || !E2E_PASSWORD) {
+    throw new Error("Set E2E_EMAIL and E2E_PASSWORD env vars.");
+  }
+  const res = await page.request.post(`${API_URL}/api/v1/login/access-token`, {
+    form: { username: E2E_EMAIL, password: E2E_PASSWORD },
+  });
+  if (!res.ok()) throw new Error(`login failed: ${res.status()}`);
+  const { access_token } = (await res.json()) as { access_token: string };
+  const base = new URL(process.env.E2E_BASE_URL ?? "http://localhost:3000");
+  await page.context().addCookies([
+    {
+      name: "access_token",
+      value: access_token,
+      domain: base.hostname,
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
 }
 
-// TODO(env): open a task so the Task Detail Drawer is visible.
+/** Open a task's drawer by navigating to its workspace-scoped board and
+ *  clicking the task card. Requires E2E_WORKSPACE_ID / E2E_BOARD_ID /
+ *  E2E_TASK_TITLE (a board linked to a workspace with a task that has a
+ *  description). */
 async function openFirstTask(page: Page): Promise<void> {
-  throw new Error("openFirstTask(page) not implemented for this environment");
+  if (!WORKSPACE_ID || !BOARD_ID || !TASK_TITLE) {
+    throw new Error(
+      "Set E2E_WORKSPACE_ID, E2E_BOARD_ID, E2E_TASK_TITLE for a workspace-linked board + task.",
+    );
+  }
+  await page.goto(`/workspaces/${WORKSPACE_ID}/boards/${BOARD_ID}`);
+  await page.getByText(TASK_TITLE, { exact: false }).first().click();
+  // Drawer is open when the description editor is present.
+  await page.getByText("Description", { exact: false }).first().waitFor();
 }
 
 test.beforeEach(async ({ page }) => {

@@ -49,10 +49,13 @@ class Settings(BaseSettings):
     # --- AI Platform (Phase 0) ---
     # Provider is kept as an enum-like Literal so future providers (gemini,
     # ollama, ...) can be added without changing the config surface.
-    AI_PROVIDER: Literal["openai"] = "openai"
+    AI_PROVIDER: Literal["openai", "gemini"] = "openai"
     # Optional so the app still boots without a key; the AI health endpoint
-    # reports "unhealthy" until this is set.
+    # reports "unhealthy" until the selected provider's key is set.
     OPENAI_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
+    # Default/mini model names. For AI_PROVIDER="gemini", set these to Gemini
+    # model ids in .env (e.g. AI_DEFAULT_MODEL=gemini-2.0-flash).
     AI_DEFAULT_MODEL: str = "gpt-4.1"
     AI_MINI_MODEL: str = "gpt-4.1-mini"
     AI_REQUEST_TIMEOUT: float = 30.0

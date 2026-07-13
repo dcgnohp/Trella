@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { marked } from "marked";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -20,16 +21,14 @@ interface DescriptionEditorProps {
   onDraftConsumed?: () => void;
 }
 
-/** Convert untrusted plain text into safe HTML paragraphs for the editor.
- *  Escapes HTML (the text may be model-generated), maps blank lines to
- *  paragraphs and single newlines to <br>. */
+/** Convert the (Markdown) draft into HTML for the editor: `## X` -> <h2>,
+ *  `- item` -> <ul><li>, `**bold**`, etc. TipTap parses the HTML through its
+ *  schema, so only supported nodes/marks survive (script/unknown tags are
+ *  dropped) — safe for model-generated content.
+ *  ponytail: relies on TipTap's schema for sanitization rather than a separate
+ *  HTML sanitizer; upgrade path is DOMPurify if raw HTML in drafts is allowed. */
 function draftTextToHtml(text: string): string {
-  const escape = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return text
-    .split(/\n{2,}/)
-    .map((block) => `<p>${escape(block).replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  return marked.parse(text, { async: false }) as string;
 }
 
 const TB_BTN: React.CSSProperties = {
