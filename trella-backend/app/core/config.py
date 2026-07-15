@@ -59,6 +59,13 @@ class Settings(BaseSettings):
     AI_DEFAULT_MODEL: str = "gpt-4.1"
     AI_MINI_MODEL: str = "gpt-4.1-mini"
     AI_REQUEST_TIMEOUT: float = 30.0
+    # Prompt-size cap applied in AIBaseService AFTER the model is resolved
+    # (never in ContextBuilder). Char-based approximation: ~4 chars/token.
+    # Default cap for any model without a specific override below.
+    AI_MAX_PROMPT_CHARS: int = 60000
+    # Optional per-model overrides. Parsed from env as JSON, e.g.
+    # AI_MODEL_MAX_PROMPT_CHARS='{"gpt-4.1": 400000, "gpt-4.1-mini": 60000}'.
+    AI_MODEL_MAX_PROMPT_CHARS: dict[str, int] = {}
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)

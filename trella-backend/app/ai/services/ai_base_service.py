@@ -14,6 +14,9 @@ from app.ai.prompts.prompt_manager import PromptManager
 from app.ai.providers.base import AIProvider, T
 from app.ai.schemas.ai_schema import AIResponse
 from app.ai.utils.logging import emit_event, log_ai_call
+from app.core.config import settings
+
+_TRUNCATION_MARKER = "\n... [truncated]"
 
 
 class AIBaseService:
@@ -33,6 +36,26 @@ class AIBaseService:
         """Return whether the underlying provider is reachable/configured."""
         return await self._provider.health_check()
 
+    def _truncate(self, prompt: str, model: str | None) -> str:
+        """Cap the rendered prompt to the resolved model's char limit.
+
+        Limit is config-driven: a per-model override in
+        ``AI_MODEL_MAX_PROMPT_CHARS`` wins, else ``AI_MAX_PROMPT_CHARS``.
+        ContextBuilder stays limit-free; the cap is applied here, after the
+        effective model is known and before the provider is called.
+
+        ponytail: naive char-based truncation (~4 chars/token) that keeps the
+        head and appends a marker. Upgrade path is chunking/RAG so the tail
+        isn't silently dropped.
+        """
+        limit = settings.AI_MODEL_MAX_PROMPT_CHARS.get(
+            model or "", settings.AI_MAX_PROMPT_CHARS
+        )
+        if len(prompt) <= limit:
+            return prompt
+        head = max(limit - len(_TRUNCATION_MARKER), 0)
+        return prompt[:head] + _TRUNCATION_MARKER
+
     async def run(
         self,
         *,
@@ -42,9 +65,10 @@ class AIBaseService:
         feature: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> AIResponse:
         """Render ``prompt_name`` and generate a completion."""
-        prompt = self._prompts.render(prompt_name, variables)
+        prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
         feature_name = feature or prompt_name
         started = time.perf_counter()
         try:
@@ -53,6 +77,7 @@ class AIBaseService:
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=timeout,
             )
         except Exception:
             log_ai_call(
@@ -90,15 +115,16 @@ class AIBaseService:
         feature: str = "",
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
         prompt_version: str = "",
-        response_model_version: str = "",
+        response_schema_version: str = "",
     ) -> T:
         """Render ``prompt_name`` and generate a schema-parsed model instance.
 
         Stays generic: no feature registry or business schema is imported here.
         Callers pass the concrete ``response_model``.
         """
-        prompt = self._prompts.render(prompt_name, variables)
+        prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
         feature_name = feature or prompt_name
         emit_event(
             "AI_REQUEST_STARTED",
@@ -113,6 +139,7 @@ class AIBaseService:
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=timeout,
             )
         except Exception:
             log_ai_call(
@@ -121,7 +148,7 @@ class AIBaseService:
                 model=model or "default",
                 latency_ms=int((time.perf_counter() - started) * 1000),
                 prompt_version=prompt_version,
-                response_model_version=response_model_version,
+                response_model_version=response_schema_version,
                 ok=False,
             )
             emit_event(
@@ -141,7 +168,7 @@ class AIBaseService:
             completion_tokens=result.completion_tokens,
             total_tokens=result.total_tokens,
             prompt_version=prompt_version,
-            response_model_version=response_model_version,
+            response_model_version=response_schema_version,
         )
         emit_event(
             "AI_REQUEST_SUCCESS",

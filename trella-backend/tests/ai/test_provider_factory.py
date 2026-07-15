@@ -8,11 +8,19 @@ from app.ai.providers import get_provider
 from app.ai.providers.gemini_provider import GeminiProvider
 from app.ai.providers.openai_provider import OpenAIProvider
 from app.ai.utils.errors import ProviderUnavailable
-from app.core.config import settings
 
 
 def test_returns_openai_provider() -> None:
-    assert isinstance(get_provider(settings), OpenAIProvider)
+    # Env-independent: the real ``settings`` may select any provider, so pass an
+    # explicit openai config here.
+    cfg = SimpleNamespace(
+        AI_PROVIDER="openai",
+        OPENAI_API_KEY=None,
+        GEMINI_API_KEY=None,
+        AI_DEFAULT_MODEL="gpt-4.1",
+        AI_REQUEST_TIMEOUT=5.0,
+    )
+    assert isinstance(get_provider(cfg), OpenAIProvider)  # type: ignore[arg-type]
 
 
 def test_returns_gemini_provider() -> None:

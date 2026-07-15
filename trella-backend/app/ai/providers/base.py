@@ -57,6 +57,7 @@ class AIProvider(ABC):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> GenerationResult:
         """Return a single completion for ``prompt``."""
 
@@ -68,6 +69,7 @@ class AIProvider(ABC):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> StructuredResult[T]:
         """Return ``prompt`` parsed into a ``response_model`` instance.
 

@@ -37,6 +37,7 @@ class AISummaryService:
             feature=AIFeature.SUMMARIZE.value,
             temperature=cfg.temperature,
             max_tokens=cfg.max_tokens,
+            timeout=cfg.timeout,
             prompt_version=cfg.prompt_version,
-            response_model_version=cfg.response_model_version,
+            response_schema_version=cfg.response_schema_version,
         )

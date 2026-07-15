@@ -1,44 +1,35 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { postGenerate } from "@/lib/ai/use-ai"
+import { AiService } from "@/lib/client"
 
 describe("postGenerate", () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it("POSTs JSON to the proxied /api/v1/ai/generate and returns the body", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        content: "hi",
-        model: "gpt-4.1",
-        provider: "openai",
-        latencyMs: 12,
-      }),
-    })
-    vi.stubGlobal("fetch", fetchMock)
+  it("calls AiService.Ai_aiAiGenerate with the payload as requestBody and returns its result", async () => {
+    const response = {
+      content: "pong",
+      model: "gpt-4.1",
+      provider: "openai",
+      latencyMs: 12,
+    }
+    const spy = vi
+      .spyOn(AiService, "Ai_aiAiGenerate")
+      .mockResolvedValue(response as never)
 
-    const result = await postGenerate({ prompt: "_ping", variables: { message: "x" } })
+    const payload = { prompt: "_ping", variables: { message: "x" } }
+    const result = await postGenerate(payload)
 
-    expect(result.content).toBe("hi")
-    const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe("/api/v1/ai/generate")
-    expect(init.method).toBe("POST")
-    expect(JSON.parse(init.body)).toEqual({
-      prompt: "_ping",
-      variables: { message: "x" },
-    })
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith({ requestBody: payload })
+    expect(result).toBe(response)
   })
 
-  it("throws with the backend error detail message on non-2xx", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: false,
-        statusText: "Too Many Requests",
-        json: async () => ({ detail: { code: "rate_limited", message: "slow down" } }),
-      }),
+  it("propagates errors from the service", async () => {
+    vi.spyOn(AiService, "Ai_aiAiGenerate").mockRejectedValue(
+      new Error("slow down") as never,
     )
 
     await expect(postGenerate({ prompt: "_ping" })).rejects.toThrow("slow down")

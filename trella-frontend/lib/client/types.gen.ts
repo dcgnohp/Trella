@@ -179,6 +179,24 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * Feature 3 input: seed context for task breakdown.
+ */
+export type BreakdownRequest = {
+    title: string;
+    description?: (string | null);
+    labels?: Array<(string)>;
+    priority?: (string | null);
+    sprint?: (string | null);
+};
+
+/**
+ * Feature 3 output: a list of structured subtasks.
+ */
+export type BreakdownResponse = {
+    subtasks: Array<SubtaskItem>;
+};
+
+/**
  * Fixed system-defined statuses; not creatable or editable via any endpoint.
  */
 export type CanonicalStatus = 'TODO' | 'IN_PROGRESS' | 'PENDING' | 'DONE';
@@ -334,6 +352,24 @@ export type DocPublic = {
     linkedEntityType?: (string | null);
 };
 
+/**
+ * Feature input: document content to summarize.
+ */
+export type DocSummaryRequest = {
+    content: string;
+    title?: (string | null);
+};
+
+/**
+ * Feature output: a summary plus derived signals from the document.
+ */
+export type DocSummaryResponse = {
+    summary: string;
+    keyPoints?: Array<(string)>;
+    keyDecisions?: Array<(string)>;
+    actionItems?: Array<(string)>;
+};
+
 export type DocUpdate = {
     title?: (string | null);
     content?: (string | null);
@@ -429,6 +465,11 @@ export type GenerateDescriptionRequest = {
     labels?: Array<(string)>;
     priority?: (string | null);
     sprint?: (string | null);
+};
+
+export type HistorySample = {
+    title: string;
+    storyPoint: number;
 };
 
 export type HTTPValidationError = {
@@ -724,8 +765,38 @@ export type SprintWithTasks = {
     doneCount?: number;
 };
 
+/**
+ * Feature 4 input: task info and optional historical context for estimation.
+ */
+export type StoryPointRequest = {
+    title: string;
+    description?: (string | null);
+    labels?: Array<(string)>;
+    priority?: (string | null);
+    sprintGoal?: (string | null);
+    velocity?: (number | null);
+    history?: Array<HistorySample>;
+};
+
+/**
+ * Feature 4 output: story point estimate with confidence and reasoning.
+ */
+export type StoryPointResponse = {
+    storyPoint: number;
+    confidence: number;
+    reason: string;
+};
+
 export type StoryPointUpdate = {
     storyPoint: number;
+};
+
+export type SubtaskItem = {
+    title: string;
+    description: string;
+    acceptanceCriteria?: Array<(string)>;
+    suggestedStoryPoint?: (number | null);
+    suggestedPriority?: (string | null);
 };
 
 /**
@@ -977,6 +1048,24 @@ export type AiAiSummarizeTaskData = {
 };
 
 export type AiAiSummarizeTaskResponse = (SummaryResponse);
+
+export type AiAiBreakdownTaskData = {
+    requestBody: BreakdownRequest;
+};
+
+export type AiAiBreakdownTaskResponse = (BreakdownResponse);
+
+export type AiAiEstimateStoryPointsData = {
+    requestBody: StoryPointRequest;
+};
+
+export type AiAiEstimateStoryPointsResponse = (StoryPointResponse);
+
+export type AiAiSummarizeDocumentData = {
+    requestBody: DocSummaryRequest;
+};
+
+export type AiAiSummarizeDocumentResponse = (DocSummaryResponse);
 
 export type AttachmentsUploadAttachmentData = {
     formData: Body_attachments_upload_attachment;

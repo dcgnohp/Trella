@@ -1,8 +1,8 @@
-"""P1-B7 checks: summary service composes context + registry + base service.
+"""P3-B5 checks: document summary service composes context + registry + base.
 
 No network: a fake ``AIProvider`` returns a scripted ``StructuredResult`` and is
 wrapped in a real ``AIBaseService`` whose ``PromptManager`` points at the real
-prompts dir so ``description_summary.md`` renders. Sync tests use ``asyncio.run``.
+prompts dir so ``document_summary.md`` renders. Sync tests use ``asyncio.run``.
 """
 
 import asyncio
@@ -11,12 +11,14 @@ from typing import Any
 
 import pytest
 
+from app.ai.context.knowledge_context import KnowledgeContext
 from app.ai.prompts.prompt_manager import PromptManager
 from app.ai.providers.base import AIProvider, StructuredResult
-from app.ai.schemas.task_ai_schema import SummarizeRequest, SummaryResponse
+from app.ai.schemas.docs_ai_schema import DocSummaryResponse
 from app.ai.services.ai_base_service import AIBaseService
-from app.ai.services.ai_summary_service import AISummaryService
+from app.ai.services.ai_document_summary_service import AIDocumentSummaryService
 from app.ai.utils.errors import InvalidPrompt
+from app.core.config import settings
 
 _REAL_PROMPTS_DIR = Path(__file__).resolve().parents[2] / "app" / "ai" / "prompts"
 
@@ -44,9 +46,10 @@ class _FakeProvider(AIProvider):
         self.calls += 1
         self.seen_prompt = prompt
         parsed = response_model(
-            summary="Ship the login page.",
-            risks=["Auth provider not finalized."],
-            action_items=["Wire up OAuth callback."],
+            summary="Team agreed to ship the docs API in Q3.",
+            key_points=["Docs API is the priority for next sprint."],
+            key_decisions=["Adopt server-side rendering for prompts."],
+            action_items=["Draft the OpenAPI schema."],
         )
         return StructuredResult(
             parsed=parsed,
@@ -61,31 +64,31 @@ class _FakeProvider(AIProvider):
         return True
 
 
-def _service(provider: AIProvider) -> AISummaryService:
+def _service(provider: AIProvider) -> AIDocumentSummaryService:
     base = AIBaseService(provider, PromptManager(prompts_dir=_REAL_PROMPTS_DIR))
-    return AISummaryService(base)
+    return AIDocumentSummaryService(base, settings)
 
 
 def test_summarize_happy_path_returns_populated_response() -> None:
     provider = _FakeProvider()
-    req = SummarizeRequest(
-        title="Login page",
-        description="Build the OAuth login flow with a callback handler.",
+    context = KnowledgeContext(
+        content="The team met to plan the docs API and agreed on the scope.",
+        title="Planning notes",
     )
-    result = asyncio.run(_service(provider).summarize(req))
+    result = asyncio.run(_service(provider).summarize(context))
 
-    assert isinstance(result, SummaryResponse)
-    assert result.summary == "Ship the login page."
-    assert result.risks and result.action_items
-    # The rendered prompt reached the provider and carried the description text.
+    assert isinstance(result, DocSummaryResponse)
+    assert result.summary == "Team agreed to ship the docs API in Q3."
+    assert result.key_points and result.key_decisions and result.action_items
+    # The rendered prompt reached the provider and carried the content text.
     assert provider.seen_prompt is not None
-    assert "Build the OAuth login flow" in provider.seen_prompt
+    assert "The team met to plan the docs API" in provider.seen_prompt
     assert "{{" not in provider.seen_prompt  # fully rendered
 
 
-def test_empty_description_raises_without_calling_provider() -> None:
+def test_empty_content_raises_without_calling_provider() -> None:
     provider = _FakeProvider()
-    req = SummarizeRequest(title="X", description="   ")
+    context = KnowledgeContext(content="   ", title="Empty doc")
     with pytest.raises(InvalidPrompt):
-        asyncio.run(_service(provider).summarize(req))
+        asyncio.run(_service(provider).summarize(context))
     assert provider.calls == 0

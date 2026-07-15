@@ -17,6 +17,7 @@ from app.ai.registry import (
     get_feature_config,
     resolve_model,
 )
+from app.ai.schemas.docs_ai_schema import DocSummaryResponse
 from app.ai.schemas.task_ai_schema import DescriptionResponse, SummaryResponse
 from app.core.config import settings
 
@@ -39,7 +40,7 @@ def test_get_feature_config_generate_description() -> None:
     assert config.max_tokens is None
     assert config.response_model is DescriptionResponse
     assert config.prompt_version == "v1"
-    assert config.response_model_version == "v1"
+    assert config.response_schema_version == "v1"
 
 
 def test_get_feature_config_summarize() -> None:
@@ -50,7 +51,18 @@ def test_get_feature_config_summarize() -> None:
     assert config.max_tokens is None
     assert config.response_model is SummaryResponse
     assert config.prompt_version == "v1"
-    assert config.response_model_version == "v1"
+    assert config.response_schema_version == "v1"
+
+
+def test_get_feature_config_summarize_document() -> None:
+    config = get_feature_config(AIFeature.SUMMARIZE_DOCUMENT)
+    assert config.prompt_name == "document_summary"
+    assert config.model_tier == "mini"
+    assert config.temperature == 0.2
+    assert config.max_tokens is None
+    assert config.response_model is DocSummaryResponse
+    assert config.prompt_version == "v1"
+    assert config.response_schema_version == "v1"
 
 
 def test_resolve_model_maps_tiers_to_settings() -> None:

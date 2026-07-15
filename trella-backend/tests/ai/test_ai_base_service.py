@@ -29,6 +29,7 @@ class _FakeProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> GenerationResult:
         self.seen_prompt = prompt
         if self._exc is not None:

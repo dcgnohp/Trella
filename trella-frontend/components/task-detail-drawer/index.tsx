@@ -31,6 +31,8 @@ import { ActivityTab } from "../modals/task-detail-modal/activity-tab";
 import { DescriptionEditor } from "./description-editor";
 import { AiDescriptionGenerator } from "./ai-description-generator";
 import { AiSummaryCard } from "./ai-summary-card";
+import { AiTaskBreakdown } from "./ai-task-breakdown";
+import { AiStoryPointCard } from "./ai-story-point-card";
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -1095,11 +1097,12 @@ export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdat
       )}
 
       <DetailRow label="Story points" tooltip="Effort estimate — only Fibonacci values allowed (1,2,3,5,8,13,21)">
-        <CreatableSelect<{ label: string; value: number }, false>
-          isClearable
-          placeholder="None"
-          options={fibOptions}
-          value={task.storyPoint != null ? { label: String(task.storyPoint), value: task.storyPoint } : null}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <CreatableSelect<{ label: string; value: number }, false>
+            isClearable
+            placeholder="None"
+            options={fibOptions}
+            value={task.storyPoint != null ? { label: String(task.storyPoint), value: task.storyPoint } : null}
           isValidNewOption={(input) => {
             const n = parseInt(input, 10);
             return FIBONACCI.includes(n);
@@ -1123,6 +1126,17 @@ export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdat
               : `${(task.storyPoint * hoursPerPoint / 8).toFixed(1)} days`}
           </span>
         )}
+        <div style={{ marginTop: 8 }}>
+          <AiStoryPointCard
+            title={task.title}
+            description={task.description}
+            priority={task.priority}
+            onApply={(points) => {
+              patchMutation.mutate({ storyPoint: points });
+            }}
+          />
+        </div>
+        </div>
       </DetailRow>
 
       <DetailRow label="Reporter" tooltip="Person who created this task">
@@ -1181,6 +1195,33 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
     onError: () => toast.error("Failed to create subtask"),
   });
 
+  const createMultipleMutation = useMutation({
+    mutationFn: async (newSubtasks: any[]) => {
+      return Promise.all(
+        newSubtasks.map(async (s) => {
+          const created = await ColumnsService.Columns_columnsCreateTask({
+            boardId: task.boardId,
+            columnId: task.columnId,
+            requestBody: { title: s.title, type: "SUBTASK", parentId: task.id },
+          });
+          if (s.description) {
+            await TasksService.Tasks_tasksUpdateTask({
+              taskId: created.id,
+              requestBody: { description: s.description },
+            });
+          }
+          return created;
+        })
+      );
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.boardTasks(task.boardId) });
+      qc.invalidateQueries({ queryKey: ["task-subtasks", task.id] });
+      toast.success("Subtasks added");
+    },
+    onError: () => toast.error("Failed to add subtasks"),
+  });
+
   const done = subtasks.filter(
     (s) => s.customStatus?.canonicalStatus === "DONE"
   ).length;
@@ -1196,9 +1237,19 @@ function SubtasksSection({ task, open, onSubtaskClick }: SubtasksSectionProps) {
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Subtasks</span>
-        {total > 0 && (
-          <span style={{ fontSize: 12, color: "var(--trella-text-subtle)" }}>{pct}% Done</span>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {total > 0 && (
+            <span style={{ fontSize: 12, color: "var(--trella-text-subtle)" }}>{pct}% Done</span>
+          )}
+          <AiTaskBreakdown
+            title={task.title}
+            description={task.description}
+            priority={task.priority}
+            onAddSubtasks={(subtasks) => {
+              createMultipleMutation.mutate(subtasks);
+            }}
+          />
+        </div>
       </div>
       {total > 0 && (
         <div style={{ height: 4, backgroundColor: "var(--trella-border)", borderRadius: 2, marginBottom: 10 }}>

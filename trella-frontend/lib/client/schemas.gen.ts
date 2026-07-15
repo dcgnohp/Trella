@@ -806,6 +806,75 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const BreakdownRequestSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        labels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Labels'
+        },
+        priority: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Priority'
+        },
+        sprint: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprint'
+        }
+    },
+    type: 'object',
+    required: ['title'],
+    title: 'BreakdownRequest',
+    description: 'Feature 3 input: seed context for task breakdown.'
+} as const;
+
+export const BreakdownResponseSchema = {
+    properties: {
+        subtasks: {
+            items: {
+                '$ref': '#/components/schemas/SubtaskItem'
+            },
+            type: 'array',
+            title: 'Subtasks'
+        }
+    },
+    type: 'object',
+    required: ['subtasks'],
+    title: 'BreakdownResponse',
+    description: 'Feature 3 output: a list of structured subtasks.'
+} as const;
+
 export const CanonicalStatusSchema = {
     type: 'string',
     enum: ['TODO', 'IN_PROGRESS', 'PENDING', 'DONE'],
@@ -1623,6 +1692,64 @@ export const DocPublicSchema = {
     title: 'DocPublic'
 } as const;
 
+export const DocSummaryRequestSchema = {
+    properties: {
+        content: {
+            type: 'string',
+            title: 'Content'
+        },
+        title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        }
+    },
+    type: 'object',
+    required: ['content'],
+    title: 'DocSummaryRequest',
+    description: 'Feature input: document content to summarize.'
+} as const;
+
+export const DocSummaryResponseSchema = {
+    properties: {
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        },
+        keyPoints: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Keypoints'
+        },
+        keyDecisions: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Keydecisions'
+        },
+        actionItems: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Actionitems'
+        }
+    },
+    type: 'object',
+    required: ['summary'],
+    title: 'DocSummaryResponse',
+    description: 'Feature output: a summary plus derived signals from the document.'
+} as const;
+
 export const DocUpdateSchema = {
     properties: {
         title: {
@@ -2325,6 +2452,22 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const HistorySampleSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        storyPoint: {
+            type: 'integer',
+            title: 'Storypoint'
+        }
+    },
+    type: 'object',
+    required: ['title', 'storyPoint'],
+    title: 'HistorySample'
 } as const;
 
 export const InvitationPublicSchema = {
@@ -3716,6 +3859,98 @@ export const SprintWithTasksSchema = {
     description: 'Sprint list item — includes tasks + kanban status counts.'
 } as const;
 
+export const StoryPointRequestSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        labels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Labels'
+        },
+        priority: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Priority'
+        },
+        sprintGoal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintgoal'
+        },
+        velocity: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Velocity'
+        },
+        history: {
+            items: {
+                '$ref': '#/components/schemas/HistorySample'
+            },
+            type: 'array',
+            title: 'History'
+        }
+    },
+    type: 'object',
+    required: ['title'],
+    title: 'StoryPointRequest',
+    description: 'Feature 4 input: task info and optional historical context for estimation.'
+} as const;
+
+export const StoryPointResponseSchema = {
+    properties: {
+        storyPoint: {
+            type: 'integer',
+            title: 'Storypoint'
+        },
+        confidence: {
+            type: 'integer',
+            title: 'Confidence'
+        },
+        reason: {
+            type: 'string',
+            title: 'Reason'
+        }
+    },
+    type: 'object',
+    required: ['storyPoint', 'confidence', 'reason'],
+    title: 'StoryPointResponse',
+    description: 'Feature 4 output: story point estimate with confidence and reasoning.'
+} as const;
+
 export const StoryPointUpdateSchema = {
     properties: {
         storyPoint: {
@@ -3726,6 +3961,51 @@ export const StoryPointUpdateSchema = {
     type: 'object',
     required: ['storyPoint'],
     title: 'StoryPointUpdate'
+} as const;
+
+export const SubtaskItemSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        acceptanceCriteria: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Acceptancecriteria'
+        },
+        suggestedStoryPoint: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Suggestedstorypoint'
+        },
+        suggestedPriority: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Suggestedpriority'
+        }
+    },
+    type: 'object',
+    required: ['title', 'description'],
+    title: 'SubtaskItem'
 } as const;
 
 export const SummarizeRequestSchema = {

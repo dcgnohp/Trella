@@ -82,6 +82,7 @@ class GeminiProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> GenerationResult:
         target_model = model or self._default_model
         client = self._get_client()
@@ -100,6 +101,7 @@ class GeminiProvider(AIProvider):
                     config=types.GenerateContentConfig(
                         temperature=temperature,
                         max_output_tokens=max_tokens,
+                        http_options=types.HttpOptions(timeout=int((timeout or self._timeout) * 1000)),
                     ),
                 )
             except Exception as exc:
@@ -124,6 +126,7 @@ class GeminiProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> StructuredResult[T]:
         target_model = model or self._default_model
         client = self._get_client()
@@ -144,6 +147,7 @@ class GeminiProvider(AIProvider):
                         max_output_tokens=max_tokens,
                         response_mime_type="application/json",
                         response_schema=response_model,
+                        http_options=types.HttpOptions(timeout=int((timeout or self._timeout) * 1000)),
                     ),
                 )
             except Exception as exc:

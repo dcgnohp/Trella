@@ -69,6 +69,7 @@ class OpenAIProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> GenerationResult:
         target_model = model or self._default_model
         # Resolve the client up front so a missing-key config error is raised
@@ -83,7 +84,7 @@ class OpenAIProvider(AIProvider):
         )
         async def _run() -> GenerationResult:
             return await self._complete(
-                client, target_model, prompt, temperature, max_tokens
+                client, target_model, prompt, temperature, max_tokens, timeout
             )
 
         return await _run()
@@ -95,6 +96,7 @@ class OpenAIProvider(AIProvider):
         prompt: str,
         temperature: float,
         max_tokens: int | None,
+        timeout: float | None,
     ) -> GenerationResult:
         messages: list[ChatCompletionMessageParam] = [
             {"role": "user", "content": prompt}
@@ -105,6 +107,7 @@ class OpenAIProvider(AIProvider):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=timeout or self._timeout,
             )
         except openai.APITimeoutError as exc:
             raise ProviderTimeout(str(exc))
@@ -132,6 +135,7 @@ class OpenAIProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> StructuredResult[T]:
         target_model = model or self._default_model
         # Resolve the client up front so a missing-key config error is raised
@@ -146,7 +150,7 @@ class OpenAIProvider(AIProvider):
         )
         async def _run() -> StructuredResult[T]:
             return await self._parse(
-                client, target_model, prompt, response_model, temperature, max_tokens
+                client, target_model, prompt, response_model, temperature, max_tokens, timeout
             )
 
         return await _run()
@@ -159,6 +163,7 @@ class OpenAIProvider(AIProvider):
         response_model: type[T],
         temperature: float,
         max_tokens: int | None,
+        timeout: float | None,
     ) -> StructuredResult[T]:
         messages: list[ChatCompletionMessageParam] = [
             {"role": "user", "content": prompt}
@@ -170,6 +175,7 @@ class OpenAIProvider(AIProvider):
                 response_format=response_model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=timeout or self._timeout,
             )
         except openai.APITimeoutError as exc:
             raise ProviderTimeout(str(exc))

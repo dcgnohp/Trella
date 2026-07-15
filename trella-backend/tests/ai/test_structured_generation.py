@@ -116,6 +116,7 @@ class _FakeStructuredProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> StructuredResult[Any]:
         self.seen_prompt = prompt
         return StructuredResult(
@@ -148,7 +149,7 @@ def test_run_structured_renders_and_returns_parsed(
                 response_model=_Desc,
                 feature="generate_description",
                 prompt_version="v1",
-                response_model_version="v2",
+                response_schema_version="v2",
             )
         )
     assert isinstance(parsed, _Desc)

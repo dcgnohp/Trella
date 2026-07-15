@@ -39,6 +39,7 @@ class _FakeProvider(AIProvider):
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
+        timeout: float | None = None,
     ) -> StructuredResult[Any]:
         self.calls += 1
         self.seen_prompt = prompt

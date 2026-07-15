@@ -18,6 +18,7 @@
     "@atlaskit/badge": "19.1.0",
     "@atlaskit/breadcrumbs": "17.2.0",
     "@atlaskit/button": "24.2.0",
+    "@atlaskit/checkbox": "^18.2.0",
     "@atlaskit/datetime-picker": "18.1.0",
     "@atlaskit/drawer": "13.1.0",
     "@atlaskit/dropdown-menu": "17.1.0",

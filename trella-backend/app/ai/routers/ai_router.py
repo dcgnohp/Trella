@@ -17,18 +17,29 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
+from app.ai.context.knowledge_context import KnowledgeContext
+from app.ai.context.story_point_context import StoryPointContext
+from app.ai.context.task_context import TaskContext
 from app.ai.providers import get_provider
 from app.ai.providers.base import AIProvider
 from app.ai.schemas.ai_schema import AIRequest, AIResponse, ProviderHealthResponse
+from app.ai.schemas.docs_ai_schema import DocSummaryRequest, DocSummaryResponse
 from app.ai.schemas.task_ai_schema import (
+    BreakdownRequest,
+    BreakdownResponse,
     DescriptionResponse,
     GenerateDescriptionRequest,
+    StoryPointRequest,
+    StoryPointResponse,
     SummarizeRequest,
     SummaryResponse,
 )
 from app.ai.services.ai_base_service import AIBaseService
 from app.ai.services.ai_description_service import AIDescriptionService
+from app.ai.services.ai_document_summary_service import AIDocumentSummaryService
+from app.ai.services.ai_story_point_service import AIStoryPointService
 from app.ai.services.ai_summary_service import AISummaryService
+from app.ai.services.ai_task_breakdown_service import AITaskBreakdownService
 from app.ai.utils.errors import AIError, to_http_exception
 from app.core.config import settings
 from app.core.deps import CurrentUser
@@ -57,8 +68,25 @@ def get_summary_service(service: AIServiceDep) -> AISummaryService:
     return AISummaryService(service)
 
 
+def get_breakdown_service(service: AIServiceDep) -> AITaskBreakdownService:
+    return AITaskBreakdownService(service, settings)
+
+
+def get_story_point_service(service: AIServiceDep) -> AIStoryPointService:
+    return AIStoryPointService(service, settings)
+
+
+def get_document_summary_service(service: AIServiceDep) -> AIDocumentSummaryService:
+    return AIDocumentSummaryService(service, settings)
+
+
 DescriptionServiceDep = Annotated[AIDescriptionService, Depends(get_description_service)]
 SummaryServiceDep = Annotated[AISummaryService, Depends(get_summary_service)]
+BreakdownServiceDep = Annotated[AITaskBreakdownService, Depends(get_breakdown_service)]
+StoryPointServiceDep = Annotated[AIStoryPointService, Depends(get_story_point_service)]
+DocumentSummaryServiceDep = Annotated[
+    AIDocumentSummaryService, Depends(get_document_summary_service)
+]
 
 
 async def require_ai_access(_current_user: CurrentUser) -> None:
@@ -127,5 +155,59 @@ async def ai_summarize_task(
 ) -> SummaryResponse:
     try:
         return await service.summarize(body)
+    except AIError as err:
+        raise to_http_exception(err)
+
+
+@router.post(
+    "/tasks/breakdown",
+    response_model=BreakdownResponse,
+    dependencies=[Depends(require_ai_access)],
+)
+async def ai_breakdown_task(
+    body: BreakdownRequest,
+    service: BreakdownServiceDep,
+) -> BreakdownResponse:
+    ctx = TaskContext(
+        title=body.title,
+        description=body.description,
+        labels=body.labels,
+        priority=body.priority,
+        sprint=body.sprint,
+    )
+    try:
+        return await service.break_down(ctx)
+    except AIError as err:
+        raise to_http_exception(err)
+
+
+@router.post(
+    "/tasks/story-points",
+    response_model=StoryPointResponse,
+    dependencies=[Depends(require_ai_access)],
+)
+async def ai_estimate_story_points(
+    body: StoryPointRequest,
+    service: StoryPointServiceDep,
+) -> StoryPointResponse:
+    ctx = StoryPointContext.from_payload(body)
+    try:
+        return await service.estimate(ctx)
+    except AIError as err:
+        raise to_http_exception(err)
+
+
+@router.post(
+    "/docs/summarize",
+    response_model=DocSummaryResponse,
+    dependencies=[Depends(require_ai_access)],
+)
+async def ai_summarize_document(
+    body: DocSummaryRequest,
+    service: DocumentSummaryServiceDep,
+) -> DocSummaryResponse:
+    ctx = KnowledgeContext.from_payload(body)
+    try:
+        return await service.summarize(ctx)
     except AIError as err:
         raise to_http_exception(err)
