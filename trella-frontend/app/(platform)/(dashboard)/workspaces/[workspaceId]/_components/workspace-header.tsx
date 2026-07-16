@@ -13,6 +13,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { ConfirmModal } from '@/components/ads/confirm-modal';
 import { useWorkspaceMode } from '@/lib/workspace-mode/use-workspace-mode';
 import { parseLastVisited, getLastVisitedCookie } from '@/lib/last-visited';
+import { useContributeConversationContext } from '@/lib/ai/conversation-context';
 
 const TABS_SCRUM = [
   { label: 'Summary', segment: 'summary' },
@@ -91,6 +92,12 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
     queryFn: () => BoardsService.Boards_boardsListBoards({ orgId: workspaceId }),
   });
   const displayName = spaceName || boardsQuery.data?.[0]?.title || 'My Project';
+
+  // Baseline workspace context for the AI chat — reuses already-loaded name +
+  // mode, no extra fetch. Must run before the plan-route early return below.
+  useContributeConversationContext({
+    workspace: { name: displayName, mode: isScrum ? 'SCRUM' : 'KANBAN' },
+  });
 
   const getTabHref = (segment: string) => {
     if (segment === 'boards') {

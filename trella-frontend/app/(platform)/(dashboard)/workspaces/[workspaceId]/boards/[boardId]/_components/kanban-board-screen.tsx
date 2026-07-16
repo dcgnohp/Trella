@@ -15,6 +15,7 @@ import { useBoardRealtime } from "@/lib/realtime/use-realtime";
 import { setLastVisitedCookie } from "@/lib/last-visited";
 import { useWorkspaceMode } from "@/lib/workspace-mode/use-workspace-mode";
 import { isTaskVisibleOnScrumBoard } from "@/lib/board/scrum-board-filter";
+import { useContributeConversationContext } from "@/lib/ai/conversation-context";
 import { useAuth } from "@/components/providers/auth-provider";
 import dynamic from "next/dynamic";
 
@@ -175,6 +176,43 @@ export const KanbanBoardScreen = ({
         .some((t) => isTaskVisibleOnScrumBoard(t.sprintId, isScrum, activeSprintId)),
     [tasksQuery.data, isScrum, activeSprintId],
   );
+
+  // Contribute the board's already-loaded data to the AI chat (payload-mode,
+  // no extra fetch). Runs before the loading/error early returns so hook order
+  // stays stable. The builder trims the task list.
+  const activeSprint = useMemo(
+    () => sprintsQuery.data?.find((s) => s.status === 'ACTIVE') ?? null,
+    [sprintsQuery.data],
+  );
+  useContributeConversationContext({
+    board: {
+      title: boardData?.title,
+      columns: (columnsQuery.data ?? []).map((c) => c.name),
+    },
+    sprint: activeSprint
+      ? {
+          name: activeSprint.name,
+          goal: activeSprint.goal,
+          status: activeSprint.status,
+          startDate: activeSprint.startDate,
+          endDate: activeSprint.endDate,
+        }
+      : undefined,
+    task: selectedTask
+      ? {
+          title: selectedTask.title,
+          issueKey: selectedTask.issueKey,
+          status: selectedTask.customStatus?.name,
+          priority: selectedTask.priority,
+          storyPoint: selectedTask.storyPoint,
+          description: selectedTask.description,
+        }
+      : undefined,
+    tasks: filteredTasks.map((t) => ({
+      title: t.title,
+      status: t.customStatus?.name ?? null,
+    })),
+  });
 
   const isLoading =
     boardQuery.isLoading ||

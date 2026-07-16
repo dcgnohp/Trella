@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
 import { WorkspaceHeader } from "./_components/workspace-header";
+import { AiChatPanel } from "@/components/ai/ai-chat-panel";
+import { ConversationContextProvider } from "@/lib/ai/conversation-context";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -49,9 +51,12 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
   const isPlanRoute = pathname.includes(`/plans/`) && pathname.split(`/plans/`)[1]?.length > 0;
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
-      <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
-    </div>
+    <ConversationContextProvider>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
+        <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
+        <AiChatPanel />
+      </div>
+    </ConversationContextProvider>
   );
 }

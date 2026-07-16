@@ -15,9 +15,12 @@ from app.ai.registry import (
     AIFeature,
     FeatureConfig,
     get_feature_config,
+    get_structured_config,
     resolve_model,
 )
 from app.ai.schemas.docs_ai_schema import DocSummaryResponse
+from app.ai.schemas.project_ai_schema import ProjectAssistantResponse
+from app.ai.schemas.sprint_ai_schema import SprintAnalysisResponse
 from app.ai.schemas.task_ai_schema import DescriptionResponse, SummaryResponse
 from app.core.config import settings
 
@@ -34,6 +37,7 @@ def test_ai_feature_is_pure_identifier() -> None:
 
 def test_get_feature_config_generate_description() -> None:
     config = get_feature_config(AIFeature.GENERATE_DESCRIPTION)
+    assert config.capability == "structured"
     assert config.prompt_name == "description_generator"
     assert config.model_tier == "mini"
     assert config.temperature == 0.3
@@ -73,3 +77,45 @@ def test_resolve_model_maps_tiers_to_settings() -> None:
 def test_unknown_feature_raises_value_error() -> None:
     with pytest.raises(ValueError, match="No FeatureConfig registered"):
         get_feature_config("nope")  # type: ignore[arg-type]
+
+
+def test_chat_config_is_streaming_without_response_model() -> None:
+    config = get_feature_config(AIFeature.CHAT)
+    assert config.capability == "streaming"
+    assert config.response_model is None
+    assert config.prompt_name == "chat"
+    assert config.model_tier == "default"
+    assert config.temperature == 0.4
+    assert config.prompt_version == "v1"
+    assert config.response_schema_version == "v1"
+
+
+def test_structured_feature_has_response_model() -> None:
+    config = get_feature_config(AIFeature.GENERATE_DESCRIPTION)
+    assert config.capability == "structured"
+    assert config.response_model is not None
+
+
+def test_get_structured_config_rejects_streaming_feature() -> None:
+    with pytest.raises(ValueError, match="not a structured feature"):
+        get_structured_config(AIFeature.CHAT)
+
+
+def test_get_structured_config_returns_structured_config() -> None:
+    config = get_structured_config(AIFeature.GENERATE_DESCRIPTION)
+    assert config.capability == "structured"
+    assert config.response_model is DescriptionResponse
+
+
+def test_analytics_features_are_structured_on_default_tier() -> None:
+    expected = {
+        AIFeature.SPRINT_ANALYSIS: SprintAnalysisResponse,
+        AIFeature.PROJECT_ASSISTANT: ProjectAssistantResponse,
+    }
+    for feature, response_model in expected.items():
+        config = get_structured_config(feature)  # must not raise
+        assert config.capability == "structured"
+        assert config.response_model is response_model
+        assert config.response_model is not None
+        assert config.model_tier == "default"
+        assert resolve_model(config.model_tier, settings) == settings.AI_DEFAULT_MODEL

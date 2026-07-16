@@ -4,13 +4,24 @@ import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { Folder, Kanban, CheckSquare, Maximize2, FileText, ArrowLeft, Star, X } from 'lucide-react'
+import { Folder, Kanban, CheckSquare, Maximize2, FileText, ArrowLeft, Star, X, Sparkles } from 'lucide-react'
 import { SprintsService, BacklogService } from '@/lib/client'
 import { KnowledgeSidebar } from './knowledge-sidebar'
 import { KnowledgeMain } from './knowledge-main'
 import { KnowledgeInspector } from './knowledge-inspector'
 import { KnowledgeEditor } from './knowledge-editor'
+import { AiDocSummaryPanel } from './ai-doc-summary'
 import { useKnowledgePrefs } from './use-knowledge-prefs'
+import { useContributeConversationContext } from '@/lib/ai/conversation-context'
+
+/** Strip HTML tags to plain text for AI summarization (client-side only). */
+function htmlToPlainText(html: string | null | undefined): string {
+  if (!html) return ''
+  if (typeof document === 'undefined') return html
+  const el = document.createElement('div')
+  el.innerHTML = html
+  return (el.textContent || el.innerText || '').trim()
+}
 
 export interface KnowledgeDoc {
   id: string
@@ -109,6 +120,7 @@ export function KnowledgeCenterClient({ workspaceId }: Props) {
   const [modalDocId, setModalDocId] = React.useState<string | null>(null)
   const [modalHistory, setModalHistory] = React.useState<string[]>([])
   const [modalTab, setModalTab] = React.useState<'content' | 'details'>('content')
+  const [docSummaryOpen, setDocSummaryOpen] = React.useState(false)
 
   // Tasks Queries for select dropdowns
   const sprintsQuery = useQuery({
@@ -133,6 +145,18 @@ export function KnowledgeCenterClient({ workspaceId }: Props) {
     }
     return tasks
   }, [sprintsQuery.data, backlogQuery.data])
+
+  // Contribute the currently-open document to the AI chat (payload-mode). Uses
+  // the already-loaded doc + client-side plain-text extraction; no extra fetch.
+  const activeDoc = React.useMemo(() => {
+    const id = modalDocId ?? inspectorDocId
+    return id ? docs.find((d) => d.id === id) ?? null : null
+  }, [modalDocId, inspectorDocId, docs])
+  useContributeConversationContext({
+    knowledge: activeDoc
+      ? { title: activeDoc.title, summary: htmlToPlainText(activeDoc.content) }
+      : undefined,
+  })
 
   const createDocMutation = useMutation({
     mutationFn: async (data: { 
@@ -503,6 +527,14 @@ export function KnowledgeCenterClient({ workspaceId }: Props) {
                         strokeWidth={1.5}
                       />
                     </button>
+                    <button
+                      onClick={() => setDocSummaryOpen(true)}
+                      className="h-8 px-3 text-xs font-semibold border border-border hover:bg-accent rounded-lg transition-colors text-foreground inline-flex items-center gap-1.5"
+                      title="AI summary — quick read"
+                    >
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      AI Summary
+                    </button>
                     <button 
                       onClick={() => { router.push(`/workspaces/${workspaceId}/docs/${activeModalDoc.id}`) }}
                       className="h-8 px-3 text-xs font-semibold border border-border hover:bg-accent rounded-lg transition-colors text-foreground"
@@ -536,7 +568,8 @@ export function KnowledgeCenterClient({ workspaceId }: Props) {
                 </div>
               </div>
 
-              {/* Body */}
+              {/* Body: document content + optional AI summary side panel */}
+              <div className="flex-1 flex overflow-hidden min-h-0">
               <div className="flex-1 overflow-y-auto p-6" onClick={handleModalContentClick}>
                 {modalTab === 'content' ? (
                   activeModalDoc.content ? (
@@ -657,6 +690,14 @@ export function KnowledgeCenterClient({ workspaceId }: Props) {
                     </div>
                   </div>
                 )}
+              </div>
+              {docSummaryOpen && (
+                <AiDocSummaryPanel
+                  content={htmlToPlainText(activeModalDoc.content)}
+                  title={activeModalDoc.title}
+                  onClose={() => setDocSummaryOpen(false)}
+                />
+              )}
               </div>
             </div>
           </div>

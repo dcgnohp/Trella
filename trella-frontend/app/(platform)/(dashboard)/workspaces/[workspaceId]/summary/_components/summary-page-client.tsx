@@ -6,6 +6,28 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { queryKeys } from '@/lib/query-keys';
 import { X, CheckCircle2, RefreshCw, Plus, Clock } from 'lucide-react';
 
+import Button from '@atlaskit/button/new';
+import SectionMessage from '@atlaskit/section-message';
+import { Box, Stack, Text } from '@atlaskit/primitives';
+
+import { useProjectAssistant } from '@/lib/ai/use-project-assistant';
+import { computeProjectMetrics } from '@/lib/ai/analytics-metrics';
+import { validateProjectPayload } from '@/lib/ai/analytics-payload';
+import type { ProjectAssistantRequest } from '@/lib/client';
+
+import { AnalyticsDashboardShell } from '@/components/ai/analytics/analytics-dashboard-shell';
+import { MetricStrip } from '@/components/ai/analytics/metric-strip';
+import { MetricCard } from '@/components/ai/analytics/metric-card';
+import { ChartCard } from '@/components/ai/analytics/chart-card';
+import { InsightSection } from '@/components/ai/analytics/insight-section';
+import { HealthOverviewBlock } from '@/components/ai/analytics/cards/health-overview-block';
+import { RiskCard } from '@/components/ai/analytics/cards/risk-card';
+import { RecommendationCard } from '@/components/ai/analytics/cards/recommendation-card';
+import { ActionCard } from '@/components/ai/analytics/cards/action-card';
+import { ExtensibleSlot } from '@/components/ai/primitives/extensible-slot';
+import { SprintCompletionDonut } from '@/components/ai/analytics/charts/sprint-completion-donut';
+import { AiRiskAssessmentChart } from '@/components/ai/analytics/charts/ai-risk-assessment-chart';
+
 async function fetchSummary(workspaceId: string, endpoint: string) {
   const res = await fetch(`/api/summary/${workspaceId}/${endpoint}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch');
@@ -89,6 +111,11 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--trella-surface-sunken)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 32px' }}>
+
+        {/* AI Project Overview — leads the page */}
+        <div style={{ marginBottom: 24 }}>
+          <AiProjectOverview statusData={statusData} />
+        </div>
 
         {/* Dismissible banner */}
         {!bannerDismissed && (
@@ -260,6 +287,191 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
 
       </div>
     </div>
+  );
+}
+
+function AiProjectOverview({ statusData }: { statusData: { name: string; count: number }[] }) {
+  const { data, isFetching, isError, error, generate, isIdle } = useProjectAssistant();
+
+  // Derive the payload from already-loaded summary data — no new fetch.
+  const totalTasks = statusData.reduce((s, x) => s + x.count, 0);
+  const doneTasks = statusData
+    .filter((x) => /done|complete|closed/i.test(x.name))
+    .reduce((s, x) => s + x.count, 0);
+  const blocked = statusData
+    .filter((x) => /block/i.test(x.name))
+    .reduce((s, x) => s + x.count, 0);
+  const payload: ProjectAssistantRequest = {
+    totalTasks,
+    doneTasks,
+    blockedTasks: blocked,
+  };
+
+  const m = computeProjectMetrics(payload);
+  const validation = validateProjectPayload(payload);
+  const disabledHint = validation.ok ? undefined : validation.message;
+
+  const generateButton = (
+    <Button
+      appearance="primary"
+      isDisabled={!validation.ok || isFetching}
+      onClick={() => generate(payload)}
+    >
+      {data ? 'Refresh' : 'Generate AI overview'}
+    </Button>
+  );
+
+  const risks = data?.risks ?? [];
+  const recommendations = data?.recommendations ?? [];
+  const nextActions = data?.suggestedNextActions ?? [];
+
+  return (
+    <AnalyticsDashboardShell title="AI Project Overview" actions={generateButton}>
+      {/* Always-visible metrics */}
+      <MetricStrip>
+        <MetricCard label="Done Rate" value={`${m.doneRate}%`} />
+        <MetricCard label="Total tasks" value={m.totalTasks} />
+        <MetricCard label="Done tasks" value={m.doneTasks} />
+        <MetricCard label="Blocked" value={m.blockedTasks} />
+      </MetricStrip>
+
+      {/* Always-visible charts */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 16,
+        }}
+      >
+        <ChartCard title="Completion">
+          <SprintCompletionDonut completionRate={m.doneRate} />
+        </ChartCard>
+      </div>
+
+      {/* AI area */}
+      {isError ? (
+        <SectionMessage
+          appearance="error"
+          title="Couldn't generate the AI overview"
+          actions={[
+            <Button key="retry" appearance="primary" onClick={() => generate(payload)}>
+              Retry
+            </Button>,
+          ]}
+        >
+          <Text>{error instanceof Error ? error.message : 'Something went wrong. Please try again.'}</Text>
+        </SectionMessage>
+      ) : isFetching ? (
+        <Stack space="space.150">
+          <AiSkeletonBox />
+          <AiSkeletonBox />
+          <AiSkeletonBox />
+        </Stack>
+      ) : data ? (
+        <Stack space="space.300">
+          <InsightSection title="Overall Health" defaultOpen>
+            <Stack space="space.100">
+              <HealthOverviewBlock
+                tone={
+                  data.healthStatus === 'healthy'
+                    ? 'success'
+                    : data.healthStatus === 'at_risk'
+                      ? 'warning'
+                      : 'danger'
+                }
+                label={data.healthStatus}
+                score={data.healthScore ?? undefined}
+                summary={data.healthSummary}
+              />
+              {data.deliveryTrend ? (
+                <Text size="small" color="color.text.subtle">
+                  Delivery trend: {data.deliveryTrend.direction} — {data.deliveryTrend.summary}
+                </Text>
+              ) : null}
+              {data.recentSprintTrend ? (
+                <Text size="small" color="color.text.subtle">
+                  Recent sprint trend: {data.recentSprintTrend}
+                </Text>
+              ) : null}
+            </Stack>
+          </InsightSection>
+
+          {risks.length > 0 ? (
+            <InsightSection title="Current Risks" count={risks.length} defaultOpen>
+              <Stack space="space.150">
+                {risks.map((risk, i) => (
+                  <RiskCard key={i} risk={risk} />
+                ))}
+                <ChartCard title="AI risk assessment" caption="AI assessment — not a system metric">
+                  <AiRiskAssessmentChart risks={risks} />
+                </ChartCard>
+              </Stack>
+            </InsightSection>
+          ) : null}
+
+          {recommendations.length > 0 ? (
+            <InsightSection title="AI Recommendations" count={recommendations.length} defaultOpen>
+              <Stack space="space.150">
+                {recommendations.map((rec, i) => (
+                  <RecommendationCard key={i} rec={rec} />
+                ))}
+              </Stack>
+            </InsightSection>
+          ) : null}
+
+          {nextActions.length > 0 ? (
+            <InsightSection title="Suggested Next Actions" count={nextActions.length} defaultOpen>
+              <Stack space="space.150">
+                {nextActions.map((item, i) => (
+                  <ActionCard key={i} item={item} />
+                ))}
+              </Stack>
+            </InsightSection>
+          ) : null}
+        </Stack>
+      ) : (
+        // Idle
+        <SectionMessage
+          appearance="discovery"
+          title="Get an AI executive overview"
+        >
+          <Stack space="space.150">
+            <Text>
+              {isIdle
+                ? 'Generate an AI-written summary of project health, risks, recommendations, and next actions from your current task data.'
+                : 'Ready when you are.'}
+            </Text>
+            {disabledHint ? (
+              <Text size="small" color="color.text.subtlest">
+                {disabledHint}
+              </Text>
+            ) : null}
+            <Box>{generateButton}</Box>
+          </Stack>
+        </SectionMessage>
+      )}
+
+      <ExtensibleSlot
+        title="Portfolio & Team analytics"
+        description="Portfolio, team, and release analytics coming soon"
+      />
+    </AnalyticsDashboardShell>
+  );
+}
+
+function AiSkeletonBox() {
+  return (
+    <div
+      style={{
+        height: 72,
+        borderRadius: 8,
+        background:
+          'linear-gradient(90deg, var(--trella-surface-sunken) 25%, var(--trella-border) 37%, var(--trella-surface-sunken) 63%)',
+        backgroundSize: '400% 100%',
+        opacity: 0.7,
+      }}
+      aria-hidden
+    />
   );
 }
 

@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from app.ai.utils.errors import InvalidPrompt
+
+if TYPE_CHECKING:
+    from app.ai.schemas.chat_schema import ConversationContext
 
 _PROMPTS_DIR = Path(__file__).parent
 _VAR_PATTERN = re.compile(r"{{\s*(\w+)\s*}}")
@@ -60,3 +64,23 @@ class PromptManager:
                 f"Missing prompt variables for {name!r}: {sorted(set(missing))}"
             )
         return rendered
+
+    def render_system_prompt(self, context: ConversationContext) -> str:
+        """Render the ``chat`` system prompt from a structured context.
+
+        The ``ConversationContext`` sections stay structured until this final
+        render step: only the present (non-``None``) sections are composed into
+        a labelled block that fills the prompt's ``{{context}}`` slot.
+        """
+        sections = (
+            ("Workspace", context.workspace),
+            ("Project", context.project),
+            ("Sprint", context.sprint),
+            ("Task", context.task),
+            ("Knowledge", context.knowledge),
+        )
+        blocks = [
+            f"{label}:\n{value}" for label, value in sections if value is not None
+        ]
+        block = "\n\n".join(blocks) if blocks else "No additional context provided."
+        return self.render("chat", {"context": block})

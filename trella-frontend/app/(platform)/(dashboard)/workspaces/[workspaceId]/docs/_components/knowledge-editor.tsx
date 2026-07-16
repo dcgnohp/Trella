@@ -17,7 +17,7 @@ import { useSearchParams } from 'next/navigation'
 import { SprintsService, BacklogService } from '@/lib/client'
 import type { KnowledgeCollection } from './knowledge-center-client'
 import { SOURCE_TYPE_REGISTRY } from './source-type-registry'
-import { AiDocSummary } from './ai-doc-summary'
+
 
 interface Props {
   workspaceId: string
@@ -374,11 +374,6 @@ export function KnowledgeEditor({ workspaceId, docId, collections, onBack, onSav
 
               {/* Editor */}
               <EditorContent editor={editor} />
-
-              {/* Read-only AI summary panel (P3-F2) — reads content/title only */}
-              <div className="mt-6">
-                <AiDocSummary content={editorText} title={title} testId="ai-doc-summary" />
-              </div>
             </div>
           </div>
 

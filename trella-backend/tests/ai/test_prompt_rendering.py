@@ -92,3 +92,39 @@ def test_document_summary_instruction_phrases() -> None:
         "structured",
     ):
         assert phrase in rendered
+
+
+def test_render_system_prompt_includes_only_present_sections() -> None:
+    from app.ai.schemas.chat_schema import ConversationContext
+
+    context = ConversationContext(
+        workspace="Acme HQ",
+        sprint="Sprint 12 — auth revamp",
+    )
+    rendered = PromptManager().render_system_prompt(context)
+
+    assert "Workspace:\nAcme HQ" in rendered
+    assert "Sprint:\nSprint 12 — auth revamp" in rendered
+    # Absent sections' labels must not appear.
+    assert "Project:" not in rendered
+    assert "Task:" not in rendered
+    assert "Knowledge:" not in rendered
+    assert "{{" not in rendered and "}}" not in rendered
+
+
+def test_render_system_prompt_empty_context_uses_placeholder() -> None:
+    from app.ai.schemas.chat_schema import ConversationContext
+
+    rendered = PromptManager().render_system_prompt(ConversationContext())
+
+    assert "No additional context provided." in rendered
+    for label in ("Workspace:", "Project:", "Sprint:", "Task:", "Knowledge:"):
+        assert label not in rendered
+    assert "{{" not in rendered and "}}" not in rendered
+
+
+def test_render_system_prompt_contains_key_instruction() -> None:
+    from app.ai.schemas.chat_schema import ConversationContext
+
+    rendered = PromptManager().render_system_prompt(ConversationContext())
+    assert "ONLY the context provided" in rendered

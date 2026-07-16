@@ -63,6 +63,36 @@ export const AIResponseSchema = {
     description: 'A generated result plus lightweight, non-sensitive metadata.'
 } as const;
 
+export const ActionItemSchema = {
+    properties: {
+        action: {
+            type: 'string',
+            title: 'Action'
+        },
+        priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high'],
+            title: 'Priority'
+        },
+        effort: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['s', 'm', 'l']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Effort'
+        }
+    },
+    type: 'object',
+    required: ['action', 'priority'],
+    title: 'ActionItem',
+    description: 'A suggested next action with priority and optional effort sizing.'
+} as const;
+
 export const ActivityLogPublicSchema = {
     properties: {
         id: {
@@ -301,6 +331,34 @@ export const AuthorPublicSchema = {
     required: ['id'],
     title: 'AuthorPublic',
     description: 'Public attribution for the person who performed/owns a resource.'
+} as const;
+
+export const BlockerItemSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        impact: {
+            type: 'string',
+            title: 'Impact'
+        },
+        suggestedResolution: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Suggestedresolution'
+        }
+    },
+    type: 'object',
+    required: ['title', 'impact'],
+    title: 'BlockerItem',
+    description: 'A single blocker impeding sprint progress.'
 } as const;
 
 export const BoardCreateSchema = {
@@ -970,6 +1028,58 @@ export const CardUpdateSchema = {
     title: 'CardUpdate'
 } as const;
 
+export const ChatMessageSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        timestamp: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Timestamp'
+        },
+        role: {
+            type: 'string',
+            enum: ['system', 'user', 'assistant', 'tool'],
+            title: 'Role'
+        },
+        content: {
+            type: 'string',
+            title: 'Content'
+        }
+    },
+    type: 'object',
+    required: ['id', 'timestamp', 'role', 'content'],
+    title: 'ChatMessage',
+    description: 'A single conversation message with stable metadata.'
+} as const;
+
+export const ChatRequestSchema = {
+    properties: {
+        messages: {
+            items: {
+                '$ref': '#/components/schemas/ChatMessage'
+            },
+            type: 'array',
+            title: 'Messages'
+        },
+        context: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ConversationContext'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    title: 'ChatRequest',
+    description: 'Feature input: conversation history plus optional structured context.'
+} as const;
+
 export const ColumnCreateSchema = {
     properties: {
         name: {
@@ -1181,6 +1291,69 @@ export const CommentUpdateSchema = {
     title: 'CommentUpdate'
 } as const;
 
+export const ConversationContextSchema = {
+    properties: {
+        workspace: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspace'
+        },
+        project: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project'
+        },
+        sprint: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprint'
+        },
+        task: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Task'
+        },
+        knowledge: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Knowledge'
+        }
+    },
+    type: 'object',
+    title: 'ConversationContext',
+    description: 'Optional, structured context sections supplied by the client.'
+} as const;
+
 export const CustomStatusCreateSchema = {
     properties: {
         name: {
@@ -1344,6 +1517,24 @@ export const CustomStatusUpdateSchema = {
     },
     type: 'object',
     title: 'CustomStatusUpdate'
+} as const;
+
+export const DeliveryTrendSchema = {
+    properties: {
+        direction: {
+            type: 'string',
+            enum: ['improving', 'steady', 'declining'],
+            title: 'Direction'
+        },
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        }
+    },
+    type: 'object',
+    required: ['direction', 'summary'],
+    title: 'DeliveryTrend',
+    description: "Direction of a project's delivery trend with a supporting summary."
 } as const;
 
 export const DescriptionResponseSchema = {
@@ -3361,6 +3552,151 @@ export const PlanWithBoardsPublicSchema = {
     title: 'PlanWithBoardsPublic'
 } as const;
 
+export const ProjectAssistantRequestSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        mode: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mode'
+        },
+        recentSprints: {
+            items: {
+                '$ref': '#/components/schemas/ProjectSprintSummary'
+            },
+            type: 'array',
+            title: 'Recentsprints'
+        },
+        activeSprint: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ProjectSprintSummary'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        totalTasks: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Totaltasks',
+            default: 0
+        },
+        doneTasks: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Donetasks',
+            default: 0
+        },
+        blockedTasks: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Blockedtasks',
+            default: 0
+        },
+        knownRisks: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Knownrisks'
+        }
+    },
+    type: 'object',
+    title: 'ProjectAssistantRequest',
+    description: 'Payload: aggregated project/sprint metrics (payload-mode).'
+} as const;
+
+export const ProjectAssistantResponseSchema = {
+    properties: {
+        healthSummary: {
+            type: 'string',
+            title: 'Healthsummary'
+        },
+        healthScore: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 100,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Healthscore'
+        },
+        healthStatus: {
+            type: 'string',
+            enum: ['healthy', 'at_risk', 'critical'],
+            title: 'Healthstatus'
+        },
+        deliveryTrend: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/DeliveryTrend'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        recentSprintTrend: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recentsprinttrend'
+        },
+        risks: {
+            items: {
+                '$ref': '#/components/schemas/RiskItem'
+            },
+            type: 'array',
+            title: 'Risks'
+        },
+        recommendations: {
+            items: {
+                '$ref': '#/components/schemas/RecommendationItem'
+            },
+            type: 'array',
+            title: 'Recommendations'
+        },
+        suggestedNextActions: {
+            items: {
+                '$ref': '#/components/schemas/ActionItem'
+            },
+            type: 'array',
+            title: 'Suggestednextactions'
+        }
+    },
+    type: 'object',
+    required: ['healthSummary', 'healthStatus'],
+    title: 'ProjectAssistantResponse',
+    description: 'Structured AI executive overview of a project.'
+} as const;
+
 export const ProjectCreateSchema = {
     properties: {
         name: {
@@ -3496,6 +3832,43 @@ export const ProjectPublicSchema = {
     title: 'ProjectPublic'
 } as const;
 
+export const ProjectSprintSummarySchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        status: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Status'
+        },
+        completionRate: {
+            anyOf: [
+                {
+                    type: 'number',
+                    maximum: 1,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completionrate'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ProjectSprintSummary',
+    description: "One recent sprint's lightweight summary (payload-mode input)."
+} as const;
+
 export const ProviderHealthResponseSchema = {
     properties: {
         provider: {
@@ -3515,6 +3888,245 @@ export const ProviderHealthResponseSchema = {
     required: ['provider', 'model', 'healthy'],
     title: 'ProviderHealthResponse',
     description: 'Reported by ``GET /ai/health``.'
+} as const;
+
+export const RecommendationItemSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high'],
+            title: 'Priority'
+        },
+        confidence: {
+            type: 'number',
+            maximum: 1,
+            minimum: 0,
+            title: 'Confidence'
+        },
+        expectedImpact: {
+            type: 'string',
+            title: 'Expectedimpact'
+        },
+        rationale: {
+            type: 'string',
+            title: 'Rationale'
+        }
+    },
+    type: 'object',
+    required: ['title', 'priority', 'confidence', 'expectedImpact', 'rationale'],
+    title: 'RecommendationItem',
+    description: 'A prioritized recommendation with confidence and expected impact.'
+} as const;
+
+export const RiskItemSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        severity: {
+            type: 'string',
+            enum: ['low', 'medium', 'high', 'critical'],
+            title: 'Severity'
+        },
+        likelihood: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['low', 'medium', 'high']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Likelihood'
+        },
+        rationale: {
+            type: 'string',
+            title: 'Rationale'
+        }
+    },
+    type: 'object',
+    required: ['title', 'severity', 'rationale'],
+    title: 'RiskItem',
+    description: 'A single identified sprint risk with severity and rationale.'
+} as const;
+
+export const SprintAnalysisRequestSchema = {
+    properties: {
+        goal: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Goal'
+        },
+        status: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Status'
+        },
+        startDate: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Startdate'
+        },
+        endDate: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Enddate'
+        },
+        plannedPoints: {
+            type: 'number',
+            minimum: 0,
+            title: 'Plannedpoints',
+            default: 0
+        },
+        completedPoints: {
+            type: 'number',
+            minimum: 0,
+            title: 'Completedpoints',
+            default: 0
+        },
+        todoCount: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Todocount',
+            default: 0
+        },
+        inProgressCount: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Inprogresscount',
+            default: 0
+        },
+        doneCount: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Donecount',
+            default: 0
+        },
+        velocity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Velocity'
+        },
+        blockedTasks: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Blockedtasks'
+        },
+        carriedOverTasks: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Carriedovertasks'
+        }
+    },
+    type: 'object',
+    title: 'SprintAnalysisRequest',
+    description: 'Payload: sprint metrics supplied by the frontend (payload-mode).'
+} as const;
+
+export const SprintAnalysisResponseSchema = {
+    properties: {
+        executiveSummary: {
+            type: 'string',
+            title: 'Executivesummary'
+        },
+        health: {
+            '$ref': '#/components/schemas/SprintHealth'
+        },
+        metricsCommentary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Metricscommentary'
+        },
+        risks: {
+            items: {
+                '$ref': '#/components/schemas/RiskItem'
+            },
+            type: 'array',
+            title: 'Risks'
+        },
+        blockers: {
+            items: {
+                '$ref': '#/components/schemas/BlockerItem'
+            },
+            type: 'array',
+            title: 'Blockers'
+        },
+        teamPerformance: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/TeamPerformance'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        recommendations: {
+            items: {
+                '$ref': '#/components/schemas/RecommendationItem'
+            },
+            type: 'array',
+            title: 'Recommendations'
+        },
+        suggestedActions: {
+            items: {
+                '$ref': '#/components/schemas/ActionItem'
+            },
+            type: 'array',
+            title: 'Suggestedactions'
+        }
+    },
+    type: 'object',
+    required: ['executiveSummary', 'health'],
+    title: 'SprintAnalysisResponse',
+    description: 'Structured AI analysis of a sprint (rich items power the dashboard UI).'
 } as const;
 
 export const SprintCompleteSchema = {
@@ -3580,6 +4192,37 @@ export const SprintCreateSchema = {
     },
     type: 'object',
     title: 'SprintCreate'
+} as const;
+
+export const SprintHealthSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            enum: ['on_track', 'at_risk', 'off_track'],
+            title: 'Status'
+        },
+        score: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 100,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Score'
+        },
+        rationale: {
+            type: 'string',
+            title: 'Rationale'
+        }
+    },
+    type: 'object',
+    required: ['status', 'rationale'],
+    title: 'SprintHealth',
+    description: 'Overall sprint health status with an optional numeric score.'
 } as const;
 
 export const SprintInsightsSchema = {
@@ -4491,6 +5134,33 @@ export const TaskUpdateSchema = {
     type: 'object',
     title: 'TaskUpdate',
     description: 'Partial update payload; only explicitly provided fields are applied.'
+} as const;
+
+export const TeamPerformanceSchema = {
+    properties: {
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        },
+        highlights: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Highlights'
+        },
+        concerns: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Concerns'
+        }
+    },
+    type: 'object',
+    required: ['summary'],
+    title: 'TeamPerformance',
+    description: 'Team performance narrative with highlights and concerns.'
 } as const;
 
 export const TokenSchema = {

@@ -1,43 +1,43 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import Button from '@atlaskit/button/new';
-import { Box, Inline, Stack, xcss } from '@atlaskit/primitives';
+import { Sparkles, X } from 'lucide-react';
 
-import { AiButton } from '@/components/ai/ai-button';
 import { AiLoading } from '@/components/ai/ai-loading';
 import { AiResponseCard } from '@/components/ai/ai-response-card';
 import { useSummarizeDoc } from '@/lib/ai/use-summarize-doc';
 
-const cardStyles = xcss({
-  padding: 'space.200',
-  borderRadius: 'radius.medium',
-  backgroundColor: 'elevation.surface.raised',
-});
-
-const hintStyles = xcss({ color: 'color.text.subtlest' });
-
-export interface AiDocSummaryProps {
+export interface AiDocSummaryPanelProps {
   content?: string | null;
   title?: string | null;
-  testId?: string;
+  onClose: () => void;
 }
 
 /**
- * Read-only AI summary panel for a Knowledge Center document. Never mutates or
- * saves the document — it only reads `content`/`title` and displays a generated
- * summary plus key points / key decisions / action items (design P3-F2).
+ * Right-hand AI summary panel for the document viewer. Renders beside the
+ * document content so the user can scroll the doc and read the summary at the
+ * same time. Auto-summarizes on mount; read-only (never writes the document).
  */
-export function AiDocSummary({ content, title, testId }: AiDocSummaryProps) {
+export function AiDocSummaryPanel({
+  content,
+  title,
+  onClose,
+}: AiDocSummaryPanelProps) {
   const { mutate, data, isPending, error } = useSummarizeDoc();
   const trimmed = (content ?? '').trim();
   const isEmpty = trimmed.length === 0;
 
-  const runSummarize = useCallback(() => {
+  const run = useCallback(() => {
     if (isEmpty) return;
     mutate({ content: trimmed, title: title ?? undefined });
   }, [isEmpty, mutate, trimmed, title]);
+
+  // Auto-summarize when the panel mounts (opened).
+  useEffect(() => {
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCopy = useCallback(() => {
     const text = data?.summary;
@@ -48,73 +48,75 @@ export function AiDocSummary({ content, title, testId }: AiDocSummaryProps) {
   }, [data]);
 
   return (
-    <Box xcss={cardStyles} testId={testId}>
-      <Stack space="space.200">
-        <strong>AI summary</strong>
+    <aside className="w-[360px] flex-shrink-0 border-l border-border flex flex-col overflow-hidden bg-background">
+      {/* Panel header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <Sparkles className="w-4 h-4 text-primary" />
+          AI summary
+        </span>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent"
+          title="Close AI summary"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
 
-        {isPending ? (
-          <AiLoading />
+      {/* Panel body (scrolls independently of the document) */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {isEmpty ? (
+          <p className="text-sm text-muted-foreground">
+            This document has no content to summarize.
+          </p>
         ) : error ? (
-          <AiResponseCard error={error} onRetry={runSummarize} />
-        ) : data ? (
-          <Stack space="space.200">
-            <Box>{data.summary}</Box>
-
-            <BulletSection heading="Key points" items={data.keyPoints} />
-            <BulletSection heading="Key decisions" items={data.keyDecisions} />
-            <BulletSection heading="Action items" items={data.actionItems} />
-
-            <Inline space="space.100">
-              <Button
-                appearance="subtle"
-                onClick={runSummarize}
-                testId="ai-doc-summary-regenerate"
+          <AiResponseCard error={error} onRetry={run} />
+        ) : isPending || !data ? (
+          <AiLoading label={'Summarizing\u2026'} />
+        ) : (
+          <div className="flex flex-col gap-4 text-sm text-foreground">
+            <p className="leading-relaxed">{data.summary}</p>
+            <PanelSection heading="Key points" items={data.keyPoints} />
+            <PanelSection heading="Key decisions" items={data.keyDecisions} />
+            <PanelSection heading="Action items" items={data.actionItems} />
+            <div className="flex gap-2 pt-1 border-t border-border">
+              <button
+                onClick={run}
+                className="mt-3 h-7 px-2.5 text-xs font-medium border border-border rounded hover:bg-accent text-foreground transition-colors"
               >
                 Regenerate
-              </Button>
-              <Button
-                appearance="subtle"
+              </button>
+              <button
                 onClick={handleCopy}
-                testId="ai-doc-summary-copy"
+                className="mt-3 h-7 px-2.5 text-xs font-medium border border-border rounded hover:bg-accent text-foreground transition-colors"
               >
-                Copy
-              </Button>
-            </Inline>
-          </Stack>
-        ) : (
-          <Stack space="space.100" alignInline="start">
-            <AiButton
-              onClick={runSummarize}
-              isDisabled={isEmpty}
-              testId="ai-doc-summary-generate"
-            >
-              Summarize
-            </AiButton>
-            {isEmpty ? (
-              <Box xcss={hintStyles}>Add content to generate a summary.</Box>
-            ) : null}
-          </Stack>
+                Copy summary
+              </button>
+            </div>
+          </div>
         )}
-      </Stack>
-    </Box>
+      </div>
+    </aside>
   );
 }
 
-/** Labelled "• "-prefixed list; renders nothing when there are no items. */
-function BulletSection({
-  heading,
-  items,
-}: {
-  heading: string;
-  items?: string[];
-}) {
+/** Labelled list; renders nothing when empty. */
+function PanelSection({ heading, items }: { heading: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
-    <Stack space="space.050">
-      <strong>{heading}</strong>
-      {items.map((item, i) => (
-        <Box key={i}>{`\u2022 ${item}`}</Box>
-      ))}
-    </Stack>
+    <div className="flex flex-col gap-1">
+      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+        {heading}
+      </p>
+      <ul className="flex flex-col gap-1">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-1.5">
+            <span className="text-primary">•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

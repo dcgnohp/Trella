@@ -8,6 +8,8 @@ the OpenAI provider). Structured output uses Gemini's native JSON schema mode
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+
 import httpx
 from google import genai
 from google.genai import errors, types
@@ -20,7 +22,13 @@ from tenacity import (
     wait_exponential,
 )
 
-from app.ai.providers.base import AIProvider, GenerationResult, StructuredResult, T
+from app.ai.providers.base import (
+    AIProvider,
+    GenerationResult,
+    ProviderMessage,
+    StructuredResult,
+    T,
+)
 from app.ai.utils.errors import (
     InvalidResponse,
     ProviderTimeout,
@@ -170,6 +178,49 @@ class GeminiProvider(AIProvider):
             )
 
         return await _run()
+
+    async def stream(
+        self,
+        *,
+        messages: list[ProviderMessage],
+        model: str | None = None,
+        temperature: float = 0.0,
+        max_tokens: int | None = None,
+        timeout: float | None = None,
+    ) -> AsyncIterator[str]:
+        target_model = model or self._default_model
+        client = self._get_client()
+        # Gemini has no "system" turn: system messages become system_instruction
+        # and the rest become contents (assistant -> Gemini's "model" role).
+        system_parts = [m.content for m in messages if m.role == "system"]
+        system_instruction = "\n".join(system_parts) or None
+        contents = [
+            types.Content(
+                role="model" if m.role == "assistant" else "user",
+                parts=[types.Part(text=m.content)],
+            )
+            for m in messages
+            if m.role != "system"
+        ]
+        # ponytail: no tenacity here — replaying a partially consumed stream
+        # would duplicate deltas; we only map errors to unified types.
+        try:
+            stream = await client.aio.models.generate_content_stream(
+                model=target_model,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
+                    http_options=types.HttpOptions(
+                        timeout=int((timeout or self._timeout) * 1000)
+                    ),
+                ),
+            )
+            async for chunk in stream:
+                yield chunk.text or ""
+        except Exception as exc:
+            raise self._translate(exc)
 
     async def health_check(self) -> bool:
         if self._client is None and not self._api_key:

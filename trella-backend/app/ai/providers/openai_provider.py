@@ -7,6 +7,9 @@ future providers rather than relying on each SDK's own retry logic).
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from typing import cast
+
 import openai
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
@@ -19,7 +22,13 @@ from tenacity import (
     wait_exponential,
 )
 
-from app.ai.providers.base import AIProvider, GenerationResult, StructuredResult, T
+from app.ai.providers.base import (
+    AIProvider,
+    GenerationResult,
+    ProviderMessage,
+    StructuredResult,
+    T,
+)
 from app.ai.utils.errors import (
     InvalidResponse,
     ProviderTimeout,
@@ -201,6 +210,49 @@ class OpenAIProvider(AIProvider):
             completion_tokens=usage.completion_tokens if usage else None,
             total_tokens=usage.total_tokens if usage else None,
         )
+
+    async def stream(
+        self,
+        *,
+        messages: list[ProviderMessage],
+        model: str | None = None,
+        temperature: float = 0.0,
+        max_tokens: int | None = None,
+        timeout: float | None = None,
+    ) -> AsyncIterator[str]:
+        target_model = model or self._default_model
+        client = self._get_client()
+        # role is a bare str at the provider layer; the SDK's message params are
+        # Literal-typed TypedDicts, so cast rather than branch on every role.
+        sdk_messages = cast(
+            "list[ChatCompletionMessageParam]",
+            [{"role": m.role, "content": m.content} for m in messages],
+        )
+        # ponytail: no tenacity here — a retry that replays a partially consumed
+        # stream would duplicate deltas. Errors (at init or mid-stream) are only
+        # mapped to unified types. Upgrade path: retry solely at initiation.
+        try:
+            stream = await client.chat.completions.create(
+                model=target_model,
+                messages=sdk_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                timeout=timeout or self._timeout,
+                stream=True,
+                stream_options={"include_usage": True},
+            )
+            async for chunk in stream:
+                if not chunk.choices:
+                    continue  # usage-only final chunk has no choices
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except openai.APITimeoutError as exc:
+            raise ProviderTimeout(str(exc))
+        except openai.RateLimitError as exc:
+            raise RateLimited(str(exc))
+        except openai.OpenAIError as exc:
+            raise ProviderUnavailable(str(exc))
 
     async def health_check(self) -> bool:
         if self._client is None and not self._api_key:

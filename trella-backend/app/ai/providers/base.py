@@ -8,6 +8,7 @@ into this interface and raise the unified errors in ``app.ai.utils.errors``.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
@@ -17,6 +18,20 @@ from app.core.base import CamelModel
 # stays camelCase (see ``ai_schema``). Target Python 3.10 — classic ``TypeVar``
 # rather than PEP 695 ``def f[T]`` syntax.
 T = TypeVar("T", bound="CamelModel")
+
+
+@dataclass(frozen=True)
+class ProviderMessage:
+    """One chat turn at the provider layer.
+
+    Deliberately minimal (``role``/``content``) so the provider layer never
+    depends on a business schema (see ``.ai/PHASE_4_PLAN.md`` decision #5).
+    ``role`` is a bare ``str`` (``"system"``/``"user"``/``"assistant"``); each
+    provider maps it to its own vendor vocabulary.
+    """
+
+    role: str
+    content: str
 
 
 @dataclass(frozen=True)
@@ -89,11 +104,22 @@ class AIProvider(ABC):
     async def stream(
         self,
         *,
-        prompt: str,
+        messages: list[ProviderMessage],
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = None,
-    ) -> object:
-        # ponytail: streaming is intentionally deferred to Phase 4 (AI Chat).
-        # Declared here so the interface is stable and Phase 4 only implements it.
-        raise NotImplementedError("Streaming is introduced in Phase 4 (AI Chat).")
+        timeout: float | None = None,
+    ) -> AsyncIterator[str]:
+        """Yield text deltas for a chat ``messages`` history.
+
+        Operates on role-bearing messages, never a flattened string (decision
+        #5). A concrete default (not ``@abstractmethod``) mirrors
+        ``generate_structured`` so pre-existing subclasses/fakes stay
+        instantiable; real providers override it.
+        """
+        # ponytail: default raises rather than being abstract to keep existing
+        # AIProvider subclasses instantiable; every streaming provider overrides
+        # this. The unreachable ``yield`` makes this an async generator so the
+        # return type is ``AsyncIterator[str]`` (not a coroutine).
+        raise NotImplementedError("Streaming is not implemented for this provider.")
+        yield ""  # pragma: no cover
