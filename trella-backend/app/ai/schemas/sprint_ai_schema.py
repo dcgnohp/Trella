@@ -21,6 +21,7 @@ class RiskItem(CamelModel):
     severity: Literal["low", "medium", "high", "critical"]
     likelihood: Literal["low", "medium", "high"] | None = None
     rationale: str
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
 class BlockerItem(CamelModel):
@@ -29,6 +30,21 @@ class BlockerItem(CamelModel):
     title: str
     impact: str
     suggested_resolution: str | None = None
+
+
+class BottleneckItem(CamelModel):
+    """A process/flow bottleneck slowing the team down."""
+
+    title: str
+    impact: str
+    area: str | None = None
+
+
+class ChecklistItem(CamelModel):
+    """A single actionable item on the manager checklist."""
+
+    label: str
+    priority: Literal["low", "medium", "high"] | None = None
 
 
 class RecommendationItem(CamelModel):
@@ -80,6 +96,7 @@ class SprintAnalysisRequest(CamelModel):
     velocity: float | None = Field(default=None, ge=0.0)
     blocked_tasks: list[str] = Field(default_factory=list)
     carried_over_tasks: list[str] = Field(default_factory=list)
+    previous_summary: str | None = None
 
 
 class SprintAnalysisResponse(CamelModel):
@@ -93,3 +110,7 @@ class SprintAnalysisResponse(CamelModel):
     team_performance: TeamPerformance | None = None
     recommendations: list[RecommendationItem] = Field(default_factory=list)
     suggested_actions: list[ActionItem] = Field(default_factory=list)
+    wins: list[str] = Field(default_factory=list)
+    bottlenecks: list[BottleneckItem] = Field(default_factory=list)
+    manager_checklist: list[ChecklistItem] = Field(default_factory=list)
+    changes_since_last: str | None = None

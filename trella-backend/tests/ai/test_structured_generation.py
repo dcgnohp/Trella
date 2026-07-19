@@ -49,9 +49,7 @@ def _client(parse: _FakeParse) -> Any:
 def _parsed_response(parsed: Any, refusal: str | None = None) -> Any:
     return SimpleNamespace(
         choices=[
-            SimpleNamespace(
-                message=SimpleNamespace(parsed=parsed, refusal=refusal)
-            )
+            SimpleNamespace(message=SimpleNamespace(parsed=parsed, refusal=refusal))
         ],
         usage=SimpleNamespace(prompt_tokens=7, completion_tokens=11, total_tokens=18),
     )
@@ -70,9 +68,7 @@ def _provider(parse: _FakeParse) -> OpenAIProvider:
 def test_generate_structured_happy_path() -> None:
     parse = _FakeParse(_parsed_response(_Desc(description="do the thing")))
     result = asyncio.run(
-        _provider(parse).generate_structured(
-            prompt="hello", response_model=_Desc
-        )
+        _provider(parse).generate_structured(prompt="hello", response_model=_Desc)
     )
     assert isinstance(result, StructuredResult)
     assert result.parsed.description == "do the thing"

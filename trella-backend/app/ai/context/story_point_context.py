@@ -44,12 +44,18 @@ class StoryPointContext(ContextBuilder):
             priority=req.priority,
             sprint_goal=req.sprint_goal,
             velocity=req.velocity,
-            history=[{"title": h.title, "story_point": h.story_point} for h in req.history],
+            history=[
+                {"title": h.title, "story_point": h.story_point} for h in req.history
+            ],
         )
 
     def build(self) -> dict[str, str]:
         """Return the prompt variables as strings."""
-        history_str = "\n".join(f"- {h['title']}: {h['story_point']}" for h in self.history) if self.history else ""
+        history_str = (
+            "\n".join(f"- {h['title']}: {h['story_point']}" for h in self.history)
+            if self.history
+            else ""
+        )
 
         variables: dict[str, str] = {
             "title": self.title,

@@ -50,6 +50,7 @@ class SprintContext(ContextBuilder):
         velocity: float | None = None,
         blocked_tasks: list[str] | None = None,
         carried_over_tasks: list[str] | None = None,
+        previous_summary: str | None = None,
     ) -> None:
         self.goal = goal
         self.status = status
@@ -63,6 +64,7 @@ class SprintContext(ContextBuilder):
         self.velocity = velocity
         self.blocked_tasks = blocked_tasks or []
         self.carried_over_tasks = carried_over_tasks or []
+        self.previous_summary = previous_summary
 
     @classmethod
     def from_payload(cls, req: SprintAnalysisRequest) -> SprintContext:
@@ -80,6 +82,7 @@ class SprintContext(ContextBuilder):
             velocity=req.velocity,
             blocked_tasks=req.blocked_tasks,
             carried_over_tasks=req.carried_over_tasks,
+            previous_summary=req.previous_summary,
         )
 
     def _total_tasks(self) -> int:
@@ -146,6 +149,7 @@ class SprintContext(ContextBuilder):
             "metrics": metrics,
             "blocked_tasks": _bullets(self.blocked_tasks, _MAX_TASKS),
             "carried_over_tasks": _bullets(self.carried_over_tasks, _MAX_TASKS),
+            "previous_summary": self.previous_summary or "None",
         }
         return {k: str(v) for k, v in self.redact(variables).items()}
 

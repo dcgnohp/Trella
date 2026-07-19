@@ -5,9 +5,9 @@ from app.ai.schemas.ai_schema import AIRequest, AIResponse, ProviderHealthRespon
 
 def test_request_accepts_snake_and_camel() -> None:
     assert AIRequest(prompt="hi", model="gpt-4.1").model == "gpt-4.1"
-    assert AIRequest.model_validate({"prompt": "hi", "variables": {"a": "b"}}).variables == {
-        "a": "b"
-    }
+    assert AIRequest.model_validate(
+        {"prompt": "hi", "variables": {"a": "b"}}
+    ).variables == {"a": "b"}
 
 
 def test_response_serializes_camel_case() -> None:

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
 from pydantic import Field
 
@@ -45,7 +46,19 @@ class ConversationContext(CamelModel):
 
 
 class ChatRequest(CamelModel):
-    """Feature input: conversation history plus optional structured context."""
+    """Feature input: conversation history plus optional structured context.
+
+    Phase 7 adds optional *current-view* IDs so the reasoning engine can scope
+    tool calls to what the user is looking at (workspace/project/sprint/task)
+    and a ``conversation_id`` so conversation-scoped tool-result memory can be
+    reused across the requests of one conversation. All optional and ignored
+    when tools are disabled — the payload-only chat path is unchanged.
+    """
 
     messages: list[ChatMessage] = Field(default_factory=list)
     context: ConversationContext | None = None
+    workspace_id: UUID | None = None
+    project_id: UUID | None = None
+    sprint_id: UUID | None = None
+    task_id: UUID | None = None
+    conversation_id: str | None = None

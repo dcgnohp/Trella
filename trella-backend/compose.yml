@@ -1,7 +1,11 @@
 services:
 
   db:
-    image: postgres:18
+    # pgvector/pgvector:pg18 is the official postgres:18 image + the `vector`
+    # extension preinstalled (drop-in: same PGDATA layout, so the existing
+    # app-db-data volume is reused and data is preserved). Needed for Phase 9
+    # (Semantic Search / RAG): enables `CREATE EXTENSION vector`.
+    image: pgvector/pgvector:pg18
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -18,3 +22,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+
+volumes:
+  app-db-data:

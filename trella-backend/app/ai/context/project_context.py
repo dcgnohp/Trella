@@ -52,6 +52,7 @@ class ProjectContext(ContextBuilder):
         done_tasks: int = 0,
         blocked_tasks: int = 0,
         known_risks: list[str] | None = None,
+        previous_summary: str | None = None,
     ) -> None:
         self.name = name
         self.mode = mode
@@ -61,6 +62,7 @@ class ProjectContext(ContextBuilder):
         self.done_tasks = done_tasks
         self.blocked_tasks = blocked_tasks
         self.known_risks = known_risks or []
+        self.previous_summary = previous_summary
 
     @classmethod
     def from_payload(cls, req: ProjectAssistantRequest) -> ProjectContext:
@@ -74,11 +76,16 @@ class ProjectContext(ContextBuilder):
             done_tasks=req.done_tasks,
             blocked_tasks=req.blocked_tasks,
             known_risks=req.known_risks,
+            previous_summary=req.previous_summary,
         )
 
     def build(self) -> dict[str, str]:
         """Return prompt variables as strings. Trust boundary: validate here."""
-        if not self.recent_sprints and self.active_sprint is None and self.total_tasks == 0:
+        if (
+            not self.recent_sprints
+            and self.active_sprint is None
+            and self.total_tasks == 0
+        ):
             raise InvalidPrompt("Not enough project data to analyze.")
         # Negatives are blocked at the schema (Field(ge=0)); only cross-field
         # consistency needs checking here.
@@ -101,10 +108,16 @@ class ProjectContext(ContextBuilder):
             sprints = "None"
 
         active_sprint = (
-            _sprint_line(self.active_sprint) if self.active_sprint is not None else "None"
+            _sprint_line(self.active_sprint)
+            if self.active_sprint is not None
+            else "None"
         )
 
-        done_pct = round(self.done_tasks / self.total_tasks * 100) if self.total_tasks > 0 else 0
+        done_pct = (
+            round(self.done_tasks / self.total_tasks * 100)
+            if self.total_tasks > 0
+            else 0
+        )
         metrics = "\n".join(
             [
                 f"Total tasks: {self.total_tasks}",
@@ -127,6 +140,7 @@ class ProjectContext(ContextBuilder):
             "active_sprint": active_sprint,
             "metrics": metrics,
             "risks_hint": risks_hint,
+            "previous_summary": self.previous_summary or "None",
         }
         return {k: str(v) for k, v in self.redact(variables).items()}
 

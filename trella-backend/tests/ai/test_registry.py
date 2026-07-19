@@ -119,3 +119,5 @@ def test_analytics_features_are_structured_on_default_tier() -> None:
         assert config.response_model is not None
         assert config.model_tier == "default"
         assert resolve_model(config.model_tier, settings) == settings.AI_DEFAULT_MODEL
+        assert config.prompt_version == "v2"
+        assert config.response_schema_version == "v2"

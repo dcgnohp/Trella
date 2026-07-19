@@ -9,16 +9,21 @@ from sqlmodel import Session
 from app.core.deps import resolve_scope
 from app.core.rbac import Action, RBACService
 from app.models.enums import ActivityAction, NotificationType, UserAccountStatus
-from app.models.tasks_model import Task
+from app.models.tasks_model import DEFAULT_TASK_PRIORITY, Task
 from app.models.users_model import User
 from app.repositories.board_columns_repository import BoardColumnsRepository
+from app.repositories.boards_repository import BoardsRepository
 from app.repositories.custom_statuses_repository import CustomStatusesRepository
+from app.repositories.organizations_repository import OrganizationsRepository
 from app.repositories.project_members_repository import ProjectMembersRepository
+from app.repositories.projects_repository import ProjectsRepository
+from app.repositories.sprints_repository import SprintsRepository
 from app.repositories.tasks_repository import TasksRepository
 from app.repositories.velocity_config_repository import VelocityConfigRepository
-from app.schemas.tasks_schema import TaskUpdate
+from app.schemas.tasks_schema import TaskCreate, TaskUpdate
 from app.services.activity_logs_service import ActivityLogsService
 from app.services.notifications_service import NotificationService
+from app.services.organization_members_service import OrganizationMemberService
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +57,11 @@ class TasksService:
         activity_logs_service: ActivityLogsService | None = None,
         notification_service: NotificationService | None = None,
         velocity_config_repo: VelocityConfigRepository | None = None,
+        boards_repo: BoardsRepository | None = None,
+        projects_repo: ProjectsRepository | None = None,
+        org_member_service: OrganizationMemberService | None = None,
+        sprints_repo: SprintsRepository | None = None,
+        organizations_repo: OrganizationsRepository | None = None,
     ) -> None:
         self.repo = repo or TasksRepository()
         self.custom_statuses_repo = custom_statuses_repo or CustomStatusesRepository()
@@ -61,6 +71,11 @@ class TasksService:
         self.notification_service = notification_service or NotificationService()
         self.velocity_config_repo = velocity_config_repo or VelocityConfigRepository()
         self.board_columns_repo = BoardColumnsRepository()
+        self.boards_repo = boards_repo or BoardsRepository()
+        self.projects_repo = projects_repo or ProjectsRepository()
+        self.org_member_service = org_member_service or OrganizationMemberService()
+        self.sprints_repo = sprints_repo or SprintsRepository()
+        self.organizations_repo = organizations_repo or OrganizationsRepository()
 
     # ------------------------------------------------------------------ #
     # Internal helpers                                                   #
@@ -188,6 +203,115 @@ class TasksService:
         else:
             base = task.created_at if task.created_at else utcnow()
         task.due_date = base + timedelta(days=days)
+
+    # ------------------------------------------------------------------ #
+    # create_task                                                        #
+    # ------------------------------------------------------------------ #
+    def create_task(
+        self,
+        session: Session,
+        board_id: uuid.UUID,
+        column_id: uuid.UUID,
+        data: TaskCreate,
+        user: User,
+    ) -> Task:
+        column = self.board_columns_repo.get(session, column_id)
+        if column is None or column.board_id != board_id:
+            raise HTTPException(status_code=404, detail="Column not found")
+        board = self.boards_repo.get(session, board_id)
+        if board is None:
+            raise HTTPException(status_code=404, detail="Board not found")
+        project = self.projects_repo.get(session, board.project_id)
+        if project is None:
+            raise HTTPException(status_code=500, detail="Owning project not found")
+        self.org_member_service.assert_member(session, project.workspace_id, user.id)
+        position = self.repo.max_position(session, column_id) + 1
+
+        # ponytail: SCRUM workspaces auto-assign new board tasks to the active sprint
+        # so tasks created via "+ Add task" on the board land in the running sprint
+        # instead of the backlog.
+        from app.models.enums import WorkspaceMode
+
+        auto_sprint_id: uuid.UUID | None = None
+        workspace = self.organizations_repo.get(session, project.workspace_id)
+        if workspace is not None and workspace.mode == WorkspaceMode.SCRUM.value:
+            active_sprint = self.sprints_repo.get_active_sprint(session, project.id)
+            if active_sprint is not None:
+                auto_sprint_id = active_sprint.id
+
+        # Auto-compute due_date from story_point if not explicitly provided.
+        computed_due_date = data.due_date
+        if data.story_point is not None and computed_due_date is None:
+            from datetime import timedelta
+
+            from app.core.base import utcnow
+
+            config = self.velocity_config_repo.get_by_workspace(
+                session, project.workspace_id
+            )
+            hours_per_point = config.hours_per_point if config is not None else 4.0
+            days = data.story_point * hours_per_point / 8.0
+            computed_due_date = utcnow() + timedelta(days=days)
+
+        # Atomically increment project.task_counter and build issue_key
+        from sqlalchemy import text as sa_text
+
+        session.exec(  # type: ignore[call-overload]
+            sa_text(
+                "UPDATE projects SET task_counter = task_counter + 1 WHERE id = :pid"
+            ),
+            params={"pid": str(project.id)},
+        )
+        session.flush()
+        session.refresh(project)
+        issue_key = f"{project.key}-{project.task_counter}"
+
+        try:
+            task = self.repo.create(
+                session,
+                Task(
+                    project_id=project.id,
+                    board_id=board_id,
+                    column_id=column_id,
+                    title=data.title,
+                    description=data.description,
+                    priority=DEFAULT_TASK_PRIORITY,
+                    position=position,
+                    type=(data.type or "TASK").upper(),
+                    parent_id=data.parent_id,
+                    due_date=computed_due_date,
+                    assignee_id=data.assignee_id,
+                    story_point=data.story_point,
+                    issue_key=issue_key,
+                    sprint_id=auto_sprint_id,
+                ),
+            )
+            self.activity_logs_service.record(
+                session,
+                workspace_id=project.workspace_id,
+                project_id=project.id,
+                actor=user,
+                action=ActivityAction.TASK_CREATED,
+                new_value={"id": str(task.id), "title": task.title},
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(task)
+
+        try:
+            from app.core.realtime import ws_manager
+
+            ws_manager.push_to_project(
+                task.project_id,
+                "task.created",
+                {"task_id": str(task.id), "board_id": str(task.board_id)},
+            )
+        except Exception:  # noqa: BLE001 — never fail the caller on a push.
+            pass
+
+        return task
 
     # ------------------------------------------------------------------ #
     # update_task                                                        #

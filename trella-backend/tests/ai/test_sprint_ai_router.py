@@ -90,16 +90,12 @@ def test_sprint_analysis_maps_invalid_prompt_to_400() -> None:
         None, exc=InvalidPrompt("Not enough sprint data to analyze.")
     )
     _override_auth()
-    resp = TestClient(app).post(
-        "/api/v1/ai/sprint/analysis", json={"goal": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/sprint/analysis", json={"goal": "x"})
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "invalid_prompt"
     app.dependency_overrides.clear()
 
 
 def test_sprint_analysis_requires_auth() -> None:
-    resp = TestClient(app).post(
-        "/api/v1/ai/sprint/analysis", json={"goal": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/sprint/analysis", json={"goal": "x"})
     assert resp.status_code == 401

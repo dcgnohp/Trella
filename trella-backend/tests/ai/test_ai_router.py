@@ -44,7 +44,9 @@ class _FakeProvider(AIProvider):
         return True
 
 
-def _client(result: GenerationResult | None = None, exc: Exception | None = None) -> Iterator[TestClient]:
+def _client(
+    result: GenerationResult | None = None, exc: Exception | None = None
+) -> Iterator[TestClient]:
     service = AIBaseService(_FakeProvider(result, exc))
     app.dependency_overrides[get_ai_service] = lambda: service
     app.dependency_overrides[get_current_user] = lambda: User(
@@ -70,14 +72,18 @@ def test_health_ok(ok_client: TestClient) -> None:
 
 
 def test_generate_ok(ok_client: TestClient) -> None:
-    resp = ok_client.post("/api/v1/ai/generate", json={"prompt": "_ping", "variables": {"message": "hi"}})
+    resp = ok_client.post(
+        "/api/v1/ai/generate", json={"prompt": "_ping", "variables": {"message": "hi"}}
+    )
     assert resp.status_code == 200
     assert resp.json()["content"] == "pong"
 
 
 def test_generate_maps_rate_limit_to_429() -> None:
     client = next(_client(exc=RateLimited("slow down")))
-    resp = client.post("/api/v1/ai/generate", json={"prompt": "_ping", "variables": {"message": "hi"}})
+    resp = client.post(
+        "/api/v1/ai/generate", json={"prompt": "_ping", "variables": {"message": "hi"}}
+    )
     assert resp.status_code == 429
     assert resp.json()["detail"]["code"] == "rate_limited"
     app.dependency_overrides.clear()

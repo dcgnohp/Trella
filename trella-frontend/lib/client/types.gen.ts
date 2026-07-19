@@ -11,6 +11,18 @@ export type ActionItem = {
 
 export type priority = 'low' | 'medium' | 'high';
 
+/**
+ * Outcome of one attempted (or skipped) action, safe to return.
+ */
+export type ActionResultOut = {
+    actionId: string;
+    toolName: string;
+    ok: boolean;
+    status: string;
+    summary?: (string | null);
+    error?: (string | null);
+};
+
 export type ActivityLogPublic = {
     id: string;
     workspaceId: string;
@@ -199,6 +211,15 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * A process/flow bottleneck slowing the team down.
+ */
+export type BottleneckItem = {
+    title: string;
+    impact: string;
+    area?: (string | null);
+};
+
+/**
  * Feature 3 input: seed context for task breakdown.
  */
 export type BreakdownRequest = {
@@ -258,10 +279,29 @@ export type role = 'system' | 'user' | 'assistant' | 'tool';
 
 /**
  * Feature input: conversation history plus optional structured context.
+ *
+ * Phase 7 adds optional *current-view* IDs so the reasoning engine can scope
+ * tool calls to what the user is looking at (workspace/project/sprint/task)
+ * and a ``conversation_id`` so conversation-scoped tool-result memory can be
+ * reused across the requests of one conversation. All optional and ignored
+ * when tools are disabled — the payload-only chat path is unchanged.
  */
 export type ChatRequest = {
     messages?: Array<ChatMessage>;
     context?: (ConversationContext | null);
+    workspaceId?: (string | null);
+    projectId?: (string | null);
+    sprintId?: (string | null);
+    taskId?: (string | null);
+    conversationId?: (string | null);
+};
+
+/**
+ * A single actionable item on the manager checklist.
+ */
+export type ChecklistItem = {
+    label: string;
+    priority?: ('low' | 'medium' | 'high' | null);
 };
 
 export type ColumnCreate = {
@@ -518,6 +558,23 @@ export type EpicWithTasksPublic = {
 };
 
 /**
+ * Which plan to run and which of its proposals were approved.
+ */
+export type ExecuteActionsRequest = {
+    planId: string;
+    approvedActionIds?: Array<(string)>;
+    approveAll?: boolean;
+    workspaceId?: (string | null);
+};
+
+/**
+ * One result per proposal in the plan, in plan order.
+ */
+export type ExecuteActionsResponse = {
+    results: Array<ActionResultOut>;
+};
+
+/**
  * Feature 1 input: seed context for description generation.
  */
 export type GenerateDescriptionRequest = {
@@ -737,6 +794,7 @@ export type ProjectAssistantRequest = {
     doneTasks?: number;
     blockedTasks?: number;
     knownRisks?: Array<(string)>;
+    previousSummary?: (string | null);
 };
 
 /**
@@ -751,6 +809,11 @@ export type ProjectAssistantResponse = {
     risks?: Array<RiskItem>;
     recommendations?: Array<RecommendationItem>;
     suggestedNextActions?: Array<ActionItem>;
+    executiveSummary?: (string | null);
+    wins?: Array<(string)>;
+    bottlenecks?: Array<BottleneckItem>;
+    managerChecklist?: Array<ChecklistItem>;
+    changesSinceLast?: (string | null);
 };
 
 export type healthStatus = 'healthy' | 'at_risk' | 'critical';
@@ -819,6 +882,7 @@ export type RiskItem = {
     severity: 'low' | 'medium' | 'high' | 'critical';
     likelihood?: ('low' | 'medium' | 'high' | null);
     rationale: string;
+    confidence?: (number | null);
 };
 
 export type severity = 'low' | 'medium' | 'high' | 'critical';
@@ -839,6 +903,7 @@ export type SprintAnalysisRequest = {
     velocity?: (number | null);
     blockedTasks?: Array<(string)>;
     carriedOverTasks?: Array<(string)>;
+    previousSummary?: (string | null);
 };
 
 /**
@@ -853,6 +918,10 @@ export type SprintAnalysisResponse = {
     teamPerformance?: (TeamPerformance | null);
     recommendations?: Array<RecommendationItem>;
     suggestedActions?: Array<ActionItem>;
+    wins?: Array<(string)>;
+    bottlenecks?: Array<BottleneckItem>;
+    managerChecklist?: Array<ChecklistItem>;
+    changesSinceLast?: (string | null);
 };
 
 export type SprintComplete = {
@@ -1204,6 +1273,10 @@ export type ActivityLogsListProjectActivityData = {
 
 export type ActivityLogsListProjectActivityResponse = (Array<ActivityLogPublic>);
 
+export type AiAiMetricsResponse = ({
+    [key: string]: unknown;
+});
+
 export type AiAiHealthResponse = (ProviderHealthResponse);
 
 export type AiAiGenerateData = {
@@ -1259,6 +1332,12 @@ export type AiAiChatData = {
 };
 
 export type AiAiChatResponse = (unknown);
+
+export type AiAiExecuteActionsData = {
+    requestBody: ExecuteActionsRequest;
+};
+
+export type AiAiExecuteActionsResponse = (ExecuteActionsResponse);
 
 export type AttachmentsUploadAttachmentData = {
     formData: Body_attachments_upload_attachment;

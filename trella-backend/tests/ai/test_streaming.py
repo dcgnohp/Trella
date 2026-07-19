@@ -111,9 +111,7 @@ class _FakeGeminiStream:
 
 def _gemini(stream: _FakeGeminiStream) -> GeminiProvider:
     client = SimpleNamespace(
-        aio=SimpleNamespace(
-            models=SimpleNamespace(generate_content_stream=stream)
-        )
+        aio=SimpleNamespace(models=SimpleNamespace(generate_content_stream=stream))
     )
     return GeminiProvider(
         api_key="x", default_model="gemini-2.0-flash", timeout=5.0, client=client

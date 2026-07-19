@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 from collections.abc import AsyncIterator
 
+from app.ai.pipeline import AICallContext, AIMiddleware, AIPipeline, AIResult
 from app.ai.prompts.prompt_manager import PromptManager
 from app.ai.providers.base import AIProvider, ProviderMessage, T
 from app.ai.schemas.ai_schema import AIResponse
@@ -25,13 +26,27 @@ class AIBaseService:
         self,
         provider: AIProvider,
         prompt_manager: PromptManager | None = None,
+        middlewares: list[AIMiddleware] | None = None,
     ) -> None:
         self._provider = provider
         self._prompts = prompt_manager or PromptManager()
+        # With no middlewares the pipeline is a pass-through, so behavior is
+        # identical to a direct provider call (P6-B0).
+        self._pipeline = AIPipeline(middlewares or [])
 
     @property
     def provider_name(self) -> str:
         return self._provider.name
+
+    @property
+    def provider(self) -> AIProvider:
+        """The underlying provider (used by the Reasoning Engine, P7).
+
+        Exposed so the chat feature can build a tool-calling loop over the same
+        provider instance without reaching into private state or re-resolving
+        the provider factory.
+        """
+        return self._provider
 
     async def health_check(self) -> bool:
         """Return whether the underlying provider is reachable/configured."""
@@ -121,42 +136,70 @@ class AIBaseService:
         timeout: float | None = None,
     ) -> AIResponse:
         """Render ``prompt_name`` and generate a completion."""
-        prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
         feature_name = feature or prompt_name
-        started = time.perf_counter()
-        try:
-            result = await self._provider.generate(
-                prompt=prompt,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=timeout,
-            )
-        except Exception:
+
+        async def terminal(_ctx: AICallContext) -> AIResult:
+            prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
+            started = time.perf_counter()
+            try:
+                result = await self._provider.generate(
+                    prompt=prompt,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=timeout,
+                )
+            except Exception:
+                log_ai_call(
+                    feature=feature_name,
+                    provider=self._provider.name,
+                    model=model or "default",
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    ok=False,
+                )
+                raise
+
+            latency_ms = int((time.perf_counter() - started) * 1000)
             log_ai_call(
                 feature=feature_name,
-                provider=self._provider.name,
-                model=model or "default",
-                latency_ms=int((time.perf_counter() - started) * 1000),
-                ok=False,
+                provider=result.provider,
+                model=result.model,
+                latency_ms=latency_ms,
+                prompt_tokens=result.prompt_tokens,
+                completion_tokens=result.completion_tokens,
             )
-            raise
+            response = AIResponse(
+                content=result.content,
+                model=result.model,
+                provider=result.provider,
+                latency_ms=latency_ms,
+            )
+            return AIResult(
+                value=response,
+                usage={
+                    "prompt_tokens": result.prompt_tokens,
+                    "completion_tokens": result.completion_tokens,
+                    "total_tokens": result.total_tokens,
+                },
+                provider=result.provider,
+                model=result.model,
+                latency_ms=latency_ms,
+            )
 
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        log_ai_call(
+        ctx = AICallContext(
+            kind="generate",
             feature=feature_name,
-            provider=result.provider,
-            model=result.model,
-            latency_ms=latency_ms,
-            prompt_tokens=result.prompt_tokens,
-            completion_tokens=result.completion_tokens,
+            model=model,
+            params={
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "timeout": timeout,
+            },
+            payload={"prompt_name": prompt_name, "variables": variables},
         )
-        return AIResponse(
-            content=result.content,
-            model=result.model,
-            provider=result.provider,
-            latency_ms=latency_ms,
-        )
+        result = await self._pipeline.execute(ctx, terminal)
+        response: AIResponse = result.value
+        return response
 
     async def run_structured(
         self,
@@ -177,61 +220,94 @@ class AIBaseService:
         Stays generic: no feature registry or business schema is imported here.
         Callers pass the concrete ``response_model``.
         """
-        prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
         feature_name = feature or prompt_name
-        emit_event(
-            "AI_REQUEST_STARTED",
-            feature=feature_name,
-            provider=self._provider.name,
-        )
-        started = time.perf_counter()
-        try:
-            result = await self._provider.generate_structured(
-                prompt=prompt,
-                response_model=response_model,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=timeout,
+
+        async def terminal(_ctx: AICallContext) -> AIResult:
+            prompt = self._truncate(self._prompts.render(prompt_name, variables), model)
+            emit_event(
+                "AI_REQUEST_STARTED",
+                feature=feature_name,
+                provider=self._provider.name,
             )
-        except Exception:
+            started = time.perf_counter()
+            try:
+                result = await self._provider.generate_structured(
+                    prompt=prompt,
+                    response_model=response_model,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=timeout,
+                )
+            except Exception:
+                log_ai_call(
+                    feature=feature_name,
+                    provider=self._provider.name,
+                    model=model or "default",
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    prompt_version=prompt_version,
+                    response_model_version=response_schema_version,
+                    ok=False,
+                )
+                emit_event(
+                    "AI_REQUEST_FAILED",
+                    feature=feature_name,
+                    provider=self._provider.name,
+                )
+                raise
+
+            latency_ms = int((time.perf_counter() - started) * 1000)
             log_ai_call(
                 feature=feature_name,
-                provider=self._provider.name,
-                model=model or "default",
-                latency_ms=int((time.perf_counter() - started) * 1000),
+                provider=result.provider,
+                model=result.model,
+                latency_ms=latency_ms,
+                prompt_tokens=result.prompt_tokens,
+                completion_tokens=result.completion_tokens,
+                total_tokens=result.total_tokens,
                 prompt_version=prompt_version,
                 response_model_version=response_schema_version,
-                ok=False,
             )
             emit_event(
-                "AI_REQUEST_FAILED",
+                "AI_REQUEST_SUCCESS",
                 feature=feature_name,
-                provider=self._provider.name,
+                provider=result.provider,
+                model=result.model,
             )
-            raise
+            return AIResult(
+                value=result.parsed,
+                usage={
+                    "prompt_tokens": result.prompt_tokens,
+                    "completion_tokens": result.completion_tokens,
+                    "total_tokens": result.total_tokens,
+                },
+                provider=result.provider,
+                model=result.model,
+                latency_ms=latency_ms,
+            )
 
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        log_ai_call(
+        ctx = AICallContext(
+            kind="structured",
             feature=feature_name,
-            provider=result.provider,
-            model=result.model,
-            latency_ms=latency_ms,
-            prompt_tokens=result.prompt_tokens,
-            completion_tokens=result.completion_tokens,
-            total_tokens=result.total_tokens,
-            prompt_version=prompt_version,
-            response_model_version=response_schema_version,
+            model=model,
+            params={
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "timeout": timeout,
+                "prompt_version": prompt_version,
+                "response_schema_version": response_schema_version,
+            },
+            payload={
+                "prompt_name": prompt_name,
+                "variables": variables,
+                "response_model": response_model,
+            },
         )
-        emit_event(
-            "AI_REQUEST_SUCCESS",
-            feature=feature_name,
-            provider=result.provider,
-            model=result.model,
-        )
-        return result.parsed
+        result = await self._pipeline.execute(ctx, terminal)
+        parsed: T = result.value
+        return parsed
 
-    async def run_stream(
+    def run_stream(
         self,
         *,
         system_message: str,
@@ -250,51 +326,67 @@ class AIBaseService:
         provider's delta stream. Stays generic: no feature registry or business
         schema is imported here. Callers pass a rendered system prompt + history.
         """
-        full = [ProviderMessage("system", system_message), *messages]
-        truncated = self._truncate_messages(full, model)
-        model_name = model or "default"
-        emit_event(
-            "AI_REQUEST_STARTED",
-            feature=feature,
-            provider=self._provider.name,
-        )
-        started = time.perf_counter()
-        try:
-            async for delta in self._provider.stream(
-                messages=truncated,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=timeout,
-            ):
-                yield delta
-        except Exception:
+
+        async def terminal(_ctx: AICallContext) -> AsyncIterator[str]:
+            full = [ProviderMessage("system", system_message), *messages]
+            truncated = self._truncate_messages(full, model)
+            model_name = model or "default"
+            emit_event(
+                "AI_REQUEST_STARTED",
+                feature=feature,
+                provider=self._provider.name,
+            )
+            started = time.perf_counter()
+            try:
+                async for delta in self._provider.stream(
+                    messages=truncated,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=timeout,
+                ):
+                    yield delta
+            except Exception:
+                log_ai_call(
+                    feature=feature,
+                    provider=self._provider.name,
+                    model=model_name,
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    prompt_version=prompt_version,
+                    ok=False,
+                )
+                emit_event(
+                    "AI_REQUEST_FAILED",
+                    feature=feature,
+                    provider=self._provider.name,
+                )
+                raise
+
+            # Streaming yields no usage totals, so token counts are omitted.
             log_ai_call(
                 feature=feature,
                 provider=self._provider.name,
                 model=model_name,
                 latency_ms=int((time.perf_counter() - started) * 1000),
                 prompt_version=prompt_version,
-                ok=False,
             )
             emit_event(
-                "AI_REQUEST_FAILED",
+                "AI_REQUEST_SUCCESS",
                 feature=feature,
                 provider=self._provider.name,
+                model=model_name,
             )
-            raise
 
-        # Streaming yields no usage totals, so token counts are omitted here.
-        log_ai_call(
+        ctx = AICallContext(
+            kind="stream",
             feature=feature,
-            provider=self._provider.name,
-            model=model_name,
-            latency_ms=int((time.perf_counter() - started) * 1000),
-            prompt_version=prompt_version,
+            model=model,
+            params={
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "timeout": timeout,
+                "prompt_version": prompt_version,
+            },
+            payload={"system_message": system_message, "messages": messages},
         )
-        emit_event(
-            "AI_REQUEST_SUCCESS",
-            feature=feature,
-            provider=self._provider.name,
-            model=model_name,
-        )
+        return self._pipeline.stream(ctx, terminal)

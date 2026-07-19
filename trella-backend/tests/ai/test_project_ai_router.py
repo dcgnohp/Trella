@@ -80,16 +80,12 @@ def test_project_assistant_maps_invalid_prompt_to_400() -> None:
         None, exc=InvalidPrompt("Not enough project data to analyze.")
     )
     _override_auth()
-    resp = TestClient(app).post(
-        "/api/v1/ai/project/assistant", json={"name": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/project/assistant", json={"name": "x"})
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "invalid_prompt"
     app.dependency_overrides.clear()
 
 
 def test_project_assistant_requires_auth() -> None:
-    resp = TestClient(app).post(
-        "/api/v1/ai/project/assistant", json={"name": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/project/assistant", json={"name": "x"})
     assert resp.status_code == 401

@@ -96,6 +96,7 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   // Baseline workspace context for the AI chat — reuses already-loaded name +
   // mode, no extra fetch. Must run before the plan-route early return below.
   useContributeConversationContext({
+    ids: { workspaceId },
     workspace: { name: displayName, mode: isScrum ? 'SCRUM' : 'KANBAN' },
   });
 

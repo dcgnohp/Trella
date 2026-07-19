@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
 import { WorkspaceHeader } from "./_components/workspace-header";
 import { AiChatPanel } from "@/components/ai/ai-chat-panel";
+import { WorkspaceAiContext } from "@/components/ai/workspace-ai-context";
 import { ConversationContextProvider } from "@/lib/ai/conversation-context";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -55,6 +56,7 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
       <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
         <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
+        <WorkspaceAiContext workspaceId={workspaceId} />
         <AiChatPanel />
       </div>
     </ConversationContextProvider>

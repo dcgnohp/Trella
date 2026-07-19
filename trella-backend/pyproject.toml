@@ -24,6 +24,7 @@ dependencies = [
     "pwdlib[argon2,bcrypt]>=0.3.0",
     "openai>=1.51.0,<2.0.0",
     "google-genai>=1.0.0,<2.0.0",
+    "pgvector>=0.3.6,<0.5",
 ]
 
 [dependency-groups]
@@ -49,6 +50,12 @@ build-backend = "hatchling.build"
 [tool.mypy]
 strict = true
 exclude = ["venv", ".venv", "alembic"]
+
+# pgvector ships no py.typed marker / stubs (Phase 9). Silence the
+# import-untyped error for its SQLAlchemy integration only.
+[[tool.mypy.overrides]]
+module = "pgvector.*"
+ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py310"

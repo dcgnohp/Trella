@@ -185,6 +185,12 @@ export const KanbanBoardScreen = ({
     [sprintsQuery.data],
   );
   useContributeConversationContext({
+    ids: {
+      workspaceId,
+      projectId: boardData?.projectId ?? selectedTask?.projectId ?? activeSprint?.projectId,
+      sprintId: activeSprint?.id,
+      taskId: selectedTask?.id,
+    },
     board: {
       title: boardData?.title,
       columns: (columnsQuery.data ?? []).map((c) => c.name),

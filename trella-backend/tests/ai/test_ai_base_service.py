@@ -69,7 +69,9 @@ def test_provider_error_propagates(tmp_path: Path) -> None:
     provider = _FakeProvider(exc=RateLimited("slow down"))
     with pytest.raises(RateLimited):
         asyncio.run(
-            _service(provider, tmp_path).run(prompt_name="greet", variables={"name": "Ada"})
+            _service(provider, tmp_path).run(
+                prompt_name="greet", variables={"name": "Ada"}
+            )
         )
 
 

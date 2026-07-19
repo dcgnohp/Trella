@@ -48,8 +48,8 @@ def docs_client() -> Iterator[TestClient]:
         key_decisions=["KD1"],
         action_items=["Do this", "Do that"],
     )
-    app.dependency_overrides[get_document_summary_service] = (
-        lambda: _FakeDocumentSummaryService(result)
+    app.dependency_overrides[get_document_summary_service] = lambda: (
+        _FakeDocumentSummaryService(result)
     )
     _override_auth()
     yield TestClient(app)
@@ -70,22 +70,18 @@ def test_summarize_document_ok(docs_client: TestClient) -> None:
 
 
 def test_summarize_document_maps_invalid_prompt_to_400() -> None:
-    app.dependency_overrides[get_document_summary_service] = (
-        lambda: _FakeDocumentSummaryService(
+    app.dependency_overrides[get_document_summary_service] = lambda: (
+        _FakeDocumentSummaryService(
             None, exc=InvalidPrompt("Document content must not be empty.")
         )
     )
     _override_auth()
-    resp = TestClient(app).post(
-        "/api/v1/ai/docs/summarize", json={"content": " "}
-    )
+    resp = TestClient(app).post("/api/v1/ai/docs/summarize", json={"content": " "})
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "invalid_prompt"
     app.dependency_overrides.clear()
 
 
 def test_summarize_document_requires_auth() -> None:
-    resp = TestClient(app).post(
-        "/api/v1/ai/docs/summarize", json={"content": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/docs/summarize", json={"content": "x"})
     assert resp.status_code == 401

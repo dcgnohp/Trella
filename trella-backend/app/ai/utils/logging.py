@@ -24,12 +24,18 @@ def log_ai_call(
     prompt_version: str = "",
     response_model_version: str = "",
     ok: bool = True,
+    cost: float | None = None,
 ) -> None:
-    """Emit one structured record for an AI call. No content is included."""
+    """Emit one structured record for an AI call. No content is included.
+
+    ``cost`` is an optional, non-sensitive estimate in USD; it is only included
+    in the record when provided (unknown pricing leaves it out).
+    """
+    cost_part = "" if cost is None else f" cost={cost}"
     logger.info(
         "ai_call feature=%s provider=%s model=%s latency_ms=%d "
         "prompt_tokens=%s completion_tokens=%s total_tokens=%s "
-        "prompt_version=%s response_model_version=%s ok=%s",
+        "prompt_version=%s response_model_version=%s ok=%s%s",
         feature,
         provider,
         model,
@@ -40,6 +46,7 @@ def log_ai_call(
         prompt_version,
         response_model_version,
         ok,
+        cost_part,
     )
 
 

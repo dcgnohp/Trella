@@ -15,8 +15,21 @@ from app.ai.schemas.project_ai_schema import (
 from app.ai.schemas.sprint_ai_schema import SprintAnalysisRequest
 from app.ai.utils.errors import InvalidPrompt
 
-_SPRINT_KEYS = {"sprint", "metrics", "blocked_tasks", "carried_over_tasks"}
-_PROJECT_KEYS = {"project", "sprints", "active_sprint", "metrics", "risks_hint"}
+_SPRINT_KEYS = {
+    "sprint",
+    "metrics",
+    "blocked_tasks",
+    "carried_over_tasks",
+    "previous_summary",
+}
+_PROJECT_KEYS = {
+    "project",
+    "sprints",
+    "active_sprint",
+    "metrics",
+    "risks_hint",
+    "previous_summary",
+}
 
 
 def test_sprint_build_returns_contract_and_content() -> None:
@@ -41,6 +54,16 @@ def test_sprint_build_returns_contract_and_content() -> None:
     assert "60%" in result["metrics"]
     assert "Payments API down" in result["blocked_tasks"]
     assert result["carried_over_tasks"] == "None"
+    # previous_summary defaults to "None" when not provided.
+    assert result["previous_summary"] == "None"
+
+
+def test_sprint_build_includes_previous_summary_when_provided() -> None:
+    req = SprintAnalysisRequest(
+        previous_summary="Last sprint we slipped by 5 SP", goal="x"
+    )
+    result = SprintContext.from_payload(req).build()
+    assert result["previous_summary"] == "Last sprint we slipped by 5 SP"
 
 
 def test_sprint_empty_request_raises() -> None:
@@ -67,7 +90,9 @@ def test_project_build_returns_contract_and_content() -> None:
         recent_sprints=[
             ProjectSprintSummary(name="S1", status="done", completion_rate=0.9),
         ],
-        active_sprint=ProjectSprintSummary(name="S2", status="active", completion_rate=0.4),
+        active_sprint=ProjectSprintSummary(
+            name="S2", status="active", completion_rate=0.4
+        ),
         total_tasks=50,
         done_tasks=30,
         blocked_tasks=2,
@@ -83,6 +108,15 @@ def test_project_build_returns_contract_and_content() -> None:
     # 30 / 50 = 60% done figure.
     assert "60%" in result["metrics"]
     assert "Scope creep" in result["risks_hint"]
+    assert result["previous_summary"] == "None"
+
+
+def test_project_build_includes_previous_summary_when_provided() -> None:
+    req = ProjectAssistantRequest(
+        total_tasks=5, done_tasks=1, previous_summary="prev overview"
+    )
+    result = ProjectContext.from_payload(req).build()
+    assert result["previous_summary"] == "prev overview"
 
 
 def test_project_empty_request_raises() -> None:

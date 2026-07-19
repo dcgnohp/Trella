@@ -60,32 +60,105 @@ class FeatureConfig:
     response_model: type[CamelModel] | None
     prompt_version: str
     response_schema_version: str
+    # Cache policy (P6-B3). Additive with defaults so existing positional
+    # constructions keep working; features opt out or change TTL tier by
+    # keyword below. ``cache_tier`` selects a TTL bucket resolved by
+    # CacheMiddleware; "none" pairs with ``cacheable=False``.
+    cacheable: bool = True
+    cache_tier: Literal["long", "medium", "none"] = "medium"
 
 
 _REGISTRY: dict[AIFeature, FeatureConfig] = {
     AIFeature.GENERATE_DESCRIPTION: FeatureConfig(
-        "structured", "description_generator", "mini", 0.3, None, None, DescriptionResponse, "v1", "v1"
+        "structured",
+        "description_generator",
+        "mini",
+        0.3,
+        None,
+        None,
+        DescriptionResponse,
+        "v1",
+        "v1",
+        cache_tier="long",
     ),
     AIFeature.SUMMARIZE: FeatureConfig(
-        "structured", "description_summary", "mini", 0.2, None, None, SummaryResponse, "v1", "v1"
+        "structured",
+        "description_summary",
+        "mini",
+        0.2,
+        None,
+        None,
+        SummaryResponse,
+        "v1",
+        "v1",
     ),
     AIFeature.BREAK_DOWN_TASK: FeatureConfig(
-        "structured", "task_breakdown", "default", 0.4, None, None, BreakdownResponse, "v1", "v1"
+        "structured",
+        "task_breakdown",
+        "default",
+        0.4,
+        None,
+        None,
+        BreakdownResponse,
+        "v1",
+        "v1",
     ),
     AIFeature.ESTIMATE_STORY_POINT: FeatureConfig(
-        "structured", "story_point", "default", 0.2, None, None, StoryPointResponse, "v1", "v1"
+        "structured",
+        "story_point",
+        "default",
+        0.2,
+        None,
+        None,
+        StoryPointResponse,
+        "v1",
+        "v1",
     ),
     AIFeature.SUMMARIZE_DOCUMENT: FeatureConfig(
-        "structured", "document_summary", "mini", 0.2, None, None, DocSummaryResponse, "v1", "v1"
+        "structured",
+        "document_summary",
+        "mini",
+        0.2,
+        None,
+        None,
+        DocSummaryResponse,
+        "v1",
+        "v1",
     ),
     AIFeature.CHAT: FeatureConfig(
-        "streaming", "chat", "default", 0.4, None, None, None, "v1", "v1"
+        "streaming",
+        "chat",
+        "default",
+        0.4,
+        None,
+        None,
+        None,
+        "v1",
+        "v1",
+        cacheable=False,
+        cache_tier="none",
     ),
     AIFeature.SPRINT_ANALYSIS: FeatureConfig(
-        "structured", "sprint_analysis", "default", 0.3, None, None, SprintAnalysisResponse, "v1", "v1"
+        "structured",
+        "sprint_analysis",
+        "default",
+        0.3,
+        None,
+        None,
+        SprintAnalysisResponse,
+        "v2",
+        "v2",
     ),
     AIFeature.PROJECT_ASSISTANT: FeatureConfig(
-        "structured", "project_assistant", "default", 0.3, None, None, ProjectAssistantResponse, "v1", "v1"
+        "structured",
+        "project_assistant",
+        "default",
+        0.3,
+        None,
+        None,
+        ProjectAssistantResponse,
+        "v2",
+        "v2",
     ),
 }
 
@@ -95,7 +168,9 @@ def get_feature_config(feature: AIFeature) -> FeatureConfig:
     try:
         return _REGISTRY[feature]
     except KeyError as exc:
-        raise ValueError(f"No FeatureConfig registered for feature: {feature!r}") from exc
+        raise ValueError(
+            f"No FeatureConfig registered for feature: {feature!r}"
+        ) from exc
 
 
 def get_structured_config(feature: AIFeature) -> FeatureConfig:
@@ -107,7 +182,9 @@ def get_structured_config(feature: AIFeature) -> FeatureConfig:
     """
     config = get_feature_config(feature)
     if config.capability != "structured" or config.response_model is None:
-        raise ValueError(f"Feature is not a structured feature with a response_model: {feature!r}")
+        raise ValueError(
+            f"Feature is not a structured feature with a response_model: {feature!r}"
+        )
     return config
 
 

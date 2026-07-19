@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -13,6 +13,8 @@ import SectionMessage from "@atlaskit/section-message";
 import { Box, Inline, Stack, Text } from "@atlaskit/primitives";
 
 import { useSprintAnalysis } from "@/lib/ai/use-sprint-analysis";
+import { useWorkspaceAnalyticsData } from "@/lib/ai/use-workspace-analytics-data";
+import { buildSprintAnalysisRequest } from "@/lib/ai/analytics-source";
 import { computeSprintMetrics } from "@/lib/ai/analytics-metrics";
 import { validateSprintPayload } from "@/lib/ai/analytics-payload";
 import type { SprintAnalysisRequest } from "@/lib/client";
@@ -33,6 +35,12 @@ import { SprintCompletionDonut } from "@/components/ai/analytics/charts/sprint-c
 import { PlannedVsCompletedBar } from "@/components/ai/analytics/charts/planned-vs-completed-bar";
 import { VelocityTrendChart } from "@/components/ai/analytics/charts/velocity-trend-chart";
 import { AiRiskAssessmentChart } from "@/components/ai/analytics/charts/ai-risk-assessment-chart";
+import { WinsBlock } from "@/components/ai/analytics/cards/wins-block";
+import { BottleneckCard } from "@/components/ai/analytics/cards/bottleneck-card";
+import { ManagerChecklistBlock } from "@/components/ai/analytics/cards/manager-checklist-block";
+import { ChangesSinceLastBlock } from "@/components/ai/analytics/cards/changes-since-last-block";
+import { sortRisksByImportance } from "@/lib/ai/risk-order";
+import { loadPreviousSummary, saveAnalysisMemory } from "@/lib/ai/analysis-memory";
 
 interface SprintVelocityData {
   sprints: Array<{
@@ -83,12 +91,12 @@ type VelocitySprint = SprintVelocityData["sprints"][number];
 /** Primary action for the AI dashboard: generates or re-analyzes the sprint. */
 function GenerateButton({
   payload,
-  generate,
+  onGenerate,
   hasData,
   isFetching,
 }: {
   payload: SprintAnalysisRequest;
-  generate: (p: SprintAnalysisRequest) => void;
+  onGenerate: () => void;
   hasData: boolean;
   isFetching: boolean;
 }) {
@@ -100,7 +108,7 @@ function GenerateButton({
         appearance="primary"
         isDisabled={blocked || isFetching}
         isLoading={isFetching}
-        onClick={() => generate(payload)}
+        onClick={onGenerate}
       >
         {hasData ? "Re-analyze" : "Generate AI analysis"}
       </Button>
@@ -129,22 +137,60 @@ function SkeletonBlock({ height = 72 }: { height?: number }) {
 
 /** AI Sprint Analytics dashboard — metrics + charts always visible, AI insights on demand. */
 function AiSprintAnalytics({
+  workspaceId,
   velocitySprints,
-  avgVelocity,
 }: {
+  workspaceId: string;
   velocitySprints: VelocitySprint[];
-  avgVelocity: number;
 }) {
   const { data, isFetching, isError, error, generate, isIdle } = useSprintAnalysis();
+  const { sprints, backlog, isLoading: sourceLoading } = useWorkspaceAnalyticsData(workspaceId);
 
-  const lastSprint = velocitySprints[velocitySprints.length - 1];
-  const payload: SprintAnalysisRequest = {
-    startDate: lastSprint?.startDate ?? undefined,
-    endDate: lastSprint?.endDate ?? undefined,
-    plannedPoints: lastSprint?.committed ?? 0,
-    completedPoints: lastSprint?.completed ?? 0,
-    velocity: avgVelocity,
+  const payload = buildSprintAnalysisRequest(sprints, backlog);
+
+  const scopeKey = `sprint:${workspaceId}`;
+
+  // Run analysis with the previous summary attached so the AI can compare and
+  // populate `changesSinceLast`.
+  const runAnalysis = () => {
+    if (!payload) return;
+    generate({ ...payload, previousSummary: loadPreviousSummary(scopeKey) });
   };
+
+  // After a successful analysis, persist a compact memory so the NEXT run can
+  // surface "what changed since last analysis".
+  useEffect(() => {
+    if (data) {
+      saveAnalysisMemory(scopeKey, {
+        executiveSummary: data.executiveSummary,
+        healthScore: data.health?.score ?? null,
+        generatedAt: new Date().toISOString(),
+      });
+    }
+  }, [data, scopeKey]);
+
+  // No active/non-completed sprint: show the shell with a friendly empty state,
+  // never call the analysis.
+  if (payload === null) {
+    return (
+      <div style={{ marginBottom: 32 }}>
+        <AnalyticsDashboardShell title="AI Sprint Analytics">
+          <Box>
+            <Stack space="space.150" alignInline="center">
+              <Text color="color.text.subtle">
+                {sourceLoading ? "Loading sprint data…" : "No active sprint to analyze yet"}
+              </Text>
+            </Stack>
+          </Box>
+          <ExtensibleSlot
+            title="Predictive insights"
+            description="Forecasting & predictive analytics coming soon"
+          />
+        </AnalyticsDashboardShell>
+      </div>
+    );
+  }
+
   const m = computeSprintMetrics(payload);
   const hasData = Boolean(data);
 
@@ -152,11 +198,11 @@ function AiSprintAnalytics({
     <div style={{ marginBottom: 32 }}>
       <AnalyticsDashboardShell
         title="AI Sprint Analytics"
-        subtitle={lastSprint?.sprintName}
+        subtitle={payload.goal ?? undefined}
         actions={
           <GenerateButton
             payload={payload}
-            generate={generate}
+            onGenerate={runAnalysis}
             hasData={hasData}
             isFetching={isFetching}
           />
@@ -198,7 +244,7 @@ function AiSprintAnalytics({
               <Text color="color.text.subtle">Generate an AI analysis of this sprint</Text>
               <GenerateButton
                 payload={payload}
-                generate={generate}
+                onGenerate={runAnalysis}
                 hasData={hasData}
                 isFetching={isFetching}
               />
@@ -219,7 +265,7 @@ function AiSprintAnalytics({
             appearance="error"
             title="Analysis failed"
             actions={[
-              <Button key="retry" appearance="subtle" onClick={() => generate(payload)}>
+              <Button key="retry" appearance="subtle" onClick={runAnalysis}>
                 Retry
               </Button>,
             ]}
@@ -230,6 +276,12 @@ function AiSprintAnalytics({
 
         {data && !isFetching ? (
           <Stack space="space.300">
+            {data.changesSinceLast ? (
+              <InsightSection title="What changed since last analysis" defaultOpen>
+                <ChangesSinceLastBlock text={data.changesSinceLast} />
+              </InsightSection>
+            ) : null}
+
             <InsightSection title="Executive summary">
               <ExecutiveSummaryBlock summary={data.executiveSummary} health={data.health} />
             </InsightSection>
@@ -238,16 +290,41 @@ function AiSprintAnalytics({
               <ExecutiveSummaryBlock summary={data.health.rationale} health={data.health} />
             </InsightSection>
 
-            {data.risks && data.risks.length > 0 ? (
-              <InsightSection title="Risks" count={data.risks.length}>
+            {(() => {
+              const topRisks = sortRisksByImportance(data.risks ?? []);
+              return topRisks.length > 0 ? (
+                <InsightSection title="Top Risks" count={topRisks.length}>
+                  <Stack space="space.150">
+                    {topRisks.map((risk, i) => (
+                      <RiskCard key={`risk-${i}`} risk={risk} />
+                    ))}
+                    <ChartCard title="AI risk assessment" caption="AI assessment — not a system metric">
+                      <AiRiskAssessmentChart risks={topRisks} />
+                    </ChartCard>
+                  </Stack>
+                </InsightSection>
+              ) : null;
+            })()}
+
+            {data.wins && data.wins.length > 0 ? (
+              <InsightSection title="Wins & Achievements" count={data.wins.length}>
+                <WinsBlock wins={data.wins} />
+              </InsightSection>
+            ) : null}
+
+            {data.bottlenecks && data.bottlenecks.length > 0 ? (
+              <InsightSection title="Bottlenecks" count={data.bottlenecks.length}>
                 <Stack space="space.150">
-                  {data.risks.map((risk, i) => (
-                    <RiskCard key={`risk-${i}`} risk={risk} />
+                  {data.bottlenecks.map((bottleneck, i) => (
+                    <BottleneckCard key={`bottleneck-${i}`} bottleneck={bottleneck} />
                   ))}
-                  <ChartCard title="AI risk assessment" caption="AI assessment — not a system metric">
-                    <AiRiskAssessmentChart risks={data.risks ?? []} />
-                  </ChartCard>
                 </Stack>
+              </InsightSection>
+            ) : null}
+
+            {data.managerChecklist && data.managerChecklist.length > 0 ? (
+              <InsightSection title="Manager checklist" count={data.managerChecklist.length}>
+                <ManagerChecklistBlock items={data.managerChecklist} />
               </InsightSection>
             ) : null}
 
@@ -323,14 +400,15 @@ export function ReportsPageClient({ workspaceId }: { workspaceId: string }) {
 
   const isLoading = velocityQ.isLoading || trendQ.isLoading;
 
+  // Legacy reports content lives below the AI section. It renders regardless of
+  // the AI section, so we compute it as a variable instead of early-returning.
+  let legacyContent: React.ReactNode;
   if (isLoading) {
-    return (
+    legacyContent = (
       <div style={{ padding: 32, color: "var(--trella-text-subtlest)", fontSize: 14 }}>Loading reports…</div>
     );
-  }
-
-  if (velocitySprints.length === 0) {
-    return (
+  } else if (velocitySprints.length === 0) {
+    legacyContent = (
       <div style={{ padding: 48, textAlign: "center" }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
         <p style={{ color: "var(--trella-text-subtle)", fontSize: 15, margin: 0 }}>
@@ -338,13 +416,9 @@ export function ReportsPageClient({ workspaceId }: { workspaceId: string }) {
         </p>
       </div>
     );
-  }
-
-  return (
-    <div style={{ padding: "24px 32px", maxWidth: 960, overflowY: "auto" }}>
-      {/* AI Sprint Analytics — first thing managers see */}
-      <AiSprintAnalytics velocitySprints={velocitySprints} avgVelocity={avgVelocity} />
-
+  } else {
+    legacyContent = (
+      <>
       {/* KPI row */}
       <Section title="Sprint overview">
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
@@ -446,6 +520,15 @@ export function ReportsPageClient({ workspaceId }: { workspaceId: string }) {
           </table>
         </div>
       </Section>
+      </>
+    );
+  }
+
+  return (
+    <div style={{ padding: "24px 32px", maxWidth: 960, overflowY: "auto" }}>
+      {/* AI Sprint Analytics — first thing managers see, always rendered */}
+      <AiSprintAnalytics workspaceId={workspaceId} velocitySprints={velocitySprints} />
+      {legacyContent}
     </div>
   );
 }

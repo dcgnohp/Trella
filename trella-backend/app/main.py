@@ -31,6 +31,32 @@ async def _bind_realtime_loop() -> None:
     ws_manager.bind_loop(asyncio.get_running_loop())
 
 
+@app.on_event("startup")
+async def _bind_event_dispatcher() -> None:
+    """Capture the loop so sync business publishers can schedule bg jobs."""
+    from app.core.events import get_event_dispatcher
+
+    get_event_dispatcher().bind_loop(asyncio.get_running_loop())
+
+
+@app.on_event("startup")
+async def _init_semantic_search() -> None:
+    """Phase 9: validate embedding dims (fail fast) + subscribe the background
+    document-indexing handlers. No-op unless ``AI_SEMANTIC_SEARCH_ENABLED``.
+    """
+    if not settings.AI_SEMANTIC_SEARCH_ENABLED:
+        return
+    from sqlmodel import Session
+
+    from app.ai.retrieval.sync import register_document_indexing
+    from app.ai.retrieval.validation import validate_embedding_setup
+    from app.core.db import engine
+
+    with Session(engine) as session:
+        await validate_embedding_setup(session)
+    register_document_indexing()
+
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(

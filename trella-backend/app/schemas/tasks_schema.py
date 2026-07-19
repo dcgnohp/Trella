@@ -33,6 +33,7 @@ class TaskUpdate(CamelModel):
 
 class TaskCreate(CamelModel):
     title: str
+    description: str | None = None
     type: str | None = None
     parent_id: uuid.UUID | None = None
     due_date: datetime | None = None

@@ -149,7 +149,7 @@ class AttachmentsService:
                     if lower_name.endswith(".txt"):
                         paragraphs = file_content.split("\n\n")
                         formatted_content = "".join(
-                            "<p>{}</p>".format(p.strip().replace('\n', '<br/>'))
+                            "<p>{}</p>".format(p.strip().replace("\n", "<br/>"))
                             for p in paragraphs
                             if p.strip()
                         )
@@ -177,7 +177,7 @@ class AttachmentsService:
                         formatted_content = "".join(
                             p
                             if p.startswith("<h") or p.startswith("<li")
-                            else "<p>{}</p>".format(p.replace('\n', '<br/>'))
+                            else "<p>{}</p>".format(p.replace("\n", "<br/>"))
                             for p in paragraphs
                             if p.strip()
                         )

@@ -93,6 +93,53 @@ export const ActionItemSchema = {
     description: 'A suggested next action with priority and optional effort sizing.'
 } as const;
 
+export const ActionResultOutSchema = {
+    properties: {
+        actionId: {
+            type: 'string',
+            title: 'Actionid'
+        },
+        toolName: {
+            type: 'string',
+            title: 'Toolname'
+        },
+        ok: {
+            type: 'boolean',
+            title: 'Ok'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Error'
+        }
+    },
+    type: 'object',
+    required: ['actionId', 'toolName', 'ok', 'status'],
+    title: 'ActionResultOut',
+    description: 'Outcome of one attempted (or skipped) action, safe to return.'
+} as const;
+
 export const ActivityLogPublicSchema = {
     properties: {
         id: {
@@ -864,6 +911,34 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const BottleneckItemSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        impact: {
+            type: 'string',
+            title: 'Impact'
+        },
+        area: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Area'
+        }
+    },
+    type: 'object',
+    required: ['title', 'impact'],
+    title: 'BottleneckItem',
+    description: 'A process/flow bottleneck slowing the team down.'
+} as const;
+
 export const BreakdownRequestSchema = {
     properties: {
         title: {
@@ -1073,11 +1148,101 @@ export const ChatRequestSchema = {
                     type: 'null'
                 }
             ]
+        },
+        workspaceId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspaceid'
+        },
+        projectId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Projectid'
+        },
+        sprintId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sprintid'
+        },
+        taskId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Taskid'
+        },
+        conversationId: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Conversationid'
         }
     },
     type: 'object',
     title: 'ChatRequest',
-    description: 'Feature input: conversation history plus optional structured context.'
+    description: `Feature input: conversation history plus optional structured context.
+
+Phase 7 adds optional *current-view* IDs so the reasoning engine can scope
+tool calls to what the user is looking at (workspace/project/sprint/task)
+and a \`\`conversation_id\`\` so conversation-scoped tool-result memory can be
+reused across the requests of one conversation. All optional and ignored
+when tools are disabled — the payload-only chat path is unchanged.`
+} as const;
+
+export const ChecklistItemSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        priority: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['low', 'medium', 'high']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Priority'
+        }
+    },
+    type: 'object',
+    required: ['label'],
+    title: 'ChecklistItem',
+    description: 'A single actionable item on the manager checklist.'
 } as const;
 
 export const ColumnCreateSchema = {
@@ -2578,6 +2743,59 @@ export const EpicWithTasksPublicSchema = {
     title: 'EpicWithTasksPublic'
 } as const;
 
+export const ExecuteActionsRequestSchema = {
+    properties: {
+        planId: {
+            type: 'string',
+            title: 'Planid'
+        },
+        approvedActionIds: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Approvedactionids'
+        },
+        approveAll: {
+            type: 'boolean',
+            title: 'Approveall',
+            default: false
+        },
+        workspaceId: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspaceid'
+        }
+    },
+    type: 'object',
+    required: ['planId'],
+    title: 'ExecuteActionsRequest',
+    description: 'Which plan to run and which of its proposals were approved.'
+} as const;
+
+export const ExecuteActionsResponseSchema = {
+    properties: {
+        results: {
+            items: {
+                '$ref': '#/components/schemas/ActionResultOut'
+            },
+            type: 'array',
+            title: 'Results'
+        }
+    },
+    type: 'object',
+    required: ['results'],
+    title: 'ExecuteActionsResponse',
+    description: 'One result per proposal in the plan, in plan order.'
+} as const;
+
 export const GenerateDescriptionRequestSchema = {
     properties: {
         title: {
@@ -3617,6 +3835,17 @@ export const ProjectAssistantRequestSchema = {
             },
             type: 'array',
             title: 'Knownrisks'
+        },
+        previousSummary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Previoussummary'
         }
     },
     type: 'object',
@@ -3689,6 +3918,49 @@ export const ProjectAssistantResponseSchema = {
             },
             type: 'array',
             title: 'Suggestednextactions'
+        },
+        executiveSummary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Executivesummary'
+        },
+        wins: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Wins'
+        },
+        bottlenecks: {
+            items: {
+                '$ref': '#/components/schemas/BottleneckItem'
+            },
+            type: 'array',
+            title: 'Bottlenecks'
+        },
+        managerChecklist: {
+            items: {
+                '$ref': '#/components/schemas/ChecklistItem'
+            },
+            type: 'array',
+            title: 'Managerchecklist'
+        },
+        changesSinceLast: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Changessincelast'
         }
     },
     type: 'object',
@@ -3948,6 +4220,19 @@ export const RiskItemSchema = {
         rationale: {
             type: 'string',
             title: 'Rationale'
+        },
+        confidence: {
+            anyOf: [
+                {
+                    type: 'number',
+                    maximum: 1,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Confidence'
         }
     },
     type: 'object',
@@ -4057,6 +4342,17 @@ export const SprintAnalysisRequestSchema = {
             },
             type: 'array',
             title: 'Carriedovertasks'
+        },
+        previousSummary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Previoussummary'
         }
     },
     type: 'object',
@@ -4121,6 +4417,38 @@ export const SprintAnalysisResponseSchema = {
             },
             type: 'array',
             title: 'Suggestedactions'
+        },
+        wins: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Wins'
+        },
+        bottlenecks: {
+            items: {
+                '$ref': '#/components/schemas/BottleneckItem'
+            },
+            type: 'array',
+            title: 'Bottlenecks'
+        },
+        managerChecklist: {
+            items: {
+                '$ref': '#/components/schemas/ChecklistItem'
+            },
+            type: 'array',
+            title: 'Managerchecklist'
+        },
+        changesSinceLast: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Changessincelast'
         }
     },
     type: 'object',

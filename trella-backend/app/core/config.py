@@ -50,12 +50,18 @@ class Settings(BaseSettings):
     # Provider is kept as an enum-like Literal so future providers (gemini,
     # ollama, ...) can be added without changing the config surface.
     AI_PROVIDER: Literal["openai", "gemini"] = "openai"
+    # Optional secondary provider for resilience. When set and different from
+    # AI_PROVIDER, get_provider wraps both in a health-aware FailoverProvider.
+    AI_FALLBACK_PROVIDER: Literal["openai", "gemini"] | None = None
     # Optional so the app still boots without a key; the AI health endpoint
     # reports "unhealthy" until the selected provider's key is set.
     OPENAI_API_KEY: str | None = None
     GEMINI_API_KEY: str | None = None
     # Default/mini model names. For AI_PROVIDER="gemini", set these to Gemini
     # model ids in .env (e.g. AI_DEFAULT_MODEL=gemini-2.0-flash).
+    # Explicit AI middleware profile override. When None, the profile is
+    # resolved from ENVIRONMENT (see app.ai.config.profiles.resolve_profile).
+    AI_PROFILE: str | None = None
     AI_DEFAULT_MODEL: str = "gpt-4.1"
     AI_MINI_MODEL: str = "gpt-4.1-mini"
     AI_REQUEST_TIMEOUT: float = 30.0
@@ -66,6 +72,60 @@ class Settings(BaseSettings):
     # Optional per-model overrides. Parsed from env as JSON, e.g.
     # AI_MODEL_MAX_PROMPT_CHARS='{"gpt-4.1": 400000, "gpt-4.1-mini": 60000}'.
     AI_MODEL_MAX_PROMPT_CHARS: dict[str, int] = {}
+    # $ per 1K tokens, per model: {"model": {"input": 0.005, "output": 0.015}}.
+    # Default empty so an unknown model yields cost=None (no crash); ops fills
+    # it via env JSON, e.g. AI_MODEL_PRICING='{"gpt-4.1": {"input": 0.005,
+    # "output": 0.015}}'.
+    AI_MODEL_PRICING: dict[str, dict[str, float]] = {}
+
+    # --- AI Data Access & Reasoning Engine (Phase 7) ---
+    # Master switch for the reasoning loop + data-access tools. Default OFF so
+    # local/test envs keep the payload-only chat behavior (Phase 1-6 tests stay
+    # green); dev/prod opt in via .env.
+    AI_TOOLS_ENABLED: bool = False
+    # Hard cap on tool executions per chat turn (bounds the reasoning loop /
+    # cost). Timeout (seconds) applied per individual tool run.
+    AI_MAX_TOOL_CALLS: int = 5
+    AI_TOOL_TIMEOUT: float = 10.0
+    # Conversation-scoped tool-result memory TTL (seconds); 5 min default.
+    AI_SESSION_MEMORY_TTL: float = 300.0
+
+    # --- AI Agent Workflow / Write Agent (Phase 8) ---
+    # Master switch for write tools + approval/execution. Default OFF so
+    # local/test envs keep read-only behavior (Phase 1-7 tests stay green).
+    AI_AGENT_WRITE_ENABLED: bool = False
+    # Tool Budget: the Reasoning Engine terminates gracefully when ANY limit is
+    # hit. max_cost=0.0 disables the cost cap (unknown pricing -> no cap).
+    AI_AGENT_MAX_TOOL_CALLS: int = 8
+    AI_AGENT_MAX_ITERATIONS: int = 6
+    AI_AGENT_MAX_LATENCY_S: float = 60.0
+    AI_AGENT_MAX_COST: float = 0.0
+    # Ephemeral ActionPlan TTL (seconds) — proposals expire if not approved.
+    AI_ACTION_PLAN_TTL: float = 600.0
+
+    # --- AI Knowledge Intelligence 2.0 / Semantic Search (Phase 9) ---
+    # Master switch for embeddings + semantic document search. Default OFF so
+    # Phase 1-8 behavior/tests are unchanged; enable only after a backfill.
+    AI_SEMANTIC_SEARCH_ENABLED: bool = False
+    # Embedding is provider-agnostic and selected ENTIRELY from config — never
+    # hardcoded to a vendor. AI_EMBEDDING_PROVIDER is independent of AI_PROVIDER
+    # (chat) so embeddings can use a different vendor. Both stay None until an
+    # operator opts in; startup validation requires them when semantic is ON.
+    AI_EMBEDDING_PROVIDER: Literal["openai", "gemini"] | None = None
+    AI_EMBEDDING_MODEL: str | None = None
+    # Vector dimension is provider/model METADATA, not a vendor-specific
+    # constant baked into logic. It sets the width of the ``doc_embeddings``
+    # vector column and is checked at startup against BOTH the provider's actual
+    # embedding size AND the live DB column (fail-fast on any mismatch). The
+    # migration is an immutable snapshot at this default; changing models to a
+    # different dimension needs a new migration + this override to match.
+    AI_EMBEDDING_DIM: int = 768
+    # Chunking (char-based, consistent with AI_MAX_PROMPT_CHARS' ~4 chars/token
+    # approximation): size of each chunk and overlap between consecutive chunks.
+    AI_EMBEDDING_CHUNK_SIZE: int = 1000
+    AI_EMBEDDING_CHUNK_OVERLAP: int = 100
+    # Default number of nearest chunks returned by semantic_search_documents.
+    AI_SEMANTIC_SEARCH_TOP_K: int = 5
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)

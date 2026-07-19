@@ -13,7 +13,13 @@ from typing import Literal
 
 from pydantic import Field
 
-from app.ai.schemas.sprint_ai_schema import ActionItem, RecommendationItem, RiskItem
+from app.ai.schemas.sprint_ai_schema import (
+    ActionItem,
+    BottleneckItem,
+    ChecklistItem,
+    RecommendationItem,
+    RiskItem,
+)
 from app.core.base import CamelModel
 
 
@@ -43,6 +49,7 @@ class ProjectAssistantRequest(CamelModel):
     done_tasks: int = Field(default=0, ge=0)
     blocked_tasks: int = Field(default=0, ge=0)
     known_risks: list[str] = Field(default_factory=list)
+    previous_summary: str | None = None
 
 
 class ProjectAssistantResponse(CamelModel):
@@ -56,3 +63,8 @@ class ProjectAssistantResponse(CamelModel):
     risks: list[RiskItem] = Field(default_factory=list)
     recommendations: list[RecommendationItem] = Field(default_factory=list)
     suggested_next_actions: list[ActionItem] = Field(default_factory=list)
+    executive_summary: str | None = None
+    wins: list[str] = Field(default_factory=list)
+    bottlenecks: list[BottleneckItem] = Field(default_factory=list)
+    manager_checklist: list[ChecklistItem] = Field(default_factory=list)
+    changes_since_last: str | None = None

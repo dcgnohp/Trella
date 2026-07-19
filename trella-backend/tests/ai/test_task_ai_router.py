@@ -111,8 +111,8 @@ def test_summarize_ok(summary_client: TestClient) -> None:
 
 
 def test_generate_description_maps_invalid_prompt_to_400() -> None:
-    app.dependency_overrides[get_description_service] = (
-        lambda: _FakeDescriptionService(None, exc=InvalidPrompt("Title is required."))
+    app.dependency_overrides[get_description_service] = lambda: _FakeDescriptionService(
+        None, exc=InvalidPrompt("Title is required.")
     )
     _override_auth()
     resp = TestClient(app).post(
@@ -128,9 +128,7 @@ def test_summarize_maps_invalid_prompt_to_400() -> None:
         None, exc=InvalidPrompt("Description must not be empty.")
     )
     _override_auth()
-    resp = TestClient(app).post(
-        "/api/v1/ai/tasks/summarize", json={"description": " "}
-    )
+    resp = TestClient(app).post("/api/v1/ai/tasks/summarize", json={"description": " "})
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "invalid_prompt"
     app.dependency_overrides.clear()
@@ -144,7 +142,5 @@ def test_generate_description_requires_auth() -> None:
 
 
 def test_summarize_requires_auth() -> None:
-    resp = TestClient(app).post(
-        "/api/v1/ai/tasks/summarize", json={"description": "x"}
-    )
+    resp = TestClient(app).post("/api/v1/ai/tasks/summarize", json={"description": "x"})
     assert resp.status_code == 401

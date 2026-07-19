@@ -13,7 +13,8 @@ import { Box, Stack, Text } from '@atlaskit/primitives';
 import { useProjectAssistant } from '@/lib/ai/use-project-assistant';
 import { computeProjectMetrics } from '@/lib/ai/analytics-metrics';
 import { validateProjectPayload } from '@/lib/ai/analytics-payload';
-import type { ProjectAssistantRequest } from '@/lib/client';
+import { useWorkspaceAnalyticsData } from '@/lib/ai/use-workspace-analytics-data';
+import { buildProjectAssistantRequest } from '@/lib/ai/analytics-source';
 
 import { AnalyticsDashboardShell } from '@/components/ai/analytics/analytics-dashboard-shell';
 import { MetricStrip } from '@/components/ai/analytics/metric-strip';
@@ -27,6 +28,12 @@ import { ActionCard } from '@/components/ai/analytics/cards/action-card';
 import { ExtensibleSlot } from '@/components/ai/primitives/extensible-slot';
 import { SprintCompletionDonut } from '@/components/ai/analytics/charts/sprint-completion-donut';
 import { AiRiskAssessmentChart } from '@/components/ai/analytics/charts/ai-risk-assessment-chart';
+import { WinsBlock } from '@/components/ai/analytics/cards/wins-block';
+import { BottleneckCard } from '@/components/ai/analytics/cards/bottleneck-card';
+import { ManagerChecklistBlock } from '@/components/ai/analytics/cards/manager-checklist-block';
+import { ChangesSinceLastBlock } from '@/components/ai/analytics/cards/changes-since-last-block';
+import { sortRisksByImportance } from '@/lib/ai/risk-order';
+import { loadPreviousSummary, saveAnalysisMemory } from '@/lib/ai/analysis-memory';
 
 async function fetchSummary(workspaceId: string, endpoint: string) {
   const res = await fetch(`/api/summary/${workspaceId}/${endpoint}`, { cache: 'no-store' });
@@ -114,7 +121,7 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
 
         {/* AI Project Overview — leads the page */}
         <div style={{ marginBottom: 24 }}>
-          <AiProjectOverview statusData={statusData} />
+          <AiProjectOverview workspaceId={workspaceId} />
         </div>
 
         {/* Dismissible banner */}
@@ -290,38 +297,47 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
   );
 }
 
-function AiProjectOverview({ statusData }: { statusData: { name: string; count: number }[] }) {
+function AiProjectOverview({ workspaceId }: { workspaceId: string }) {
   const { data, isFetching, isError, error, generate, isIdle } = useProjectAssistant();
 
-  // Derive the payload from already-loaded summary data — no new fetch.
-  const totalTasks = statusData.reduce((s, x) => s + x.count, 0);
-  const doneTasks = statusData
-    .filter((x) => /done|complete|closed/i.test(x.name))
-    .reduce((s, x) => s + x.count, 0);
-  const blocked = statusData
-    .filter((x) => /block/i.test(x.name))
-    .reduce((s, x) => s + x.count, 0);
-  const payload: ProjectAssistantRequest = {
-    totalTasks,
-    doneTasks,
-    blockedTasks: blocked,
-  };
+  // Build the payload from the REAL workspace source (sprints + backlog) so
+  // recentSprints/activeSprint are populated, not just status-overview counts.
+  const { sprints, backlog } = useWorkspaceAnalyticsData(workspaceId);
+  const payload = buildProjectAssistantRequest(sprints, backlog);
 
   const m = computeProjectMetrics(payload);
   const validation = validateProjectPayload(payload);
   const disabledHint = validation.ok ? undefined : validation.message;
 
+  const scopeKey = `project:${workspaceId}`;
+
+  // Route generate/retry through here so the previous analysis summary rides
+  // along, powering the "What changed since last analysis?" section.
+  const runAnalysis = () =>
+    generate({ ...payload, previousSummary: loadPreviousSummary(scopeKey) });
+
+  // Persist a compact memory of the latest analysis for next time.
+  useEffect(() => {
+    if (data) {
+      saveAnalysisMemory(scopeKey, {
+        executiveSummary: data.executiveSummary ?? data.healthSummary,
+        healthScore: data.healthScore ?? null,
+        generatedAt: new Date().toISOString(),
+      });
+    }
+  }, [data, scopeKey]);
+
   const generateButton = (
     <Button
       appearance="primary"
       isDisabled={!validation.ok || isFetching}
-      onClick={() => generate(payload)}
+      onClick={runAnalysis}
     >
       {data ? 'Refresh' : 'Generate AI overview'}
     </Button>
   );
 
-  const risks = data?.risks ?? [];
+  const risks = sortRisksByImportance(data?.risks ?? []);
   const recommendations = data?.recommendations ?? [];
   const nextActions = data?.suggestedNextActions ?? [];
 
@@ -354,7 +370,7 @@ function AiProjectOverview({ statusData }: { statusData: { name: string; count: 
           appearance="error"
           title="Couldn't generate the AI overview"
           actions={[
-            <Button key="retry" appearance="primary" onClick={() => generate(payload)}>
+            <Button key="retry" appearance="primary" onClick={runAnalysis}>
               Retry
             </Button>,
           ]}
@@ -369,6 +385,18 @@ function AiProjectOverview({ statusData }: { statusData: { name: string; count: 
         </Stack>
       ) : data ? (
         <Stack space="space.300">
+          {data.executiveSummary ? (
+            <InsightSection title="Executive Summary" defaultOpen>
+              <Text>{data.executiveSummary}</Text>
+            </InsightSection>
+          ) : null}
+
+          {data.changesSinceLast ? (
+            <InsightSection title="What changed since last analysis" defaultOpen>
+              <ChangesSinceLastBlock text={data.changesSinceLast} />
+            </InsightSection>
+          ) : null}
+
           <InsightSection title="Overall Health" defaultOpen>
             <Stack space="space.100">
               <HealthOverviewBlock
@@ -397,7 +425,7 @@ function AiProjectOverview({ statusData }: { statusData: { name: string; count: 
           </InsightSection>
 
           {risks.length > 0 ? (
-            <InsightSection title="Current Risks" count={risks.length} defaultOpen>
+            <InsightSection title="Top Risks" count={risks.length} defaultOpen>
               <Stack space="space.150">
                 {risks.map((risk, i) => (
                   <RiskCard key={i} risk={risk} />
@@ -426,6 +454,28 @@ function AiProjectOverview({ statusData }: { statusData: { name: string; count: 
                   <ActionCard key={i} item={item} />
                 ))}
               </Stack>
+            </InsightSection>
+          ) : null}
+
+          {data.wins?.length ? (
+            <InsightSection title="Wins & Achievements" count={data.wins.length} defaultOpen>
+              <WinsBlock wins={data.wins} />
+            </InsightSection>
+          ) : null}
+
+          {data.bottlenecks?.length ? (
+            <InsightSection title="Bottlenecks" count={data.bottlenecks.length} defaultOpen>
+              <Stack space="space.150">
+                {data.bottlenecks.map((bottleneck, i) => (
+                  <BottleneckCard key={i} bottleneck={bottleneck} />
+                ))}
+              </Stack>
+            </InsightSection>
+          ) : null}
+
+          {data.managerChecklist?.length ? (
+            <InsightSection title="Manager Checklist" count={data.managerChecklist.length} defaultOpen>
+              <ManagerChecklistBlock items={data.managerChecklist} />
             </InsightSection>
           ) : null}
         </Stack>

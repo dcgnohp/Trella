@@ -1,20 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Button, { IconButton } from '@atlaskit/button/new';
+import Link from '@atlaskit/link';
+import PageIcon from '@atlaskit/icon/core/page';
+import { Checkbox } from '@atlaskit/checkbox';
 import AiSparkleIcon from '@atlaskit/icon/core/ai-sparkle';
 import CloseIcon from '@atlaskit/icon/core/close';
 import AddIcon from '@atlaskit/icon/core/add';
 import SendIcon from '@atlaskit/icon/core/send';
+import Lozenge from '@atlaskit/lozenge';
 import { Box, Inline, Stack, xcss } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
+import Spinner from '@atlaskit/spinner';
 import Textarea from '@atlaskit/textarea';
 import { token } from '@atlaskit/tokens';
 
 import { StreamingRenderer } from '@/components/ai/streaming-renderer';
-import { useConversationContext } from '@/lib/ai/conversation-context';
-import { useChat } from '@/lib/ai/use-chat';
+import { useConversationContext, useConversationScope } from '@/lib/ai/conversation-context';
+import { useChat, type Citation, type PendingPlan } from '@/lib/ai/use-chat';
 
 const PANEL_WIDTH = 380;
 
@@ -27,8 +33,34 @@ const PANEL_WIDTH = 380;
 export function AiChatPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, send, stop, isStreaming, error, clear } = useChat();
+  const {
+    messages,
+    send,
+    stop,
+    isStreaming,
+    error,
+    clear,
+    activity,
+    dataSources,
+    citations,
+    pendingPlan,
+    actionResults,
+    isExecuting,
+    executeActions,
+    dismissPlan,
+  } = useChat();
   const conversationContext = useConversationContext();
+  const conversationScope = useConversationScope();
+  const router = useRouter();
+
+  // Open a cited document. Primary UX is the Knowledge Center preview drawer,
+  // but that drawer is page-local; from the global chat panel we fall back to
+  // the document page (per the approved UX). The global panel stays mounted
+  // across this in-workspace navigation, so the chat remains visible. Upgrade
+  // path: a global/URL-driven preview drawer — only this callback changes.
+  const openSource = (c: Citation) => {
+    router.push(`/workspaces/${c.workspaceId}/docs/${c.id}`);
+  };
 
   const listEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,7 +68,7 @@ export function AiChatPanel() {
   useEffect(() => {
     if (!isOpen) return;
     listEndRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages, isOpen]);
+  }, [messages, activity, dataSources, citations, isOpen]);
 
   // Only the final assistant message is "live" while streaming.
   const lastAssistantIndex = messages.findLastIndex((m) => m.role === 'assistant');
@@ -45,7 +77,9 @@ export function AiChatPanel() {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput('');
-    void send(text, conversationContext);
+    // Scope ids (workspace/project/sprint/task the user is viewing) enable the
+    // backend reasoning engine to call data-access tools; omitted keys fall back.
+    void send(text, conversationContext, conversationScope);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -61,7 +95,7 @@ export function AiChatPanel() {
     // ponytail: resend the most recent user turn verbatim. It appends a fresh
     // user message rather than mutating history — simplest correct retry.
     const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-    if (lastUser) void send(lastUser.content, conversationContext);
+    if (lastUser) void send(lastUser.content, conversationContext, conversationScope);
   };
 
   if (!isOpen) {
@@ -134,10 +168,48 @@ export function AiChatPanel() {
                       {isUser ? (
                         <span style={{ whiteSpace: 'pre-wrap' }}>{message.content}</span>
                       ) : (
-                        <StreamingRenderer
-                          content={message.content}
-                          isStreaming={streamingThis}
-                        />
+                        <Stack space="space.100">
+                          <StreamingRenderer
+                            content={message.content}
+                            isStreaming={streamingThis}
+                          />
+                          {/* Live activity indicator: latest reasoning step + a few recent labels. */}
+                          {streamingThis && activity.length > 0 ? (
+                            <Box xcss={activityStyles} testId="ai-chat-activity">
+                              <Inline space="space.075" alignBlock="center">
+                                <Spinner size="small" label="" />
+                                <span>{`${activity[activity.length - 1].label}\u2026`}</span>
+                              </Inline>
+                            </Box>
+                          ) : null}
+                          {/* Data sources used: rendered after the turn on the final assistant bubble. */}
+                          {!streamingThis &&
+                          index === lastAssistantIndex &&
+                          dataSources.length > 0 ? (
+                            <Box testId="ai-chat-data-sources">
+                              <Stack space="space.075">
+                                <Box xcss={dataSourcesLabelStyles}>Data sources used</Box>
+                                <Inline space="space.050" shouldWrap>
+                                  {dataSources.map((source) => (
+                                    <Lozenge key={source} appearance="new">
+                                      {source}
+                                    </Lozenge>
+                                  ))}
+                                </Inline>
+                              </Stack>
+                            </Box>
+                          ) : null}
+                          {/* Sources: cited documents from semantic retrieval,
+                              a dedicated section below the answer. */}
+                          {!streamingThis &&
+                          index === lastAssistantIndex &&
+                          citations.length > 0 ? (
+                            <SourcesSection
+                              citations={citations}
+                              onOpen={openSource}
+                            />
+                          ) : null}
+                        </Stack>
                       )}
                     </Box>
                   </Box>
@@ -160,6 +232,40 @@ export function AiChatPanel() {
                     </Inline>
                   </Stack>
                 </SectionMessage>
+              ) : null}
+
+              {/* Approval card: proposed writes parked by the reasoning loop.
+                  Shown once streaming settles so the user reviews a stable list. */}
+              {pendingPlan && !isStreaming ? (
+                <ApprovalCard
+                  key={pendingPlan.planId}
+                  plan={pendingPlan}
+                  isExecuting={isExecuting}
+                  onApprove={executeActions}
+                  onReject={dismissPlan}
+                />
+              ) : null}
+
+              {/* Execution results: one lozenge per attempted action. */}
+              {actionResults.length > 0 ? (
+                <Box testId="ai-chat-action-results">
+                  <Stack space="space.075">
+                    <Box xcss={dataSourcesLabelStyles}>Action results</Box>
+                    {actionResults.map((result) => (
+                      <Inline
+                        key={result.actionId}
+                        space="space.075"
+                        alignBlock="center"
+                        spread="space-between"
+                      >
+                        <span>{result.summary || result.toolName}</span>
+                        <Lozenge appearance={statusAppearance(result.status)}>
+                          {result.status}
+                        </Lozenge>
+                      </Inline>
+                    ))}
+                  </Stack>
+                </Box>
               ) : null}
 
               <div ref={listEndRef} />
@@ -206,6 +312,135 @@ export function AiChatPanel() {
         </Box>
       </Box>
     </div>
+  );
+}
+
+/** Map an action status to a Lozenge appearance. */
+function statusAppearance(status: string): 'success' | 'removed' | 'default' {
+  if (status === 'executed') return 'success';
+  if (status === 'denied' || status === 'failed') return 'removed';
+  return 'default';
+}
+
+/**
+ * Dedicated "Sources" section listing the documents cited by semantic
+ * retrieval (Perplexity/ChatGPT style), rendered below the answer. Presentation
+ * only: clicking a source calls `onOpen`. Designed to extend later (snippets,
+ * matched passages, rerank/semantic badges, graph refs) without changing the
+ * Citation contract — add fields + render them here.
+ */
+function SourcesSection({
+  citations,
+  onOpen,
+}: {
+  citations: Citation[];
+  onOpen: (citation: Citation) => void;
+}) {
+  return (
+    <Box testId="ai-chat-sources">
+      <Stack space="space.075">
+        <Box xcss={dataSourcesLabelStyles}>Sources</Box>
+        <Stack space="space.050">
+          {citations.map((citation) => (
+            <Inline key={citation.id} space="space.075" alignBlock="center">
+              <PageIcon label="" color={token('color.icon.subtle')} />
+              <Link
+                href={`/workspaces/${citation.workspaceId}/docs/${citation.id}`}
+                onClick={(e: React.MouseEvent) => {
+                  // Keep the SPA/preview flow; avoid a full page reload.
+                  e.preventDefault();
+                  onOpen(citation);
+                }}
+                testId={`ai-chat-source-${citation.id}`}
+              >
+                {citation.title}
+              </Link>
+            </Inline>
+          ))}
+        </Stack>
+      </Stack>
+    </Box>
+  );
+}
+
+/**
+ * Approval card for a parked plan (P8). Each proposal gets a checkbox (all
+ * checked by default). Keyed by planId in the parent so its selection state
+ * resets when a new plan arrives. Presentation-only — execution is delegated up.
+ */
+function ApprovalCard({
+  plan,
+  isExecuting,
+  onApprove,
+  onReject,
+}: {
+  plan: PendingPlan;
+  isExecuting: boolean;
+  onApprove: (opts: { approvedActionIds?: string[]; approveAll?: boolean }) => void;
+  onReject: () => void;
+}) {
+  const [checked, setChecked] = useState<Set<string>>(
+    () => new Set(plan.proposals.map((p) => p.actionId)),
+  );
+
+  const toggle = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const selectedIds = plan.proposals
+    .map((p) => p.actionId)
+    .filter((id) => checked.has(id));
+
+  return (
+    <Box testId="ai-chat-approval">
+      <SectionMessage appearance="warning" title="Proposed actions — approval required">
+        <Stack space="space.150">
+          <Stack space="space.075">
+            {plan.proposals.map((proposal) => (
+              <Checkbox
+                key={proposal.actionId}
+                isChecked={checked.has(proposal.actionId)}
+                onChange={() => toggle(proposal.actionId)}
+                label={proposal.preview || proposal.toolName}
+                isDisabled={isExecuting}
+                testId={`ai-chat-approval-item-${proposal.actionId}`}
+              />
+            ))}
+          </Stack>
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <Button
+              appearance="primary"
+              onClick={() => onApprove({ approvedActionIds: selectedIds })}
+              isDisabled={isExecuting || selectedIds.length === 0}
+              testId="ai-chat-approve-selected"
+            >
+              Approve selected
+            </Button>
+            <Button
+              appearance="default"
+              onClick={() => onApprove({ approveAll: true })}
+              isDisabled={isExecuting}
+              testId="ai-chat-approve-all"
+            >
+              Approve all
+            </Button>
+            <Button
+              appearance="subtle"
+              onClick={onReject}
+              isDisabled={isExecuting}
+              testId="ai-chat-reject-all"
+            >
+              Reject all
+            </Button>
+            {isExecuting ? <Spinner size="small" label="" /> : null}
+          </Inline>
+        </Stack>
+      </SectionMessage>
+    </Box>
   );
 }
 
@@ -303,6 +538,16 @@ const inputStyles = xcss({
 });
 
 const hintStyles = xcss({
+  color: 'color.text.subtlest',
+  fontSize: '11px',
+});
+
+const activityStyles = xcss({
+  color: 'color.text.subtle',
+  fontSize: '12px',
+});
+
+const dataSourcesLabelStyles = xcss({
   color: 'color.text.subtlest',
   fontSize: '11px',
 });

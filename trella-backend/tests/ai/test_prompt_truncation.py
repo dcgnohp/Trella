@@ -100,4 +100,3 @@ def test_per_model_override_respected(
     _run(small, tmp_path, body, model="small-model")
     assert small.seen_prompt is not None
     assert len(small.seen_prompt) == 50
-

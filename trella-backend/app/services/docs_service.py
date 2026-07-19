@@ -3,6 +3,12 @@ import uuid
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
+from app.core.events import (
+    DocumentCreated,
+    DocumentDeleted,
+    DocumentUpdated,
+    get_event_dispatcher,
+)
 from app.models.docs_model import Doc
 from app.models.enums import MemberStatus
 from app.models.users_model import User
@@ -163,6 +169,10 @@ class DocsService:
         session.commit()
         session.refresh(doc)
 
+        get_event_dispatcher().publish(
+            DocumentCreated(doc_id=doc.id, workspace_id=workspace_id)
+        )
+
         from app.models.boards_model import Board as DBBoard
         from app.models.sprints_model import Sprint as DBSprint
         from app.models.tasks_model import Task as DBTask
@@ -216,6 +226,9 @@ class DocsService:
         session.add(doc)
         session.commit()
         session.refresh(doc)
+        get_event_dispatcher().publish(
+            DocumentUpdated(doc_id=doc_id, workspace_id=workspace_id)
+        )
         return self.get_doc(session, workspace_id, doc_id, user)
 
     def delete_doc(
@@ -225,6 +238,9 @@ class DocsService:
         self._assert_can_edit(session, doc, user)
         doc.is_archived = True
         session.commit()
+        get_event_dispatcher().publish(
+            DocumentDeleted(doc_id=doc_id, workspace_id=workspace_id)
+        )
 
     def hard_delete_trash(
         self, session: Session, workspace_id: uuid.UUID, user: User
@@ -234,8 +250,6 @@ class DocsService:
 
         from app.models.docs_model import Doc
 
-        statement = delete(Doc).where(
-            Doc.workspace_id == workspace_id, Doc.is_archived
-        )
+        statement = delete(Doc).where(Doc.workspace_id == workspace_id, Doc.is_archived)
         session.exec(statement)
         session.commit()

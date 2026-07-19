@@ -30,7 +30,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import type { ConversationContext } from '@/lib/ai/use-chat';
+import type { ChatScope, ConversationContext } from '@/lib/ai/use-chat';
 
 // ponytail: char caps keep the prompt small and cheap. Upgrade path is a real
 // tokenizer + RAG so long content isn't silently trimmed (ceiling: naive slice).
@@ -45,6 +45,15 @@ const MAX_TASK_LIST = 20;
  * grows when new context sources are added.
  */
 export interface ContextContribution {
+  /** Raw entity ids of what the page is showing. Sent to the backend (P7) so
+   *  the reasoning engine can scope tool calls to real workspace/project/etc.
+   *  Distinct from the text sections below, which are payload-mode grounding. */
+  ids?: {
+    workspaceId?: string | null;
+    projectId?: string | null;
+    sprintId?: string | null;
+    taskId?: string | null;
+  };
   workspace?: { name?: string | null; mode?: string | null };
   /** A board belongs to a project; folded into the `project` wire section. */
   board?: { title?: string | null; columns?: string[] };
@@ -80,6 +89,14 @@ function mergeContributions(
 ): ContextContribution {
   const merged: ContextContribution = {};
   for (const c of contributions) {
+    if (c.ids) {
+      // Later non-null ids win (a deeper page overrides a broader one).
+      const next = { ...merged.ids };
+      for (const [k, v] of Object.entries(c.ids)) {
+        if (v != null) (next as Record<string, string>)[k] = v;
+      }
+      merged.ids = next;
+    }
     if (c.workspace) merged.workspace = { ...merged.workspace, ...c.workspace };
     if (c.board) merged.board = { ...merged.board, ...c.board };
     if (c.sprint) merged.sprint = { ...merged.sprint, ...c.sprint };
@@ -244,5 +261,24 @@ export function useConversationContext(): ConversationContext | undefined {
     if (!contributions.length) return undefined;
     const built = buildConversationContext(contributions);
     return Object.keys(built).length ? built : undefined;
+  }, [registry]);
+}
+
+/**
+ * Consumer hook (AiChatPanel): the merged current-view entity ids to scope AI
+ * tool calls (Phase 7), or `undefined` when none were contributed. Only defined
+ * ids are included so `send()` omits absent keys.
+ */
+export function useConversationScope(): ChatScope | undefined {
+  const registry = useContext(RegistryStateContext);
+  return useMemo(() => {
+    const merged = mergeContributions(Object.values(registry)).ids;
+    if (!merged) return undefined;
+    const scope: ChatScope = {};
+    if (merged.workspaceId) scope.workspaceId = merged.workspaceId;
+    if (merged.projectId) scope.projectId = merged.projectId;
+    if (merged.sprintId) scope.sprintId = merged.sprintId;
+    if (merged.taskId) scope.taskId = merged.taskId;
+    return Object.keys(scope).length ? scope : undefined;
   }, [registry]);
 }
