@@ -248,15 +248,15 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#FFFFFF', color: '#1E293B', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--trella-surface, #FFFFFF)', color: 'var(--trella-text, #1E293B)', fontFamily: 'Inter, sans-serif' }}>
       
       {/* 1. Header Toolbar matching reference screenshot */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid #E2E8F0', flexShrink: 0, backgroundColor: '#FFFFFF' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--trella-border, #E2E8F0)', flexShrink: 0, backgroundColor: 'var(--trella-surface, #FFFFFF)' }}>
         {/* Left Toolbar Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Search Input */}
           <div style={{ position: 'relative' }}>
-            <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+            <Search size={14} color="var(--trella-text-subtlest, #94A3B8)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
             <input
               type="text"
               placeholder="Search timeline"
@@ -265,60 +265,60 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
               style={{
                 padding: '6px 12px 6px 32px',
                 fontSize: 13,
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--trella-border, #E2E8F0)',
                 borderRadius: 6,
-                backgroundColor: '#F8FAFC',
+                backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)',
                 outline: 'none',
                 width: 180,
-                color: '#334155',
+                color: 'var(--trella-text, #334155)',
               }}
             />
           </div>
 
-          <button style={{ padding: '6px 10px', border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}>
-            <Calendar size={14} color="#64748B" />
+          <button style={{ padding: '6px 10px', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface, #FFFFFF)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--trella-text-subtle, #475569)' }}>
+            <Calendar size={14} color="var(--trella-text-subtle, #64748B)" />
           </button>
 
           {/* Interactive Date Navigator (< and >) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#1E293B' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--trella-text, #1E293B)' }}>
             <button
               onClick={handlePrevDate}
               title="Previous period"
-              style={{ border: '1px solid #E2E8F0', background: '#FFFFFF', borderRadius: 4, cursor: 'pointer', padding: '3px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ border: '1px solid var(--trella-border, #E2E8F0)', background: 'var(--trella-surface, #FFFFFF)', borderRadius: 4, cursor: 'pointer', padding: '3px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <ChevronLeft size={15} color="#475569" />
+              <ChevronLeft size={15} color="var(--trella-text-subtle, #475569)" />
             </button>
             <span style={{ minWidth: 160, textAlign: 'center' }}>{dateRangeTitle}</span>
-            <Info size={14} color="#94A3B8" style={{ cursor: 'pointer' }} />
+            <Info size={14} color="var(--trella-text-subtlest, #94A3B8)" style={{ cursor: 'pointer' }} />
             <button
               onClick={handleNextDate}
               title="Next period"
-              style={{ border: '1px solid #E2E8F0', background: '#FFFFFF', borderRadius: 4, cursor: 'pointer', padding: '3px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ border: '1px solid var(--trella-border, #E2E8F0)', background: 'var(--trella-surface, #FFFFFF)', borderRadius: 4, cursor: 'pointer', padding: '3px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <ChevronRight size={15} color="#475569" />
+              <ChevronRight size={15} color="var(--trella-text-subtle, #475569)" />
             </button>
           </div>
         </div>
 
         {/* Right Toolbar Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button style={{ padding: '6px 12px', border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#475569' }}>
-            <Filter size={13} color="#64748B" /> Filter
+          <button style={{ padding: '6px 12px', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface, #FFFFFF)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--trella-text-subtle, #475569)' }}>
+            <Filter size={13} color="var(--trella-text-subtle, #64748B)" /> Filter
           </button>
 
-          <button style={{ padding: '6px 12px', border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#475569' }}>
-            <Settings size={13} color="#64748B" /> View settings
+          <button style={{ padding: '6px 12px', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface, #FFFFFF)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--trella-text-subtle, #475569)' }}>
+            <Settings size={13} color="var(--trella-text-subtle, #64748B)" /> View settings
           </button>
 
           <button
             onClick={scrollToToday}
-            style={{ padding: '6px 12px', border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#F8FAFC', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#334155' }}
+            style={{ padding: '6px 12px', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--trella-text, #334155)' }}
           >
             Today
           </button>
 
           {/* Interactive Zoom Level Switcher */}
-          <div style={{ display: 'flex', backgroundColor: '#F1F5F9', borderRadius: 6, padding: 2, border: '1px solid #E2E8F0' }}>
+          <div style={{ display: 'flex', backgroundColor: 'var(--trella-surface-hover, #F1F5F9)', borderRadius: 6, padding: 2, border: '1px solid var(--trella-border, #E2E8F0)' }}>
             {(['Week', 'Month', 'Quarter'] as const).map(mode => (
               <button
                 key={mode}
@@ -327,8 +327,8 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
                   padding: '4px 12px',
                   fontSize: 12,
                   fontWeight: zoomLevel === mode ? 700 : 500,
-                  color: zoomLevel === mode ? '#2563EB' : '#64748B',
-                  backgroundColor: zoomLevel === mode ? '#FFFFFF' : 'transparent',
+                  color: zoomLevel === mode ? 'var(--trella-brand, #2563EB)' : 'var(--trella-text-subtle, #64748B)',
+                  backgroundColor: zoomLevel === mode ? 'var(--trella-surface, #FFFFFF)' : 'transparent',
                   border: 'none',
                   borderRadius: 4,
                   cursor: 'pointer',
@@ -341,8 +341,8 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
             ))}
           </div>
 
-          <button style={{ padding: 6, border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#FFFFFF', cursor: 'pointer' }}>
-            <MoreHorizontal size={14} color="#64748B" />
+          <button style={{ padding: 6, border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface, #FFFFFF)', cursor: 'pointer' }}>
+            <MoreHorizontal size={14} color="var(--trella-text-subtle, #64748B)" />
           </button>
         </div>
       </div>
@@ -351,9 +351,9 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
         
         {/* Left Tree Table Panel */}
-        <div style={{ width: LEFT_PANEL_WIDTH, flexShrink: 0, borderRight: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+        <div style={{ width: LEFT_PANEL_WIDTH, flexShrink: 0, borderRight: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface, #FFFFFF)', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
           {/* Table Header */}
-          <div style={{ height: ROW_HEIGHT, borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', padding: '0 16px', backgroundColor: '#F8FAFC', fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <div style={{ height: ROW_HEIGHT, borderBottom: '1px solid var(--trella-border, #E2E8F0)', display: 'flex', alignItems: 'center', padding: '0 16px', backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', fontSize: 11, fontWeight: 700, color: 'var(--trella-text-subtlest, #94A3B8)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             <div style={{ width: 220 }}>Work item</div>
             <div style={{ width: 110, paddingLeft: 12 }}>Assignee</div>
             <div style={{ width: 120, textAlign: 'right', paddingRight: 8 }}>Status</div>
@@ -362,15 +362,15 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
           {/* Table Rows Body */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {/* Group Header Row */}
-            <div style={{ height: ROW_HEIGHT, display: 'flex', alignItems: 'center', padding: '0 16px', borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC', fontSize: 12, fontWeight: 700, color: '#334155' }}>
+            <div style={{ height: ROW_HEIGHT, display: 'flex', alignItems: 'center', padding: '0 16px', borderBottom: '1px solid var(--trella-border-subtle, #F1F5F9)', backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #334155)' }}>
               <button
                 onClick={() => setIsGroupExpanded(!isGroupExpanded)}
                 style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, marginRight: 8, display: 'flex', alignItems: 'center' }}
               >
-                {isGroupExpanded ? <ChevronDown size={14} color="#64748B" /> : <ChevronRight size={14} color="#64748B" />}
+                {isGroupExpanded ? <ChevronDown size={14} color="var(--trella-text-subtle, #64748B)" /> : <ChevronRight size={14} color="var(--trella-text-subtle, #64748B)" />}
               </button>
-              <span style={{ marginRight: 8 }}>dfsafas</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#64748B', backgroundColor: '#E2E8F0', padding: '2px 8px', borderRadius: 12 }}>
+              <span style={{ marginRight: 8 }}>All Items</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--trella-text-subtle, #64748B)', backgroundColor: 'var(--trella-surface-hover, #E2E8F0)', padding: '2px 8px', borderRadius: 12 }}>
                 {filteredEpics.length} items
               </span>
             </div>
@@ -389,33 +389,33 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
                     display: 'flex',
                     alignItems: 'center',
                     padding: '0 16px',
-                    borderBottom: '1px solid #F1F5F9',
-                    backgroundColor: isSelected ? '#EFF6FF' : 'transparent',
+                    borderBottom: '1px solid var(--trella-border-subtle, #F1F5F9)',
+                    backgroundColor: isSelected ? 'var(--trella-surface-selected, #EFF6FF)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 120ms ease',
                   }}
-                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#F8FAFC'; }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--trella-surface-hover, #F8FAFC)'; }}
                   onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
-                  <div style={{ width: 18, fontSize: 11, color: '#94A3B8', fontWeight: 600, flexShrink: 0 }}>{idx + 1}</div>
+                  <div style={{ width: 18, fontSize: 11, color: 'var(--trella-text-subtlest, #94A3B8)', fontWeight: 600, flexShrink: 0 }}>{idx + 1}</div>
                   
                   {/* Issue Type Icon + Key + Title */}
                   <div style={{ width: 200, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', flexShrink: 0 }}>
                     {renderTypeIcon(epic.type)}
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--trella-brand, #2563EB)', flexShrink: 0 }}>
                       {epic.issueKey || `TSK-${idx}`}
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--trella-text, #1E293B)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {epic.title}
                     </span>
                   </div>
 
                   {/* Assignee Avatar + Name */}
                   <div style={{ width: 110, display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 12, flexShrink: 0 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#3B82F6', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'var(--trella-brand, #3B82F6)', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {epic.assigneeName ? epic.assigneeName.charAt(0) : '?'}
                     </div>
-                    <span style={{ fontSize: 12, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: 12, color: 'var(--trella-text, #334155)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {epic.assigneeName || 'Unassigned'}
                     </span>
                   </div>
@@ -447,21 +447,21 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
             })}
 
             {/* Add Work Item Button */}
-            <div style={{ height: ROW_HEIGHT, display: 'flex', alignItems: 'center', padding: '0 16px', color: '#2563EB', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            <div style={{ height: ROW_HEIGHT, display: 'flex', alignItems: 'center', padding: '0 16px', color: 'var(--trella-brand, #2563EB)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
               <Plus size={14} style={{ marginRight: 6 }} /> Add work item
             </div>
           </div>
         </div>
 
         {/* Right Scrollable Full-Width Gantt Canvas Panel */}
-        <div ref={scrollContainerRef} style={{ flex: 1, overflowX: 'auto', position: 'relative', backgroundColor: '#FFFFFF' }}>
+        <div ref={scrollContainerRef} style={{ flex: 1, overflowX: 'auto', position: 'relative', backgroundColor: 'var(--trella-surface, #FFFFFF)' }}>
           
           {/* Gantt Header Columns */}
-          <div style={{ display: 'flex', height: ROW_HEIGHT, borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', position: 'sticky', top: 0, zIndex: 5, width: totalWidth }}>
+          <div style={{ display: 'flex', height: ROW_HEIGHT, borderBottom: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', position: 'sticky', top: 0, zIndex: 5, width: totalWidth }}>
             {columns.map(col => (
-              <div key={col.id} style={{ width: colWidth, flexShrink: 0, borderRight: '1px solid #E2E8F0', padding: '6px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{col.label}</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: '#94A3B8' }}>{col.sublabel}</span>
+              <div key={col.id} style={{ width: colWidth, flexShrink: 0, borderRight: '1px solid var(--trella-border, #E2E8F0)', padding: '6px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #334155)' }}>{col.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--trella-text-subtlest, #94A3B8)' }}>{col.sublabel}</span>
               </div>
             ))}
           </div>
@@ -587,41 +587,42 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
       )}
 
       {/* 4. Bottom Metrics & Dashboard Widgets */}
-      <div style={{ padding: '16px 20px', borderTop: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'grid', gridTemplateColumns: '1.2fr 1.4fr 1.2fr 1.2fr', gap: 16 }}>
+      {/* 4. Bottom Metrics & Dashboard Widgets */}
+      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', display: 'grid', gridTemplateColumns: '1.2fr 1.4fr 1.2fr 1.2fr', gap: 16 }}>
         
         {/* Card 1: Progress Overview */}
-        <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', margin: '0 0 12px' }}>Progress overview</h4>
+        <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+          <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #1E293B)', margin: '0 0 12px' }}>Progress overview</h4>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ position: 'relative', width: 70, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="70" height="70" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#F1F5F9" strokeWidth="12" />
+                <circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--trella-surface-sunken, #F1F5F9)" strokeWidth="12" />
                 <circle cx="50" cy="50" r="38" fill="transparent" stroke="#3B82F6" strokeWidth="12" strokeDasharray="84 240" strokeDashoffset="0" />
                 <circle cx="50" cy="50" r="38" fill="transparent" stroke="#10B981" strokeWidth="12" strokeDasharray="60 240" strokeDashoffset="-84" />
               </svg>
-              <div style={{ position: 'absolute', fontSize: 16, fontWeight: 800, color: '#1E293B' }}>35%</div>
+              <div style={{ position: 'absolute', fontSize: 16, fontWeight: 800, color: 'var(--trella-text, #1E293B)' }}>35%</div>
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>● Completed</span>
-                <span style={{ fontWeight: 700, color: '#1E293B' }}>3</span>
+                <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● Completed</span>
+                <span style={{ fontWeight: 700, color: 'var(--trella-text, #1E293B)' }}>3</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>● In progress</span>
-                <span style={{ fontWeight: 700, color: '#1E293B' }}>4</span>
+                <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● In progress</span>
+                <span style={{ fontWeight: 700, color: 'var(--trella-text, #1E293B)' }}>4</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>● To do</span>
-                <span style={{ fontWeight: 700, color: '#1E293B' }}>3</span>
+                <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● To do</span>
+                <span style={{ fontWeight: 700, color: 'var(--trella-text, #1E293B)' }}>3</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Card 2: Work items by status */}
-        <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', margin: '0 0 12px' }}>Work items by status</h4>
+        <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+          <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #1E293B)', margin: '0 0 12px' }}>Work items by status</h4>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 24, height: 65, borderRadius: 4, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <div style={{ height: '30%', backgroundColor: '#94A3B8' }} />
@@ -632,49 +633,49 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, fontSize: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#64748B' }}>● To do</span><span style={{ fontWeight: 600 }}>3 (30%)</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#64748B' }}>● In progress</span><span style={{ fontWeight: 600 }}>4 (40%)</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#64748B' }}>● Pending</span><span style={{ fontWeight: 600 }}>1 (10%)</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#64748B' }}>● Code review</span><span style={{ fontWeight: 600 }}>1 (10%)</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#64748B' }}>● Completed</span><span style={{ fontWeight: 600 }}>1 (10%)</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● To do</span><span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>3 (30%)</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● In progress</span><span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>4 (40%)</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● Pending</span><span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>1 (10%)</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● Code review</span><span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>1 (10%)</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>● Completed</span><span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>1 (10%)</span></div>
             </div>
           </div>
         </div>
 
         {/* Card 3: Workload balance */}
-        <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', margin: '0 0 12px' }}>Workload balance</h4>
+        <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+          <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #1E293B)', margin: '0 0 12px' }}>Workload balance</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 11 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: '#3B82F6', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>P</div>
-              <span style={{ flex: 1, color: '#334155' }}>Phong Duc</span>
-              <div style={{ width: 60, height: 6, borderRadius: 3, backgroundColor: '#E2E8F0', overflow: 'hidden' }}><div style={{ width: '60%', height: '100%', backgroundColor: '#2563EB' }} /></div>
-              <span style={{ fontWeight: 700, width: 12, textAlign: 'right' }}>4</span>
+              <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: 'var(--trella-brand, #3B82F6)', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>P</div>
+              <span style={{ flex: 1, color: 'var(--trella-text, #334155)' }}>Phong Duc</span>
+              <div style={{ width: 60, height: 6, borderRadius: 3, backgroundColor: 'var(--trella-surface-hover, #E2E8F0)', overflow: 'hidden' }}><div style={{ width: '60%', height: '100%', backgroundColor: 'var(--trella-brand, #2563EB)' }} /></div>
+              <span style={{ fontWeight: 700, width: 12, textAlign: 'right', color: 'var(--trella-text, #1E293B)' }}>4</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</div>
-              <span style={{ flex: 1, color: '#334155' }}>Unassigned</span>
-              <div style={{ width: 60, height: 6, borderRadius: 3, backgroundColor: '#E2E8F0', overflow: 'hidden' }}><div style={{ width: '80%', height: '100%', backgroundColor: '#94A3B8' }} /></div>
-              <span style={{ fontWeight: 700, width: 12, textAlign: 'right' }}>6</span>
+              <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: 'var(--trella-text-subtlest, #94A3B8)', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</div>
+              <span style={{ flex: 1, color: 'var(--trella-text, #334155)' }}>Unassigned</span>
+              <div style={{ width: 60, height: 6, borderRadius: 3, backgroundColor: 'var(--trella-surface-hover, #E2E8F0)', overflow: 'hidden' }}><div style={{ width: '80%', height: '100%', backgroundColor: 'var(--trella-text-subtlest, #94A3B8)' }} /></div>
+              <span style={{ fontWeight: 700, width: 12, textAlign: 'right', color: 'var(--trella-text, #1E293B)' }}>6</span>
             </div>
           </div>
         </div>
 
         {/* Card 4: Milestones */}
-        <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', margin: '0 0 10px' }}>Milestones</h4>
+        <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 10, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+          <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #1E293B)', margin: '0 0 10px' }}>Milestones</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Flag size={14} color="#2563EB" />
+              <Flag size={14} color="var(--trella-brand, #2563EB)" />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>Sprint goal</div>
-                <div style={{ fontSize: 10, color: '#64748B' }}>Jul 20, 2026</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--trella-text, #1E293B)' }}>Sprint goal</div>
+                <div style={{ fontSize: 10, color: 'var(--trella-text-subtle, #64748B)' }}>Jul 20, 2026</div>
               </div>
-              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#2563EB' }}>60%</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--trella-brand, #2563EB)' }}>60%</span>
             </div>
 
-            <button style={{ width: '100%', padding: '5px 0', border: '1px dashed #BFDBFE', borderRadius: 6, backgroundColor: '#EFF6FF', color: '#2563EB', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <button style={{ width: '100%', padding: '5px 0', border: '1px dashed var(--trella-border-strong, #BFDBFE)', borderRadius: 6, backgroundColor: 'var(--trella-surface-selected, #EFF6FF)', color: 'var(--trella-brand, #2563EB)', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               <Plus size={12} /> Add milestone
             </button>
           </div>
@@ -683,22 +684,22 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
       </div>
 
       {/* 5. Footer Pagination Row */}
-      <div style={{ padding: '10px 20px', borderTop: '1px solid #E2E8F0', backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#64748B' }}>
+      <div style={{ padding: '10px 20px', borderTop: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface, #FFFFFF)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: 'var(--trella-text-subtle, #64748B)' }}>
         <span>Showing 1-10 of {filteredEpics.length} items</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>Rows per page:</span>
-            <select style={{ padding: '2px 6px', fontSize: 12, borderRadius: 4, border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF' }}>
+            <select style={{ padding: '2px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface, #FFFFFF)', color: 'var(--trella-text, #1E293B)' }}>
               <option value="25">25</option>
               <option value="50">50</option>
             </select>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button style={{ border: '1px solid #E2E8F0', borderRadius: 4, padding: '2px 6px', background: '#FFFFFF', cursor: 'pointer' }}>‹</button>
-            <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: '#EFF6FF', color: '#2563EB', fontWeight: 700 }}>1</span>
-            <button style={{ border: '1px solid #E2E8F0', borderRadius: 4, padding: '2px 6px', background: '#FFFFFF', cursor: 'pointer' }}>›</button>
+            <button style={{ border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 4, padding: '2px 6px', background: 'var(--trella-surface, #FFFFFF)', color: 'var(--trella-text, #1E293B)', cursor: 'pointer' }}>‹</button>
+            <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: 'var(--trella-surface-selected, #EFF6FF)', color: 'var(--trella-brand, #2563EB)', fontWeight: 700 }}>1</span>
+            <button style={{ border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 4, padding: '2px 6px', background: 'var(--trella-surface, #FFFFFF)', color: 'var(--trella-text, #1E293B)', cursor: 'pointer' }}>›</button>
           </div>
         </div>
       </div>

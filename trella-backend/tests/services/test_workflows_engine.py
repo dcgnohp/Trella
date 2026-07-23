@@ -307,3 +307,41 @@ def test_scrum_mode_enforces_workflow_transitions(session: Session):
         session, task.id, TaskUpdate(custom_status_id=cs_codereview.id), user
     )
     assert task.custom_status_id == cs_codereview.id
+
+
+def test_bootstrap_reuses_existing_workspace_statuses(session: Session):
+    """Regression: onboarding seeds a workspace's statuses, then switches to SCRUM.
+
+    Bootstrap must build the workflow from THOSE statuses and create no new ones.
+    Previously it injected a fixed 5-status template on top, yielding 7 statuses
+    and 409 name conflicts during the frontend's status-alignment step.
+    """
+    workspace = Workspace(name="Onboarded", mode=WorkspaceMode.SCRUM.value)
+    session.add(workspace)
+    session.commit()
+    session.refresh(workspace)
+
+    # The 4 statuses a freshly-created workspace is seeded with.
+    seeded = [
+        CustomStatus(workspace_id=workspace.id, name="To Do", canonical_status="TODO"),
+        CustomStatus(
+            workspace_id=workspace.id, name="In Progress", canonical_status="IN_PROGRESS"
+        ),
+        CustomStatus(
+            workspace_id=workspace.id, name="In Review", canonical_status="PENDING"
+        ),
+        CustomStatus(workspace_id=workspace.id, name="Done", canonical_status="DONE"),
+    ]
+    for cs in seeded:
+        session.add(cs)
+    session.commit()
+
+    wf_service = WorkflowsService()
+    workflow = wf_service.bootstrap_default_workflow(session, workspace.id)
+
+    all_statuses = session.exec(
+        select(CustomStatus).where(CustomStatus.workspace_id == workspace.id)
+    ).all()
+    # No extra statuses were created — still exactly the 4 seeded ones.
+    assert {s.name for s in all_statuses} == {"To Do", "In Progress", "In Review", "Done"}
+    assert workflow.is_active

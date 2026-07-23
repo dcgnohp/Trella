@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # Maximum number of boards an organization can create on the free tier.
-    MAX_FREE_BOARDS: int = 5
+    MAX_FREE_BOARDS: int = 10
 
     STORAGE_BACKEND: Literal["local", "s3"] = "local"
     STORAGE_DIR: str = "var/attachments"

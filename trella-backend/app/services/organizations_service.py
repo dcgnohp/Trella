@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -141,7 +142,15 @@ class OrganizationsService:
             raise
 
     def switch_mode(
-        self, session: Session, workspace_id: uuid.UUID, new_mode: str, user: User
+        self,
+        session: Session,
+        workspace_id: uuid.UUID,
+        new_mode: str,
+        user: User,
+        delete_board_ids: list[uuid.UUID] | None = None,
+        archive_board_ids: list[uuid.UUID] | None = None,
+        task_board_mappings: list[Any] | None = None,
+        new_boards: list[str] | None = None,
     ) -> Organization:
         """Switch workspace between KANBAN and SCRUM mode. Requires OWNER role.
 
@@ -151,6 +160,9 @@ class OrganizationsService:
         Also handles legacy TRELLO/JIRA values for backward compatibility.
         """
         from app.models.enums import WorkspaceMode
+        from app.models.boards_model import Board
+        from app.models.tasks_model import Task
+        from sqlmodel import select
 
         # Normalize legacy values
         _legacy_map = {
@@ -177,11 +189,23 @@ class OrganizationsService:
                 detail=f"Invalid mode: {new_mode}. Must be KANBAN or SCRUM",
             )
 
-        old_mode = org.mode
-        # Normalize old_mode legacy value for comparison
-        old_mode_normalized = _legacy_map.get(old_mode or "", old_mode)
-        if old_mode_normalized == new_mode:
-            return org
+        # 1. Process board deletion if requested
+        if delete_board_ids:
+            for b_id in delete_board_ids:
+                board = session.get(Board, b_id)
+                if board:
+                    session.delete(board)
+
+        # 2. Process task-to-board mapping if provided
+        if task_board_mappings:
+            for item in task_board_mappings:
+                t_id = getattr(item, "task_id", None) or (item.get("task_id") if isinstance(item, dict) else None)
+                b_id = getattr(item, "board_id", None) or (item.get("board_id") if isinstance(item, dict) else None)
+                if t_id and b_id:
+                    task = session.get(Task, uuid.UUID(str(t_id)) if isinstance(t_id, str) else t_id)
+                    if task:
+                        task.board_id = uuid.UUID(str(b_id)) if isinstance(b_id, str) else b_id
+                        session.add(task)
 
         if new_mode == WorkspaceMode.SCRUM.value:
             self._migrate_to_scrum(session, workspace_id)

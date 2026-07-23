@@ -55,8 +55,18 @@ def delete_organization(
     _service.delete_org(session, org_id, current_user)
 
 
+class TaskBoardMapItem(CamelModel):
+    task_id: uuid.UUID
+    board_id: uuid.UUID
+
+
 class WorkspaceModeUpdate(CamelModel):
     mode: str
+    primary_board_id: uuid.UUID | None = None
+    delete_board_ids: list[uuid.UUID] | None = None
+    archive_board_ids: list[uuid.UUID] | None = None
+    new_boards: list[str] | None = None
+    task_board_mappings: list[TaskBoardMapItem] | None = None
 
 
 @workspaces_router.patch("/{workspace_id}/mode", response_model=OrganizationPublic)
@@ -67,7 +77,16 @@ def switch_workspace_mode(
     current_user: CurrentUser,
 ) -> OrganizationPublic:
     """Switch workspace mode between KANBAN and SCRUM. OWNER only."""
-    org = _service.switch_mode(session, workspace_id, data.mode, current_user)
+    org = _service.switch_mode(
+        session,
+        workspace_id,
+        data.mode,
+        current_user,
+        delete_board_ids=data.delete_board_ids,
+        archive_board_ids=data.archive_board_ids,
+        task_board_mappings=data.task_board_mappings,
+        new_boards=data.new_boards,
+    )
     return OrganizationPublic.model_validate(org)
 
 

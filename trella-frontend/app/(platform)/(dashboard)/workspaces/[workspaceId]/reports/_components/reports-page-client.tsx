@@ -431,15 +431,15 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                 gap: 6,
                 padding: "8px 14px",
                 borderRadius: 8,
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #CBD5E1",
-                color: "#0F172A",
+                backgroundColor: "var(--trella-surface, #FFFFFF)",
+                border: "1px solid var(--trella-border, #CBD5E1)",
+                color: "var(--trella-text, #0F172A)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
               }}
             >
-              <Download size={15} color="#2563EB" />
+              <Download size={15} color="var(--trella-brand, #2563EB)" />
               <span>Export CSV</span>
             </button>
 
@@ -452,22 +452,22 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                 gap: 6,
                 padding: "8px 14px",
                 borderRadius: 8,
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #CBD5E1",
-                color: "#0F172A",
+                backgroundColor: "var(--trella-surface, #FFFFFF)",
+                border: "1px solid var(--trella-border, #CBD5E1)",
+                color: "var(--trella-text, #0F172A)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
               }}
             >
-              <Printer size={15} color="#475569" />
+              <Printer size={15} color="var(--trella-text-subtle, #475569)" />
               <span>Print</span>
             </button>
           </div>
         </div>
 
         {/* 6 Core Report Type Selector Pills */}
-        <div style={{ display: "flex", gap: 8, borderBottom: "1px solid #E2E8F0", paddingBottom: 12, overflowX: "auto" }}>
+        <div style={{ display: "flex", gap: 8, borderBottom: "1px solid var(--trella-border, #E2E8F0)", paddingBottom: 12, overflowX: "auto" }}>
           {[
             { key: 'BURNDOWN', label: 'Burndown Chart', icon: <TrendingUp size={16} /> },
             { key: 'VELOCITY', label: 'Velocity Chart', icon: <BarChart3 size={16} /> },
@@ -489,8 +489,8 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                 fontWeight: 700,
                 border: "none",
                 cursor: "pointer",
-                backgroundColor: activeReportTab === tab.key ? "#2563EB" : "#FFFFFF",
-                color: activeReportTab === tab.key ? "#FFFFFF" : "#475569",
+                backgroundColor: activeReportTab === tab.key ? "var(--trella-brand, #2563EB)" : "var(--trella-surface, #FFFFFF)",
+                color: activeReportTab === tab.key ? "#FFFFFF" : "var(--trella-text-subtle, #475569)",
                 boxShadow: activeReportTab === tab.key ? "0 2px 6px rgba(37,99,235,0.3)" : "none",
                 transition: "all 120ms ease",
                 whiteSpace: "nowrap",
@@ -506,13 +506,13 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
       {/* ------------------------------------------------------------------ */}
       {/* 2. DYNAMIC FILTERS TOOLBAR FROM REAL DATABASE                      */}
       {/* ------------------------------------------------------------------ */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, backgroundColor: "#FFFFFF", padding: "12px 18px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#475569", fontWeight: 600 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, backgroundColor: "var(--trella-surface, #FFFFFF)", padding: "12px 18px", borderRadius: 10, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--trella-text-subtle, #475569)", fontWeight: 600 }}>
           <span>Sprint Scope:</span>
           <select
             value={selectedSprintId}
             onChange={(e) => setSelectedSprintId(e.target.value)}
-            style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 12, fontWeight: 700, outline: "none" }}
+            style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid var(--trella-border, #CBD5E1)", backgroundColor: "var(--trella-surface, #FFFFFF)", color: "var(--trella-text, #0F172A)", fontSize: 12, fontWeight: 700, outline: "none" }}
           >
             <option value="ALL">All Sprints ({dbTasks.length} tasks)</option>
             {dbSprints.map((s: any) => {
@@ -555,36 +555,36 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
             <MetricBox label="Delivered Scope" val={`${donePoints} SP`} tone="#8B5CF6" />
           </div>
 
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
-                <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+                <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
                   Sprint Burndown Chart — Ideal Burnup vs Actual Remaining Scope
                 </h3>
-                <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
+                <p style={{ margin: 0, fontSize: 13, color: "var(--trella-text-subtle, #64748B)" }}>
                   Tracks remaining story points across sprint timeline. Dashed line represents ideal linear burn rate.
                 </p>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, fontWeight: 700 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748B" }}>
-                  <span style={{ width: 12, height: 2, borderBottom: "2px dashed #94A3B8" }} /> Ideal Burn
+                <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--trella-text-subtle, #64748B)" }}>
+                  <span style={{ width: 12, height: 2, borderBottom: "2px dashed var(--trella-border-strong, #94A3B8)" }} /> Ideal Burn
                 </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#2563EB" }}>
-                  <span style={{ width: 12, height: 3, backgroundColor: "#2563EB", borderRadius: 2 }} /> Actual Remaining
+                <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--trella-brand, #2563EB)" }}>
+                  <span style={{ width: 12, height: 3, backgroundColor: "var(--trella-brand, #2563EB)", borderRadius: 2 }} /> Actual Remaining
                 </span>
               </div>
             </div>
 
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={burndownChartData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis dataKey="step" tick={{ fontSize: 12, fill: "#64748B" }} />
-                <YAxis tick={{ fontSize: 12, fill: "#64748B" }} domain={[0, 'auto']} />
-                <Tooltip contentStyle={{ backgroundColor: "#FFFFFF", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="ideal" name="Ideal Burn" stroke="#94A3B8" strokeWidth={2} strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="actual" name="Actual Remaining SP" stroke="#2563EB" strokeWidth={3} dot={{ r: 5, fill: "#2563EB" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--trella-border-subtle, #F1F5F9)" />
+                <XAxis dataKey="step" tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                <YAxis tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} domain={[0, 'auto']} />
+                <Tooltip contentStyle={{ backgroundColor: "var(--trella-surface-overlay, #FFFFFF)", color: "var(--trella-text, #0F172A)", borderRadius: 8, border: "1px solid var(--trella-border, #CBD5E1)", fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12, color: "var(--trella-text, #0F172A)" }} />
+                <Line type="monotone" dataKey="ideal" name="Ideal Burn" stroke="var(--trella-text-subtlest, #94A3B8)" strokeWidth={2} strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="actual" name="Actual Remaining SP" stroke="var(--trella-brand, #2563EB)" strokeWidth={3} dot={{ r: 5, fill: "var(--trella-brand, #2563EB)" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -600,28 +600,28 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
             <MetricBox label="Total Story Points" val={`${totalPoints} SP`} tone="#8B5CF6" />
           </div>
 
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
               Sprint Velocity — Committed vs Completed (Story Points)
             </h3>
-            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#64748B" }}>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--trella-text-subtle, #64748B)" }}>
               Calculated live from real database sprints and tasks in PostgreSQL.
             </p>
 
             {velocityChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={velocityChartData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="sprint" tick={{ fontSize: 12, fill: "#64748B" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "#64748B" }} />
-                  <Tooltip contentStyle={{ backgroundColor: "#FFFFFF", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--trella-border-subtle, #F1F5F9)" />
+                  <XAxis dataKey="sprint" tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                  <Tooltip contentStyle={{ backgroundColor: "var(--trella-surface-overlay, #FFFFFF)", color: "var(--trella-text, #0F172A)", borderRadius: 8, border: "1px solid var(--trella-border, #CBD5E1)", fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="committed" name="Committed SP" fill="#BFDBFE" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="completed" name="Completed SP" fill="#2563EB" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="completed" name="Completed SP" fill="var(--trella-brand, #2563EB)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ padding: 48, textAlign: "center", color: "#64748B" }}>
+              <div style={{ padding: 48, textAlign: "center", color: "var(--trella-text-subtle, #64748B)" }}>
                 No completed sprint velocity records found in database.
               </div>
             )}
@@ -632,20 +632,20 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
       {/* REPORT 3: CUMULATIVE FLOW DIAGRAM (CFD) */}
       {activeReportTab === 'CFD' && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
               Cumulative Flow Diagram (CFD) — Task State Accumulation
             </h3>
-            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#64748B" }}>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--trella-text-subtle, #64748B)" }}>
               Real-time Task distribution across To Do, In Progress, Review, and Done.
             </p>
 
             <ResponsiveContainer width="100%" height={320}>
               <AreaChart data={cfdChartData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#64748B" }} />
-                <YAxis tick={{ fontSize: 12, fill: "#64748B" }} />
-                <Tooltip contentStyle={{ backgroundColor: "#FFFFFF", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--trella-border-subtle, #F1F5F9)" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                <YAxis tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                <Tooltip contentStyle={{ backgroundColor: "var(--trella-surface-overlay, #FFFFFF)", color: "var(--trella-text, #0F172A)", borderRadius: 8, border: "1px solid var(--trella-border, #CBD5E1)", fontSize: 12 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Area type="monotone" dataKey="done" name="Done" stackId="1" stroke="#16A34A" fill="#DCFCE7" />
                 <Area type="monotone" dataKey="review" name="Review" stackId="1" stroke="#8B5CF6" fill="#F3E8FF" />
@@ -660,28 +660,28 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
       {/* REPORT 4: CONTROL CHART & CYCLE TIME */}
       {activeReportTab === 'CYCLE_TIME' && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
               Task Lead & Cycle Time (Calculated from Task Timestamps)
             </h3>
-            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#64748B" }}>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--trella-text-subtle, #64748B)" }}>
               Measures duration between creation date and completion date for real tasks.
             </p>
 
             {cycleTimeData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={cycleTimeData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="task" tick={{ fontSize: 12, fill: "#64748B" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "#64748B" }} />
-                  <Tooltip contentStyle={{ backgroundColor: "#FFFFFF", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--trella-border-subtle, #F1F5F9)" />
+                  <XAxis dataKey="task" tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "var(--trella-text-subtle, #64748B)" }} />
+                  <Tooltip contentStyle={{ backgroundColor: "var(--trella-surface-overlay, #FFFFFF)", color: "var(--trella-text, #0F172A)", borderRadius: 8, border: "1px solid var(--trella-border, #CBD5E1)", fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="leadTime" name="Lead Time (Days)" fill="#93C5FD" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="cycleTime" name="Cycle Time (Days)" fill="#10B981" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ padding: 48, textAlign: "center", color: "#64748B" }}>
+              <div style={{ padding: 48, textAlign: "center", color: "var(--trella-text-subtle, #64748B)" }}>
                 No completed tasks found in database to compute lead and cycle times.
               </div>
             )}
@@ -695,44 +695,44 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
           
           {/* Unassigned Pool Warning Banner if unassigned tasks exist */}
           {teamWorkloadList.unassigned.count > 0 && (
-            <div style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", padding: "14px 20px", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ backgroundColor: "var(--trella-surface-sunken, #FFFBEB)", border: "1px solid var(--trella-border-strong, #FDE68A)", padding: "14px 20px", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <AlertCircle size={20} color="#D97706" />
                 <div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#92400E" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--trella-text, #92400E)" }}>
                     Unassigned Backlog Pool: {teamWorkloadList.unassigned.count} Tasks ({teamWorkloadList.unassigned.points} SP)
                   </span>
-                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "#B45309" }}>
+                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--trella-text-subtle, #B45309)" }}>
                     These tasks have no member assigned yet. Reassign them to team members to reflect complete workload distribution.
                   </p>
                 </div>
               </div>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#B45309", backgroundColor: "#FEF3C7", padding: "4px 10px", borderRadius: 12, border: "1px solid #FCD34D" }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#B45309", backgroundColor: "var(--trella-surface-hover, #FEF3C7)", padding: "4px 10px", borderRadius: 12, border: "1px solid #FCD34D" }}>
                 AWAITING ASSIGNEE
               </span>
             </div>
           )}
 
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
               Workspace Team Members Workload Allocation ({teamWorkloadList.members.length} Real Members)
             </h3>
 
             {teamWorkloadList.members.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {teamWorkloadList.members.map((m: any) => (
-                  <div key={m.id} style={{ backgroundColor: "#F8FAFC", padding: 16, borderRadius: 10, border: "1px solid #E2E8F0" }}>
+                  <div key={m.id} style={{ backgroundColor: "var(--trella-surface-sunken, #F8FAFC)", padding: 16, borderRadius: 10, border: "1px solid var(--trella-border, #E2E8F0)" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "#EFF6FF", color: "#2563EB", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "var(--trella-surface-selected, #EFF6FF)", color: "var(--trella-brand, #2563EB)", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           {m.name[0]?.toUpperCase() ?? 'U'}
                         </div>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{m.name}</span>
-                            <span style={{ fontSize: 10, fontWeight: 800, color: "#64748B", backgroundColor: "#E2E8F0", padding: "1px 6px", borderRadius: 4 }}>{m.role}</span>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>{m.name}</span>
+                            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--trella-text-subtle, #64748B)", backgroundColor: "var(--trella-surface-hover, #E2E8F0)", padding: "1px 6px", borderRadius: 4 }}>{m.role}</span>
                           </div>
-                          <span style={{ fontSize: 12, color: "#64748B" }}>
+                          <span style={{ fontSize: 12, color: "var(--trella-text-subtle, #64748B)" }}>
                             {m.assigned} tasks assigned ({m.points} Story Points) • {m.completed} completed
                           </span>
                         </div>
@@ -744,8 +744,8 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                           borderRadius: 12,
                           fontSize: 11,
                           fontWeight: 800,
-                          backgroundColor: m.capacity === 'HEAVY' ? '#FEF2F2' : m.capacity === 'OPTIMAL' ? '#F0FDF4' : '#EFF6FF',
-                          color: m.capacity === 'HEAVY' ? '#DC2626' : m.capacity === 'OPTIMAL' ? '#16A34A' : '#2563EB',
+                          backgroundColor: m.capacity === 'HEAVY' ? '#FEF2F2' : m.capacity === 'OPTIMAL' ? '#F0FDF4' : 'var(--trella-surface-selected, #EFF6FF)',
+                          color: m.capacity === 'HEAVY' ? '#DC2626' : m.capacity === 'OPTIMAL' ? '#16A34A' : 'var(--trella-brand, #2563EB)',
                           border: `1px solid ${m.capacity === 'HEAVY' ? '#FCA5A5' : m.capacity === 'OPTIMAL' ? '#86EFAC' : '#93C5FD'}`,
                         }}
                       >
@@ -753,12 +753,12 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                       </span>
                     </div>
 
-                    <div style={{ height: 8, backgroundColor: "#E2E8F0", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: 8, backgroundColor: "var(--trella-surface-hover, #E2E8F0)", borderRadius: 4, overflow: "hidden" }}>
                       <div
                         style={{
                           width: `${Math.min(100, Math.round((m.completed / Math.max(1, m.assigned)) * 100))}%`,
                           height: "100%",
-                          backgroundColor: m.capacity === 'HEAVY' ? '#EF4444' : '#2563EB',
+                          backgroundColor: m.capacity === 'HEAVY' ? '#EF4444' : 'var(--trella-brand, #2563EB)',
                           borderRadius: 4,
                         }}
                       />
@@ -767,7 +767,7 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
                 ))}
               </div>
             ) : (
-              <div style={{ padding: 48, textAlign: "center", color: "#64748B" }}>
+              <div style={{ padding: 48, textAlign: "center", color: "var(--trella-text-subtle, #64748B)" }}>
                 No workspace members found in directory.
               </div>
             )}
@@ -778,8 +778,8 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
       {/* REPORT 6: RELEASE READINESS (WITH STYLISH STATUS BADGES & ACCURATE SPRINT PROGRESS) */}
       {activeReportTab === 'RELEASE' && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ backgroundColor: "#FFFFFF", padding: 24, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+          <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 24, borderRadius: 12, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "var(--trella-text, #0F172A)" }}>
               Database Sprint & Release Target Readiness
             </h3>
 
@@ -924,10 +924,10 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
 
 function MetricBox({ label, val, sub, tone }: { label: string; val: string; sub?: string; tone: string }) {
   return (
-    <div style={{ backgroundColor: "#FFFFFF", padding: 16, borderRadius: 10, border: "1px solid #E2E8F0", textAlign: "left" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>{label}</div>
+    <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", padding: 16, borderRadius: 10, border: "1px solid var(--trella-border, #E2E8F0)", textAlign: "left" }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--trella-text-subtle, #64748B)", textTransform: "uppercase" }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 900, color: tone, margin: "4px 0 2px" }}>{val}</div>
-      {sub && <div style={{ fontSize: 11, color: "#94A3B8" }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "var(--trella-text-subtlest, #94A3B8)" }}>{sub}</div>}
     </div>
   );
 }

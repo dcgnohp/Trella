@@ -343,12 +343,12 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
               alignItems: 'center',
               gap: 8,
               padding: '7px 14px',
-              backgroundColor: '#FFFFFF',
-              border: `1px solid ${isDatePickerOpen ? '#2563EB' : '#E2E8F0'}`,
+              backgroundColor: 'var(--trella-surface, #FFFFFF)',
+              border: `1px solid ${isDatePickerOpen ? 'var(--trella-brand, #2563EB)' : 'var(--trella-border, #E2E8F0)'}`,
               borderRadius: 8,
               fontSize: 13,
               fontWeight: 600,
-              color: '#334155',
+              color: 'var(--trella-text, #334155)',
               boxShadow: isDatePickerOpen ? '0 0 0 3px rgba(37, 99, 235, 0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
               cursor: 'pointer',
               transition: 'all 160ms ease-out',
@@ -356,14 +356,14 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
           >
             <Calendar
               size={15}
-              color={isDatePickerOpen ? '#2563EB' : '#64748B'}
+              color={isDatePickerOpen ? 'var(--trella-brand, #2563EB)' : 'var(--trella-text-subtle, #64748B)'}
               style={{
                 transform: calendarRotated ? 'rotate(6deg)' : 'rotate(0deg)',
                 transition: 'transform 180ms ease-out',
               }}
             />
             <span>{dateRangeStr}</span>
-            <ChevronDown size={14} color="#94A3B8" />
+            <ChevronDown size={14} color="var(--trella-text-subtlest, #94A3B8)" />
           </div>
 
           {/* Date Picker Popover */}
@@ -374,10 +374,10 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                 top: '100%',
                 left: 0,
                 marginTop: 6,
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
+                border: '1px solid var(--trella-border, #E2E8F0)',
                 borderRadius: 12,
-                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.12)',
+                boxShadow: 'var(--trella-shadow-overlay, 0 10px 25px -5px rgba(0,0,0,0.12))',
                 padding: 16,
                 zIndex: 200,
                 width: 260,
@@ -486,10 +486,10 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 24 }}>
         
         {/* Left Column: Status Overview Donut Card */}
-        <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 12, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Status overview</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--trella-text, #111827)', margin: 0 }}>Status overview</h2>
               
               <div style={{ position: 'relative' }}>
                 <select
@@ -500,9 +500,9 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                     fontSize: 12,
                     fontWeight: 500,
                     borderRadius: 6,
-                    border: '1px solid #E2E8F0',
-                    backgroundColor: '#F8FAFC',
-                    color: '#334155',
+                    border: '1px solid var(--trella-border, #E2E8F0)',
+                    backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)',
+                    color: 'var(--trella-text, #334155)',
                     outline: 'none',
                     cursor: 'pointer',
                     appearance: 'none',
@@ -514,11 +514,11 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                   <option value="TASK">Task</option>
                   <option value="BUG">Bug</option>
                 </select>
-                <ChevronDown size={14} color="#64748B" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <ChevronDown size={14} color="var(--trella-text-subtle, #64748B)" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               </div>
             </div>
 
-            <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 28px' }}>
+            <p style={{ fontSize: 13, color: 'var(--trella-text-subtle, #64748B)', margin: '0 0 28px' }}>
               View the distribution of work items by status across the selected time period.
             </p>
 
@@ -527,7 +527,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
               {/* Left SVG Donut Chart */}
               <div style={{ position: 'relative', width: 180, height: 180, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="180" height="180" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="#F1F5F9" strokeWidth="12" />
+                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--trella-surface-sunken, #F1F5F9)" strokeWidth="12" />
                   
                   {/* Status Donut Arcs */}
                   {[
@@ -562,13 +562,13 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
 
                 {/* Donut Center Display */}
                 <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none', width: 110, padding: '0 4px' }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: '#111827', lineHeight: 1 }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--trella-text, #111827)', lineHeight: 1 }}>
                     {activeStatusSlice.count}
                   </div>
                   <div
                     style={{
                       fontSize: 10,
-                      color: '#64748B',
+                      color: 'var(--trella-text-subtle, #64748B)',
                       fontWeight: 600,
                       marginTop: 4,
                       lineHeight: 1.2,
@@ -582,7 +582,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                     {activeStatusSlice.name}
                   </div>
                   {activeStatusSlice.name !== 'Total work items' && (
-                    <div style={{ fontSize: 11, color: '#2563EB', fontWeight: 700, marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: 'var(--trella-brand, #2563EB)', fontWeight: 700, marginTop: 2 }}>
                       {activeStatusSlice.pct}%
                     </div>
                   )}
@@ -606,9 +606,9 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                         justifyContent: 'space-between',
                         padding: '5px 8px',
                         borderRadius: 6,
-                        backgroundColor: isActive ? '#EFF6FF' : isHovered ? '#F8FAFC' : 'transparent',
-                        color: isActive ? '#1E40AF' : '#334155',
-                        border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
+                        backgroundColor: isActive ? 'var(--trella-surface-selected, #EFF6FF)' : isHovered ? 'var(--trella-surface-hover, #F8FAFC)' : 'transparent',
+                        color: isActive ? 'var(--trella-brand, #1E40AF)' : 'var(--trella-text, #334155)',
+                        border: isActive ? '1px solid var(--trella-border-strong, #BFDBFE)' : '1px solid transparent',
                         boxShadow: isActive ? '0 1px 3px rgba(37, 99, 235, 0.12)' : 'none',
                         fontWeight: isActive ? 700 : isHovered ? 600 : 500,
                         cursor: 'pointer',
@@ -620,8 +620,8 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{st.name}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 4 }}>
-                        <span style={{ color: isActive ? '#1E40AF' : '#64748B', fontWeight: 600 }}>{st.count} ({st.pct}%)</span>
-                        {isActive && <Check size={12} color="#2563EB" />}
+                        <span style={{ color: isActive ? 'var(--trella-brand, #1E40AF)' : 'var(--trella-text-subtle, #64748B)', fontWeight: 600 }}>{st.count} ({st.pct}%)</span>
+                        {isActive && <Check size={12} color="var(--trella-brand, #2563EB)" />}
                       </div>
                     </div>
                   );
@@ -631,9 +631,9 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
           </div>
 
           {/* Footer Row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, marginTop: 20, borderTop: '1px solid #F1F5F9', fontSize: 13, fontWeight: 700 }}>
-            <span style={{ color: '#111827' }}>Total</span>
-            <span style={{ color: '#111827' }}>{totalWorkItems} (100%)</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, marginTop: 20, borderTop: '1px solid var(--trella-border-subtle, #F1F5F9)', fontSize: 13, fontWeight: 700 }}>
+            <span style={{ color: 'var(--trella-text, #111827)' }}>Total</span>
+            <span style={{ color: 'var(--trella-text, #111827)' }}>{totalWorkItems} (100%)</span>
           </div>
         </div>
 
@@ -641,11 +641,11 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           
           {/* Progress over time: True Cumulative Flow Trend Chart */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', position: 'relative' }}>
+          <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <div>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>Progress over time</h3>
-                <span style={{ fontSize: 11, color: '#64748B' }}>Cumulative flow velocity & trend</span>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--trella-text, #111827)', margin: '0 0 2px' }}>Progress over time</h3>
+                <span style={{ fontSize: 11, color: 'var(--trella-text-subtle, #64748B)' }}>Cumulative flow velocity & trend</span>
               </div>
               
               {/* Context-Aware Timeframe Dropdown */}
@@ -800,22 +800,22 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
           </div>
 
           {/* Work Items by Type Card */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 16px' }}>Work items by type</h3>
+          <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--trella-text, #111827)', margin: '0 0 16px' }}>Work items by type</h3>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               {/* Mini Donut Chart */}
               <div style={{ position: 'relative', width: 100, height: 100, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="#F1F5F9" strokeWidth="12" />
+                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--trella-surface-sunken, #F1F5F9)" strokeWidth="12" />
                   <circle cx="50" cy="50" r="38" fill="transparent" stroke="#3B82F6" strokeWidth={hoveredTypeName === 'Task' || activeTypeFilter === 'Task' ? '16' : '12'} strokeDasharray="167 240" strokeDashoffset="0" onMouseEnter={() => setHoveredTypeName('Task')} onMouseLeave={() => setHoveredTypeName(null)} onClick={() => setActiveTypeFilter(activeTypeFilter === 'Task' ? null : 'Task')} style={{ cursor: 'pointer', transition: 'all 160ms ease-out' }} />
                   <circle cx="50" cy="50" r="38" fill="transparent" stroke="#EF4444" strokeWidth={hoveredTypeName === 'Bug' || activeTypeFilter === 'Bug' ? '16' : '12'} strokeDasharray="48 240" strokeDashoffset="-167" onMouseEnter={() => setHoveredTypeName('Bug')} onMouseLeave={() => setHoveredTypeName(null)} onClick={() => setActiveTypeFilter(activeTypeFilter === 'Bug' ? null : 'Bug')} style={{ cursor: 'pointer', transition: 'all 160ms ease-out' }} />
                   <circle cx="50" cy="50" r="38" fill="transparent" stroke="#10B981" strokeWidth={hoveredTypeName === 'Story' || activeTypeFilter === 'Story' ? '16' : '12'} strokeDasharray="24 240" strokeDashoffset="-215" onMouseEnter={() => setHoveredTypeName('Story')} onMouseLeave={() => setHoveredTypeName(null)} onClick={() => setActiveTypeFilter(activeTypeFilter === 'Story' ? null : 'Story')} style={{ cursor: 'pointer', transition: 'all 160ms ease-out' }} />
                 </svg>
 
                 <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{activeTypeSlice.count}</div>
-                  <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600, marginTop: 2 }}>{activeTypeSlice.type}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--trella-text, #111827)', lineHeight: 1 }}>{activeTypeSlice.count}</div>
+                  <div style={{ fontSize: 10, color: 'var(--trella-text-subtle, #64748B)', fontWeight: 600, marginTop: 2 }}>{activeTypeSlice.type}</div>
                 </div>
               </div>
 
@@ -836,9 +836,9 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                         justifyContent: 'space-between',
                         padding: '4px 8px',
                         borderRadius: 6,
-                        backgroundColor: isActive ? '#EFF6FF' : isHovered ? '#F8FAFC' : 'transparent',
-                        color: isActive ? '#1E40AF' : '#334155',
-                        border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
+                        backgroundColor: isActive ? 'var(--trella-surface-selected, #EFF6FF)' : isHovered ? 'var(--trella-surface-hover, #F8FAFC)' : 'transparent',
+                        color: isActive ? 'var(--trella-brand, #1E40AF)' : 'var(--trella-text, #334155)',
+                        border: isActive ? '1px solid var(--trella-border-strong, #BFDBFE)' : '1px solid transparent',
                         fontWeight: isHovered || isActive ? 700 : 500,
                         cursor: 'pointer',
                         transition: 'all 140ms ease-out',
@@ -849,8 +849,8 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                         <span>{tb.type}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ color: isActive ? '#1E40AF' : '#64748B', fontWeight: 600 }}>{tb.count} ({tb.pct}%)</span>
-                        {isActive && <Check size={12} color="#2563EB" />}
+                        <span style={{ color: isActive ? 'var(--trella-brand, #1E40AF)' : 'var(--trella-text-subtle, #64748B)', fontWeight: 600 }}>{tb.count} ({tb.pct}%)</span>
+                        {isActive && <Check size={12} color="var(--trella-brand, #2563EB)" />}
                       </div>
                     </div>
                   );
@@ -863,10 +863,10 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
       </div>
 
       {/* 4. Bottom Table: Recent Work Items */}
-      <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+      <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 12, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Recent work items</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--trella-text, #111827)', margin: 0 }}>Recent work items</h2>
 
             {/* Individual Removable Badges */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -880,15 +880,15 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                     borderRadius: 12,
                     fontSize: 11,
                     fontWeight: 600,
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                    border: '1px solid #BFDBFE',
+                    backgroundColor: 'var(--trella-surface-selected, #EFF6FF)',
+                    color: 'var(--trella-brand, #2563EB)',
+                    border: '1px solid var(--trella-border-strong, #BFDBFE)',
                   }}
                 >
                   <span>KPI: {activeKpiFilter}</span>
                   <X
                     size={12}
-                    color="#2563EB"
+                    color="var(--trella-brand, #2563EB)"
                     style={{ cursor: 'pointer' }}
                     onClick={e => {
                       e.stopPropagation();
@@ -989,7 +989,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: '#2563EB',
+              color: 'var(--trella-brand, #2563EB)',
               textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
@@ -1005,7 +1005,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#94A3B8', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <tr style={{ borderBottom: '1px solid var(--trella-border, #E2E8F0)', color: 'var(--trella-text-subtlest, #94A3B8)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 <th style={{ padding: '10px 12px' }}>Key</th>
                 <th style={{ padding: '10px 12px' }}>Summary</th>
                 <th style={{ padding: '10px 12px' }}>Status</th>
@@ -1018,7 +1018,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
             <tbody>
               {filteredRecentItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '32px 0', textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
+                  <td colSpan={7} style={{ padding: '32px 0', textAlign: 'center', color: 'var(--trella-text-subtlest, #94A3B8)', fontSize: 13 }}>
                     No work items match the selected filters.
                   </td>
                 </tr>
@@ -1028,28 +1028,28 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                     key={item.key || idx}
                     onClick={() => setSelectedTask(item)}
                     style={{
-                      borderBottom: idx === filteredRecentItems.length - 1 ? 'none' : '1px solid #F1F5F9',
+                      borderBottom: idx === filteredRecentItems.length - 1 ? 'none' : '1px solid var(--trella-border-subtle, #F1F5F9)',
                       cursor: 'pointer',
                       transition: 'all 160ms ease-out',
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.backgroundColor = '#F8FAFC';
+                      e.currentTarget.style.backgroundColor = 'var(--trella-surface-hover, #F8FAFC)';
                       const keyEl = e.currentTarget.querySelector('.item-key');
-                      if (keyEl) (keyEl as HTMLElement).style.color = '#2563EB';
+                      if (keyEl) (keyEl as HTMLElement).style.color = 'var(--trella-brand, #2563EB)';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'transparent';
                       const keyEl = e.currentTarget.querySelector('.item-key');
-                      if (keyEl) (keyEl as HTMLElement).style.color = '#64748B';
+                      if (keyEl) (keyEl as HTMLElement).style.color = 'var(--trella-text-subtle, #64748B)';
                     }}
                   >
                     {/* Key */}
-                    <td className="item-key" style={{ padding: '12px', color: '#64748B', fontWeight: 600, transition: 'color 140ms ease' }}>
+                    <td className="item-key" style={{ padding: '12px', color: 'var(--trella-text-subtle, #64748B)', fontWeight: 600, transition: 'color 140ms ease' }}>
                       {item.key}
                     </td>
 
                     {/* Summary */}
-                    <td style={{ padding: '12px', fontWeight: 600, color: '#2563EB' }}>
+                    <td style={{ padding: '12px', fontWeight: 600, color: 'var(--trella-brand, #2563EB)' }}>
                       <span>{item.summary}</span>
                     </td>
 
@@ -1074,7 +1074,7 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                     </td>
 
                     {/* Type */}
-                    <td style={{ padding: '12px', color: '#334155' }}>
+                    <td style={{ padding: '12px', color: 'var(--trella-text, #334155)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {item.type === 'Bug' ? <Bug size={14} color="#EF4444" /> : item.type === 'Story' ? <Bookmark size={14} color="#10B981" /> : <CheckSquare size={14} color="#3B82F6" />}
                         <span>{item.type}</span>
@@ -1088,10 +1088,10 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                         onMouseLeave={() => setHoveredAvatar(null)}
                         style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                       >
-                        <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: '#3B82F6', color: '#FFFFFF', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'var(--trella-brand, #3B82F6)', color: '#FFFFFF', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {item.assignee.charAt(0)}
                         </div>
-                        <span style={{ color: '#334155' }}>{item.assignee}</span>
+                        <span style={{ color: 'var(--trella-text, #334155)' }}>{item.assignee}</span>
                       </div>
 
                       {/* Avatar Tooltip */}
@@ -1102,8 +1102,8 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                             bottom: '100%',
                             left: 12,
                             marginBottom: 6,
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #E2E8F0',
+                            backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
+                            border: '1px solid var(--trella-border, #E2E8F0)',
                             borderRadius: 8,
                             padding: '8px 12px',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -1112,8 +1112,8 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          <div style={{ fontWeight: 700, color: '#111827' }}>{item.assignee}</div>
-                          <div style={{ color: '#64748B' }}>{item.assigneeDept} • {item.assigneeOpenTasks} open tasks</div>
+                          <div style={{ fontWeight: 700, color: 'var(--trella-text, #111827)' }}>{item.assignee}</div>
+                          <div style={{ color: 'var(--trella-text-subtle, #64748B)' }}>{item.assigneeDept} • {item.assigneeOpenTasks} open tasks</div>
                         </div>
                       )}
                     </td>
@@ -1137,8 +1137,8 @@ export function PlanSummaryClient({ planId, workspaceId }: PlanSummaryClientProp
                             bottom: '100%',
                             left: 12,
                             marginBottom: 6,
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #E2E8F0',
+                            backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
+                            border: '1px solid var(--trella-border, #E2E8F0)',
                             borderRadius: 8,
                             padding: '6px 10px',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',

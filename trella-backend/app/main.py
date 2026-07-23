@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -9,6 +10,14 @@ from app.api.main import api_router
 from app.core.config import settings
 from app.core.realtime import ws_manager
 from app.endpoints.realtime_router import router as realtime_router
+
+# The `fastapi run` production entrypoint only configures uvicorn's own
+# loggers (uvicorn/uvicorn.error/uvicorn.access) -- application loggers
+# (e.g. "app.ai" used by the MCP startup/registration code) have no handler
+# attached and their INFO/WARNING records are silently dropped. This makes
+# root-logger output visible in `railway logs` without changing any other
+# logger's configuration.
+logging.basicConfig(level=logging.INFO)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:

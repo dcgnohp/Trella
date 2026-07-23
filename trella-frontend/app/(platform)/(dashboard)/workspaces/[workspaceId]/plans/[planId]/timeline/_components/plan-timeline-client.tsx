@@ -126,7 +126,7 @@ export function PlanTimelineClient({ planId, workspaceId }: PlanTimelineClientPr
   }, [selectedTask, getEffectiveTask, statuses]);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#FFFFFF' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--trella-surface, #FFFFFF)' }}>
       
       {/* 1. Yellow Staging Banner for Unsaved Changes */}
       {stagedCount > 0 && (

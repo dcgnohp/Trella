@@ -17,6 +17,15 @@ from app.repositories.workflows_repository import (
 )
 from app.services.organization_members_service import OrganizationMemberService
 
+# Ordering used to lay a workspace's own statuses into a linear workflow.
+# Unmapped statuses sort between IN_PROGRESS and DONE so DONE stays last.
+_CANONICAL_ORDER = {
+    "TODO": 0,
+    "IN_PROGRESS": 1,
+    "PENDING": 2,
+    "DONE": 4,
+}
+
 
 class WorkflowsService:
     def __init__(
@@ -52,6 +61,21 @@ class WorkflowsService:
         ).first()
         if existing:
             return existing
+
+        # If the workspace already defines its own statuses (e.g. seeded at
+        # workspace creation and refined during onboarding), build the workflow
+        # from THOSE statuses instead of injecting a hardcoded template. Injecting
+        # the old fixed 5-status set on top of the user's chosen statuses is what
+        # produced duplicate columns (7 instead of 4) and 409 name conflicts.
+        existing_statuses = list(
+            session.exec(
+                select(CustomStatus).where(CustomStatus.workspace_id == workspace_id)
+            ).all()
+        )
+        if existing_statuses:
+            return self._build_workflow_from_statuses(
+                session, workspace_id, existing_statuses
+            )
 
         # Create standard workflow metadata
         workflow = Workflow(
@@ -146,6 +170,70 @@ class WorkflowsService:
             self.transitions_repo.create(session, trans)
 
         # Set default project workflow
+        projects = session.exec(
+            select(Project).where(Project.workspace_id == workspace_id)
+        ).all()
+        for project in projects:
+            if project.workflow_id is None:
+                project.workflow_id = workflow.id
+                session.add(project)
+
+        session.commit()
+        session.refresh(workflow)
+        return workflow
+
+    def _build_workflow_from_statuses(
+        self,
+        session: Session,
+        workspace_id: uuid.UUID,
+        statuses: list[CustomStatus],
+    ) -> Workflow:
+        """Build an active workflow from the workspace's own custom statuses.
+
+        Creates NO new statuses — it wires transitions between the statuses the
+        workspace already has, so onboarding choices are respected verbatim.
+        """
+        workflow = Workflow(
+            workspace_id=workspace_id,
+            name="Standard Software Development Workflow",
+            description="Workflow generated from this workspace's statuses.",
+            is_active=True,
+        )
+        workflow = self.workflows_repo.create(session, workflow)
+
+        ordered = sorted(
+            statuses,
+            key=lambda s: (_CANONICAL_ORDER.get(s.canonical_status or "", 3), s.name.lower()),
+        )
+
+        # ponytail: all-pairs transitions — O(n^2) rows. Fine for the handful of
+        # statuses a workspace has. Upgrade path: switch to adjacent-only + an
+        # explicit "to Done from any" transition if a workspace defines dozens.
+        for target in ordered:
+            self.transitions_repo.create(
+                session,
+                WorkflowTransition(
+                    workflow_id=workflow.id,
+                    name=f"Set {target.name}",
+                    from_status_id=None,
+                    to_status_id=target.id,
+                ),
+            )
+        for src in ordered:
+            for target in ordered:
+                if src.id == target.id:
+                    continue
+                self.transitions_repo.create(
+                    session,
+                    WorkflowTransition(
+                        workflow_id=workflow.id,
+                        name=f"{src.name} \u2192 {target.name}",
+                        from_status_id=src.id,
+                        to_status_id=target.id,
+                    ),
+                )
+
+        # Attach to any project that has no workflow yet.
         projects = session.exec(
             select(Project).where(Project.workspace_id == workspace_id)
         ).all()

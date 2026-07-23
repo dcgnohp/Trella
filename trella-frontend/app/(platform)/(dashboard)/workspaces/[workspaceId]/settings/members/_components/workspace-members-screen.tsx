@@ -273,7 +273,7 @@ export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenPr
         {/* Header Title + Org Switcher + Invite Button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em" }}>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "var(--trella-text, #0F172A)", letterSpacing: "-0.02em" }}>
               Organization Members
             </h1>
 
@@ -286,24 +286,24 @@ export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenPr
                   alignItems: "center",
                   gap: 8,
                   padding: "5px 12px",
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #CBD5E1",
+                  backgroundColor: "var(--trella-surface, #FFFFFF)",
+                  border: "1px solid var(--trella-border, #CBD5E1)",
                   borderRadius: 6,
                   cursor: "pointer",
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "#1E293B",
+                  color: "var(--trella-text, #1E293B)",
                   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                   transition: "all 120ms ease",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = "#94A3B8")}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = "#CBD5E1")}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--trella-border-strong, #94A3B8)")}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--trella-border, #CBD5E1)")}
               >
-                <div style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: "#2563EB", color: "#FFFFFF", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: "var(--trella-brand, #2563EB)", color: "#FFFFFF", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {currentOrg.name.charAt(0).toUpperCase()}
                 </div>
                 <span>{currentOrg.name}</span>
-                <ChevronDown size={14} color="#64748B" />
+                <ChevronDown size={14} color="var(--trella-text-subtle, #64748B)" />
               </button>
 
               {/* Organization List Dropdown Menu */}
@@ -315,8 +315,8 @@ export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenPr
                     left: 0,
                     marginTop: 6,
                     width: 240,
-                    backgroundColor: "#FFFFFF",
-                    border: "1px solid #E2E8F0",
+                    backgroundColor: "var(--trella-surface-overlay, #FFFFFF)",
+                    border: "1px solid var(--trella-border, #E2E8F0)",
                     borderRadius: 8,
                     boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
                     zIndex: 9999,
@@ -324,7 +324,7 @@ export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenPr
                     animation: "fadeScaleIn 120ms ease-out forwards",
                   }}
                 >
-                  <div style={{ padding: "6px 10px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  <div style={{ padding: "6px 10px", fontSize: 10, fontWeight: 700, color: "var(--trella-text-subtlest, #94A3B8)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                     Switch Organization
                   </div>
                   {userOrgs.length > 0 ? (
@@ -342,27 +342,27 @@ export const WorkspaceMembersScreen = ({ workspaceId }: WorkspaceMembersScreenPr
                           padding: "8px 10px",
                           borderRadius: 6,
                           cursor: "pointer",
-                          backgroundColor: org.id === workspaceId ? "#EFF6FF" : "transparent",
+                          backgroundColor: org.id === workspaceId ? "var(--trella-surface-selected, #EFF6FF)" : "transparent",
                           transition: "background 120ms ease",
                         }}
-                        onMouseEnter={e => { if (org.id !== workspaceId) e.currentTarget.style.backgroundColor = "#F8FAFC"; }}
+                        onMouseEnter={e => { if (org.id !== workspaceId) e.currentTarget.style.backgroundColor = "var(--trella-surface-hover, #F8FAFC)"; }}
                         onMouseLeave={e => { if (org.id !== workspaceId) e.currentTarget.style.backgroundColor = "transparent"; }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 22, height: 22, borderRadius: 4, backgroundColor: org.id === workspaceId ? "#2563EB" : "#94A3B8", color: "#FFFFFF", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{ width: 22, height: 22, borderRadius: 4, backgroundColor: org.id === workspaceId ? "var(--trella-brand, #2563EB)" : "var(--trella-text-subtlest, #94A3B8)", color: "#FFFFFF", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {org.name.charAt(0).toUpperCase()}
                           </div>
-                          <span style={{ fontSize: 13, fontWeight: org.id === workspaceId ? 700 : 500, color: org.id === workspaceId ? "#2563EB" : "#1E293B" }}>
+                          <span style={{ fontSize: 13, fontWeight: org.id === workspaceId ? 700 : 500, color: org.id === workspaceId ? "var(--trella-brand, #2563EB)" : "var(--trella-text, #1E293B)" }}>
                             {org.name}
                           </span>
                         </div>
-                        {org.id === workspaceId && <Check size={14} color="#2563EB" />}
+                        {org.id === workspaceId && <Check size={14} color="var(--trella-brand, #2563EB)" />}
                       </div>
                     ))
                   ) : (
-                    <div style={{ padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#2563EB", backgroundColor: "#EFF6FF", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "var(--trella-brand, #2563EB)", backgroundColor: "var(--trella-surface-selected, #EFF6FF)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span>{currentOrg.name}</span>
-                      <Check size={14} color="#2563EB" />
+                      <Check size={14} color="var(--trella-brand, #2563EB)" />
                     </div>
                   )}
                 </div>
@@ -519,7 +519,7 @@ function KpiStatCard({ label, count, icon, bg, border }: { label: string; count:
         border: `1px solid ${border}`,
         borderRadius: 10,
         padding: "16px 20px",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "var(--trella-surface, #FFFFFF)",
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         display: "flex",
         alignItems: "center",
@@ -527,8 +527,8 @@ function KpiStatCard({ label, count, icon, bg, border }: { label: string; count:
       }}
     >
       <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A" }}>{count}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--trella-text-subtle, #64748B)", marginBottom: 4 }}>{label}</div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: "var(--trella-text, #0F172A)" }}>{count}</div>
       </div>
       <div
         style={{
@@ -559,13 +559,13 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
         onChange={e => onChange(e.target.value)}
         style={{
           appearance: "none",
-          border: "1px solid #CBD5E1",
+          border: "1px solid var(--trella-border, #CBD5E1)",
           borderRadius: 6,
           padding: "6px 28px 6px 12px",
           fontSize: 12,
           fontWeight: 600,
-          color: "#475569",
-          backgroundColor: "#FFFFFF",
+          color: "var(--trella-text-subtle, #475569)",
+          backgroundColor: "var(--trella-surface, #FFFFFF)",
           cursor: "pointer",
           outline: "none",
         }}
@@ -576,7 +576,7 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
           </option>
         ))}
       </select>
-      <ChevronDown size={12} color="#64748B" style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+      <ChevronDown size={12} color="var(--trella-text-subtle, #64748B)" style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
     </div>
   );
 }
@@ -609,16 +609,16 @@ function MembersTable({
   onRemove,
 }: MembersTableProps) {
   return (
-    <div style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 8, overflow: "visible", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+    <div style={{ backgroundColor: "var(--trella-surface, #FFFFFF)", border: "1px solid var(--trella-border, #E2E8F0)", borderRadius: 8, overflow: "visible", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: "1px solid #E2E8F0", backgroundColor: "#F8FAFC" }}>
-            <th style={{ padding: "12px 16px", textAlign: "left", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Name</th>
-            <th style={{ padding: "12px 16px", textAlign: "left", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Role</th>
-            <th style={{ padding: "12px 16px", textAlign: "left", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Workspace Access</th>
-            <th style={{ padding: "12px 16px", textAlign: "left", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Status</th>
-            <th style={{ padding: "12px 16px", textAlign: "left", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Last Active</th>
-            <th style={{ padding: "12px 16px", textAlign: "right", color: "#64748B", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Actions</th>
+          <tr style={{ borderBottom: "1px solid var(--trella-border, #E2E8F0)", backgroundColor: "var(--trella-surface-sunken, #F8FAFC)" }}>
+            <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Name</th>
+            <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Role</th>
+            <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Workspace Access</th>
+            <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Status</th>
+            <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Last Active</th>
+            <th style={{ padding: "12px 16px", textAlign: "right", color: "var(--trella-text-subtle, #64748B)", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Actions</th>
           </tr>
         </thead>
         <tbody>

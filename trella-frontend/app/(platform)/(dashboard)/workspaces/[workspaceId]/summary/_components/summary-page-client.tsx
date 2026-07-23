@@ -182,9 +182,9 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
               gap: 8,
               padding: '8px 16px',
               borderRadius: 8,
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              color: '#2563EB',
+              backgroundColor: 'var(--trella-surface, #FFFFFF)',
+              border: '1px solid var(--trella-border, #E2E8F0)',
+              color: 'var(--trella-brand, #2563EB)',
               fontSize: 13,
               fontWeight: 600,
               cursor: validation.ok && !isFetching ? 'pointer' : 'not-allowed',
@@ -193,7 +193,7 @@ export function SummaryPageClient({ workspaceId }: SummaryPageClientProps) {
               transition: 'all 0.2s ease',
             }}
           >
-            <Sparkles size={16} color="#2563EB" />
+            <Sparkles size={16} color="var(--trella-brand, #2563EB)" />
             <span>
               {isFetching ? 'Analyzing project...' : data ? 'View AI Executive Report' : 'Generate AI overview'}
             </span>
@@ -679,9 +679,9 @@ function AiExecutiveReportModal({
           width: '100%',
           maxWidth: 820,
           maxHeight: '88vh',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
           borderRadius: 16,
-          boxShadow: '0 20px 50px -10px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--trella-shadow-overlay, 0 20px 50px -10px rgba(0,0,0,0.25))',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -692,16 +692,16 @@ function AiExecutiveReportModal({
         <div
           style={{
             padding: '20px 28px',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid var(--trella-border, #E2E8F0)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#FAF5FF',
+            backgroundColor: 'var(--trella-surface-sunken, #FAF5FF)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: '#F3E8FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Sparkles size={20} color="#7C3AED" />
+            <div style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: 'var(--trella-surface-selected, #F3E8FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={20} color="var(--trella-brand, #7C3AED)" />
             </div>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4C1D95', margin: 0 }}>

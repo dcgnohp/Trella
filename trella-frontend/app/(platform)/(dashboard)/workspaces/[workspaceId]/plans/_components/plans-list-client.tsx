@@ -307,8 +307,8 @@ export function PlansListClient({ workspaceId }: PlansListClientProps) {
         {showInfoBanner && (
           <div
             style={{
-              backgroundColor: '#EFF6FF',
-              border: '1px solid #BFDBFE',
+              backgroundColor: 'var(--trella-brand-subtle, #EFF6FF)',
+              border: '1px solid var(--trella-border-strong, #BFDBFE)',
               borderRadius: 12,
               padding: '14px 18px',
               marginBottom: 20,
@@ -317,18 +317,18 @@ export function PlansListClient({ workspaceId }: PlansListClientProps) {
               gap: 12,
             }}
           >
-            <Sparkles size={20} color="#2563EB" style={{ marginTop: 2, flexShrink: 0 }} />
+            <Sparkles size={20} color="var(--trella-brand, #2563EB)" style={{ marginTop: 2, flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#1E40AF', margin: '0 0 2px' }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--trella-brand, #1E40AF)', margin: '0 0 2px' }}>
                 Cross-Project Strategic Roadmap & Staging Sandbox
               </h4>
-              <p style={{ fontSize: 13, color: '#1E3A8A', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 13, color: 'var(--trella-text, #1E3A8A)', margin: 0, lineHeight: 1.5 }}>
                 Plans aggregate Epics and Sprints across multiple project boards into a unified timeline. Use plans to simulate team capacity, track target dates, manage dependencies, and update high-level statuses without disrupting active team boards!
               </p>
             </div>
             <button
               onClick={() => setShowInfoBanner(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60A5FA', padding: 2 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--trella-text-subtle, #60A5FA)', padding: 2 }}
             >
               <X size={16} />
             </button>

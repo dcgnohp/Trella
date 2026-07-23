@@ -13,7 +13,7 @@ export const useSidebar = () => useContext(SidebarContext);
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const params = useParams();
-  const workspaceId = (params?.workspaceId as string) ?? null;
+  const workspaceId = ((params?.workspaceId || params?.organizationId) as string) ?? null;
   const [collapsed, setCollapsed] = useState(false);
 
   // ponytail: read projectType from localStorage — BE doesn't have it yet

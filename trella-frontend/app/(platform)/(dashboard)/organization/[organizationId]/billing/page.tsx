@@ -22,7 +22,7 @@ const BillingPage = async () => {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-x-2">
-            <CreditCard className="h-5 w-5 text-neutral-700" />
+            <CreditCard className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
             <CardTitle>Billing</CardTitle>
           </div>
           <CardDescription>

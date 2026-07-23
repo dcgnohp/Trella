@@ -93,8 +93,8 @@ export const NavItem = ({
       <AccordionTrigger
         onClick={() => onExpand(organization.id)}
         className={cn(
-          "flex items-center gap-x-2 p-1.5 text-neutral-700 rounded-md hover:bg-neutral-500/10 transition text-start no-underline hover:no-underline",
-          isActive && !isExpanded && "bg-sky-500/10 text-sky-700"
+          "flex items-center gap-x-2 p-1.5 text-neutral-700 dark:text-neutral-200 rounded-md hover:bg-neutral-500/10 dark:hover:bg-neutral-800/50 transition text-start no-underline hover:no-underline",
+          isActive && !isExpanded && "bg-sky-500/10 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400"
         )}
       >
         <div className="flex items-center gap-x-2">
@@ -107,7 +107,7 @@ export const NavItem = ({
                 className="rounded-sm object-cover"
               />
             ) : (
-              <div className="w-7 h-7 flex items-center justify-center rounded-sm bg-sky-100 text-sky-700 text-xs font-semibold">
+              <div className="w-7 h-7 flex items-center justify-center rounded-sm bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 text-xs font-semibold">
                 {orgInitial(organization.name)}
               </div>
             )}
@@ -117,15 +117,15 @@ export const NavItem = ({
           </span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="pt-1 text-neutral-700">
+      <AccordionContent className="pt-1 text-neutral-700 dark:text-neutral-300">
         {routes.map((route) => (
           <Button
             key={route.href}
             size="sm"
             onClick={() => onClick(route.href)}
             className={cn(
-              "w-full font-normal justify-start pl-10 mb-1",
-              pathname === route.href && "bg-sky-500/10 text-sky-700"
+              "w-full font-normal justify-start pl-10 mb-1 dark:hover:bg-neutral-800/50",
+              pathname === route.href && "bg-sky-500/10 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
             )}
             variant="ghost"
           >

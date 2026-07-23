@@ -271,17 +271,17 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--trella-background, #F8FAFC)', overflow: 'hidden', fontFamily: 'Inter, sans-serif' }}>
       
       {/* 1. Header Section matching Notion/Linear/Jira Premium */}
-      <div style={{ padding: '20px 24px 12px', borderBottom: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: '#FFFFFF', flexShrink: 0 }}>
+      <div style={{ padding: '20px 24px 12px', borderBottom: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface, #FFFFFF)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: 'var(--trella-text, #0F172A)', letterSpacing: '-0.02em' }}>
               {headerTitle}
             </h1>
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontWeight: 600, color: '#334155' }}>Project Planning Calendar</span>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--trella-text-subtle, #64748B)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 600, color: 'var(--trella-text, #334155)' }}>Project Planning Calendar</span>
               <span>•</span>
               <span>{totalScheduled} scheduled tasks</span>
-              <span style={{ color: overdueCount > 0 ? '#EF4444' : '#64748B', fontWeight: overdueCount > 0 ? 700 : 400 }}>
+              <span style={{ color: overdueCount > 0 ? '#EF4444' : 'var(--trella-text-subtle, #64748B)', fontWeight: overdueCount > 0 ? 700 : 400 }}>
                 • {overdueCount} overdue
               </span>
               <span>• {dueThisWeekCount} due this week</span>
@@ -296,9 +296,9 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                 padding: '6px 14px',
                 fontSize: 12,
                 fontWeight: 700,
-                color: '#2563EB',
-                backgroundColor: '#EFF6FF',
-                border: '1px solid #BFDBFE',
+                color: 'var(--trella-brand, #2563EB)',
+                backgroundColor: 'var(--trella-surface-selected, #EFF6FF)',
+                border: '1px solid var(--trella-border-strong, #BFDBFE)',
                 borderRadius: 6,
                 cursor: 'pointer',
                 transition: 'all 120ms ease',
@@ -306,19 +306,19 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
             >
               Today
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: 6, backgroundColor: '#FFFFFF', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface, #FFFFFF)', overflow: 'hidden' }}>
               <button
                 onClick={handlePrev}
                 title="Previous"
-                style={{ padding: '6px 10px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#475569' }}
+                style={{ padding: '6px 10px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--trella-text-subtle, #475569)' }}
               >
                 <ChevronLeft size={16} />
               </button>
-              <div style={{ width: 1, height: 16, backgroundColor: '#E2E8F0' }} />
+              <div style={{ width: 1, height: 16, backgroundColor: 'var(--trella-border, #E2E8F0)' }} />
               <button
                 onClick={handleNext}
                 title="Next"
-                style={{ padding: '6px 10px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#475569' }}
+                style={{ padding: '6px 10px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--trella-text-subtle, #475569)' }}
               >
                 <ChevronRight size={16} />
               </button>
@@ -333,7 +333,7 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             {/* Search Input */}
             <div style={{ position: 'relative' }}>
-              <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+              <Search size={14} color="var(--trella-text-subtlest, #94A3B8)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="text"
                 placeholder="Search tasks..."
@@ -342,12 +342,12 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                 style={{
                   padding: '6px 12px 6px 32px',
                   fontSize: 13,
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--trella-border, #E2E8F0)',
                   borderRadius: 6,
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)',
                   outline: 'none',
                   width: 190,
-                  color: '#1E293B',
+                  color: 'var(--trella-text, #1E293B)',
                 }}
               />
             </div>
@@ -361,9 +361,9 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                   padding: '6px 28px 6px 10px',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#475569',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  color: 'var(--trella-text-subtle, #475569)',
+                  backgroundColor: 'var(--trella-surface, #FFFFFF)',
+                  border: '1px solid var(--trella-border, #E2E8F0)',
                   borderRadius: 6,
                   cursor: 'pointer',
                   appearance: 'none',
@@ -389,9 +389,9 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                   padding: '6px 28px 6px 10px',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#475569',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  color: 'var(--trella-text-subtle, #475569)',
+                  backgroundColor: 'var(--trella-surface, #FFFFFF)',
+                  border: '1px solid var(--trella-border, #E2E8F0)',
                   borderRadius: 6,
                   cursor: 'pointer',
                   appearance: 'none',
@@ -406,7 +406,7 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                   </option>
                 ))}
               </select>
-              <ChevronDown size={12} color="#64748B" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <ChevronDown size={12} color="var(--trella-text-subtle, #64748B)" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
             {/* Priority Filter */}
@@ -418,9 +418,9 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                   padding: '6px 28px 6px 10px',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#475569',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  color: 'var(--trella-text-subtle, #475569)',
+                  backgroundColor: 'var(--trella-surface, #FFFFFF)',
+                  border: '1px solid var(--trella-border, #E2E8F0)',
                   borderRadius: 6,
                   cursor: 'pointer',
                   appearance: 'none',
@@ -433,13 +433,13 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                 <option value="MEDIUM">Medium</option>
                 <option value="LOW">Low</option>
               </select>
-              <ChevronDown size={12} color="#64748B" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <ChevronDown size={12} color="var(--trella-text-subtle, #64748B)" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
           </div>
 
           {/* Right Controls: Active View Switcher & Item Count Badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#64748B', backgroundColor: '#F1F5F9', padding: '4px 10px', borderRadius: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text-subtle, #64748B)', backgroundColor: 'var(--trella-surface-sunken, #F1F5F9)', padding: '4px 10px', borderRadius: 12 }}>
               {filteredTasks.length} {filteredTasks.length === 1 ? 'Task' : 'Tasks'}
             </span>
 
@@ -452,9 +452,9 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                   padding: '6px 28px 6px 12px',
                   fontSize: 12,
                   fontWeight: 700,
-                  color: '#2563EB',
-                  backgroundColor: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
+                  color: 'var(--trella-brand, #2563EB)',
+                  backgroundColor: 'var(--trella-surface-selected, #EFF6FF)',
+                  border: '1px solid var(--trella-border-strong, #BFDBFE)',
                   borderRadius: 6,
                   cursor: 'pointer',
                   appearance: 'none',
@@ -465,7 +465,7 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
                 <option value="WEEK">Week View</option>
                 <option value="DAY">Day View</option>
               </select>
-              <ChevronDown size={12} color="#2563EB" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <ChevronDown size={12} color="var(--trella-brand, #2563EB)" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
           </div>
         </div>
@@ -479,7 +479,7 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
             display: 'grid',
             gridTemplateColumns: viewMode === 'DAY' ? '1fr' : 'repeat(7, 1fr)',
             gap: 1,
-            backgroundColor: '#E2E8F0',
+            backgroundColor: 'var(--trella-border, #E2E8F0)',
             borderRadius: 8,
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -497,13 +497,13 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
             <div
               key={d}
               style={{
-                backgroundColor: i === 0 || i === 6 ? '#F1F5F9' : '#FFFFFF',
+                backgroundColor: i === 0 || i === 6 ? 'var(--trella-surface-sunken, #F1F5F9)' : 'var(--trella-surface, #FFFFFF)',
                 padding: '10px 12px',
                 textAlign: 'center',
-                borderBottom: '1px solid #E2E8F0',
+                borderBottom: '1px solid var(--trella-border, #E2E8F0)',
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 700, color: i === 0 || i === 6 ? '#64748B' : '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: i === 0 || i === 6 ? 'var(--trella-text-subtle, #64748B)' : 'var(--trella-text, #334155)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {d}
               </span>
             </div>
@@ -511,14 +511,14 @@ export function PlanCalendarClient({ planId, workspaceId }: PlanCalendarClientPr
 
           {/* Day View Single Header */}
           {viewMode === 'DAY' && (
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderBottom: '1px solid #E2E8F0', fontSize: 14, fontWeight: 800, color: '#0F172A' }}>
+            <div style={{ backgroundColor: 'var(--trella-surface, #FFFFFF)', padding: '12px 16px', borderBottom: '1px solid var(--trella-border, #E2E8F0)', fontSize: 14, fontWeight: 800, color: 'var(--trella-text, #0F172A)' }}>
               {format(currentDate, 'EEEE, MMMM d, yyyy')}
             </div>
           )}
 
           {/* Leading Blank Cells (Month View only) */}
           {viewMode === 'MONTH' && Array.from({ length: leadingBlanks }).map((_, i) => (
-            <div key={`blank-${i}`} style={{ backgroundColor: '#F8FAFC', minHeight: 110 }} />
+            <div key={`blank-${i}`} style={{ backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', minHeight: 110 }} />
           ))}
 
           {/* Days Grid Cells */}
@@ -643,18 +643,18 @@ function CalendarCell({
       onMouseLeave={() => setHoveredCell(false)}
       style={{
         backgroundColor: isToday
-          ? '#F0F6FF'
+          ? 'var(--trella-surface-selected, #F0F6FF)'
           : isWeekend && viewMode !== 'DAY'
-          ? '#F8FAFC'
+          ? 'var(--trella-surface-sunken, #F8FAFC)'
           : hoveredCell
-          ? '#F1F5F9'
-          : '#FFFFFF',
+          ? 'var(--trella-surface-hover, #F1F5F9)'
+          : 'var(--trella-surface, #FFFFFF)',
         minHeight: viewMode === 'DAY' ? 320 : 115,
         padding: '8px 10px',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        border: isToday ? '2px solid #3B82F6' : '1px solid transparent',
+        border: isToday ? '2px solid var(--trella-brand, #3B82F6)' : '1px solid transparent',
         transition: 'background-color 120ms ease, border-color 120ms ease',
       }}
     >
@@ -666,7 +666,7 @@ function CalendarCell({
               width: 24,
               height: 24,
               borderRadius: '50%',
-              backgroundColor: '#2563EB',
+              backgroundColor: 'var(--trella-brand, #2563EB)',
               color: '#FFFFFF',
               fontSize: 11,
               fontWeight: 800,
@@ -683,7 +683,7 @@ function CalendarCell({
             style={{
               fontSize: 12,
               fontWeight: hoveredCell || tasks.length > 0 ? 700 : 500,
-              color: isWeekend ? '#64748B' : '#334155',
+              color: isWeekend ? 'var(--trella-text-subtle, #64748B)' : 'var(--trella-text, #334155)',
             }}
           >
             {viewMode === 'WEEK' ? format(day, 'EEE d') : format(day, 'd')}
@@ -692,7 +692,7 @@ function CalendarCell({
 
         {/* Faint "+" Affordance on Empty Cell Hover */}
         {hoveredCell && tasks.length === 0 && (
-          <Plus size={14} color="#94A3B8" style={{ opacity: 0.6 }} />
+          <Plus size={14} color="var(--trella-text-subtlest, #94A3B8)" style={{ opacity: 0.6 }} />
         )}
       </div>
 
@@ -727,15 +727,15 @@ function CalendarCell({
               padding: '2px 6px',
               fontSize: 10,
               fontWeight: 700,
-              color: '#2563EB',
-              backgroundColor: '#EFF6FF',
-              border: '1px solid #BFDBFE',
+              color: 'var(--trella-brand, #2563EB)',
+              backgroundColor: 'var(--trella-surface-selected, #EFF6FF)',
+              border: '1px solid var(--trella-border-strong, #BFDBFE)',
               borderRadius: 4,
               cursor: 'pointer',
               transition: 'transform 120ms ease, background 120ms ease',
             }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#DBEAFE')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#EFF6FF')}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--trella-surface-hover, #DBEAFE)')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--trella-surface-selected, #EFF6FF)')}
           >
             +{extraCount} more
           </button>
@@ -787,8 +787,8 @@ function CalendarTaskCard({
       }}
       style={{
         height: 24,
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        backgroundColor: 'var(--trella-surface, #FFFFFF)',
+        border: '1px solid var(--trella-border, #E2E8F0)',
         borderLeft: `3px solid ${statusColor}`,
         borderRadius: 4,
         padding: '0 6px',
@@ -814,7 +814,7 @@ function CalendarTaskCard({
         style={{
           fontSize: 11,
           fontWeight: 600,
-          color: '#1E293B',
+          color: 'var(--trella-text, #1E293B)',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -853,8 +853,8 @@ function TaskHoverTooltip({ task, rect, workspaceMembers, getStatusColor }: Task
         position: 'fixed',
         top,
         left,
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
+        border: '1px solid var(--trella-border, #E2E8F0)',
         borderRadius: 8,
         padding: '10px 14px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
@@ -864,39 +864,39 @@ function TaskHoverTooltip({ task, rect, workspaceMembers, getStatusColor }: Task
         animation: 'fadeScaleIn 120ms ease-out forwards',
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A', marginBottom: 6 }}>
+      <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--trella-text, #0F172A)', marginBottom: 6 }}>
         {task.title}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#64748B' }}>Assignee:</span>
+          <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>Assignee:</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: '#2563EB', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: 'var(--trella-brand, #2563EB)', color: '#FFFFFF', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {assignee ? (assignee.fullName || assignee.email).charAt(0) : '?'}
             </div>
-            <span style={{ fontWeight: 600, color: '#334155' }}>
+            <span style={{ fontWeight: 600, color: 'var(--trella-text, #334155)' }}>
               {assignee ? assignee.fullName || assignee.email : 'Unassigned'}
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#64748B' }}>Status:</span>
+          <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>Status:</span>
           <span style={{ padding: '2px 6px', borderRadius: 4, backgroundColor: status.bg, color: status.text, fontWeight: 700, fontSize: 10 }}>
             {status.label}
           </span>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#64748B' }}>Due Date:</span>
-          <span style={{ fontWeight: 600, color: '#334155' }}>{due}</span>
+          <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>Due Date:</span>
+          <span style={{ fontWeight: 600, color: 'var(--trella-text, #334155)' }}>{due}</span>
         </div>
 
         {task.priority && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#64748B' }}>Priority:</span>
-            <span style={{ fontWeight: 700, color: task.priority === 'URGENT' ? '#EF4444' : '#2563EB' }}>
+            <span style={{ color: 'var(--trella-text-subtle, #64748B)' }}>Priority:</span>
+            <span style={{ fontWeight: 700, color: task.priority === 'URGENT' ? '#EF4444' : 'var(--trella-brand, #2563EB)' }}>
               {task.priority}
             </span>
           </div>
@@ -941,8 +941,8 @@ function DayMorePopover({
         position: 'fixed',
         top,
         left,
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
+        border: '1px solid var(--trella-border, #E2E8F0)',
         borderRadius: 8,
         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
         width: 250,
@@ -951,13 +951,13 @@ function DayMorePopover({
         animation: 'fadeScaleIn 150ms ease-out forwards',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #F1F5F9' }}>
-        <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid var(--trella-border-subtle, #F1F5F9)' }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--trella-text, #0F172A)' }}>
           {format(day, 'MMMM d, yyyy')}
         </span>
         <button
           onClick={onClose}
-          style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, color: '#94A3B8' }}
+          style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, color: 'var(--trella-text-subtlest, #94A3B8)' }}
         >
           <X size={14} />
         </button>
@@ -972,22 +972,22 @@ function DayMorePopover({
               onClick={() => onSelectTask(t)}
               style={{
                 padding: '6px 8px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--trella-border, #E2E8F0)',
                 borderLeft: `3px solid ${status.color}`,
                 borderRadius: 4,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--trella-surface, #FFFFFF)',
                 transition: 'background 120ms ease',
               }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--trella-surface-hover, #F8FAFC)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--trella-surface, #FFFFFF)')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
                 {renderTypeIcon(t.type)}
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--trella-text, #1E293B)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {t.title}
                 </span>
               </div>

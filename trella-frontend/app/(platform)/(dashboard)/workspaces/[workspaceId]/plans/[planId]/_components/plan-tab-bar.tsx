@@ -305,10 +305,10 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
         >
           <div
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--trella-surface-overlay, #FFFFFF)',
               borderRadius: 12,
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+              border: '1px solid var(--trella-border, #E2E8F0)',
+              boxShadow: 'var(--trella-shadow-overlay, 0 20px 40px rgba(0,0,0,0.15))',
               width: 460,
               maxWidth: '100%',
               padding: 24,
@@ -318,24 +318,24 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertTriangle size={20} color="#D97706" />
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>Unsaved changes in plan</h3>
+                <AlertTriangle size={20} color="var(--trella-warning, #D97706)" />
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--trella-text, #1E293B)', margin: 0 }}>Unsaved changes in plan</h3>
               </div>
-              <button onClick={() => setPendingNavSegment(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748B' }}>
+              <button onClick={() => setPendingNavSegment(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--trella-text-subtle, #64748B)' }}>
                 <X size={18} />
               </button>
             </div>
 
-            <p style={{ fontSize: 13, color: '#475569', margin: '0 0 16px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--trella-text-subtle, #475569)', margin: '0 0 16px', lineHeight: 1.5 }}>
               You have <strong>{stagedCount} unsaved staged change{stagedCount > 1 ? 's' : ''}</strong> in this plan. How would you like to proceed before switching tabs?
             </p>
 
             {/* List of staged changes */}
-            <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 12, marginBottom: 20, maxHeight: 120, overflowY: 'auto', fontSize: 12 }}>
+            <div style={{ backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 8, padding: 12, marginBottom: 20, maxHeight: 120, overflowY: 'auto', fontSize: 12 }}>
               {changes.map((c, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: i === changes.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
-                  <span style={{ fontWeight: 600, color: '#1E293B' }}>{c.issueKey || c.title}</span>
-                  <span style={{ color: '#2563EB', fontWeight: 500 }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: i === changes.length - 1 ? 'none' : '1px solid var(--trella-border-subtle, #F1F5F9)' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--trella-text, #1E293B)' }}>{c.issueKey || c.title}</span>
+                  <span style={{ color: 'var(--trella-brand, #2563EB)', fontWeight: 500 }}>
                     {c.fields.startDate && `Start: ${c.fields.startDate}`} {c.fields.dueDate && `Due: ${c.fields.dueDate}`}
                   </span>
                 </div>
@@ -350,8 +350,8 @@ export function PlanTabBar({ planId, workspaceId }: PlanTabBarProps) {
                   padding: '7px 14px',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#64748B',
-                  backgroundColor: '#F1F5F9',
+                  color: 'var(--trella-text-subtle, #64748B)',
+                  backgroundColor: 'var(--trella-surface-hover, #F1F5F9)',
                   border: 'none',
                   borderRadius: 6,
                   cursor: 'pointer',

@@ -3,7 +3,9 @@
 import { ElementRef, useRef } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 
 import {
   Popover,
@@ -25,6 +27,7 @@ interface FormPopoverProps {
   side?: "left" | "right" | "top" | "bottom";
   align?: "start" | "center" | "end";
   sideOffset?: number;
+  orgId?: string;
 };
 
 export const FormPopover = ({
@@ -32,16 +35,24 @@ export const FormPopover = ({
   side = "bottom",
   align,
   sideOffset = 0,
+  orgId,
 }: FormPopoverProps) => {
   const proModal = useProModal();
   const router = useRouter();
+  const params = useParams();
+  const queryClient = useQueryClient();
   const closeRef = useRef<ElementRef<"button">>(null);
+
+  const targetOrgId = orgId || (params?.workspaceId as string) || (params?.organizationId as string);
 
   const { execute, fieldErrors } = useAction(createBoard, {
     onSuccess: (data) => {
       toast.success("Board created!");
       closeRef.current?.click();
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBoards(data.orgId) });
+      queryClient.invalidateQueries({ queryKey: ["workspace-boards"] });
       router.push(`/workspaces/${data.orgId}/boards/${data.id}`);
+      router.refresh();
     },
     onError: (error) => {
       toast.error(error);
@@ -53,7 +64,7 @@ export const FormPopover = ({
     const title = formData.get("title") as string;
     const image = formData.get("image") as string;
 
-    execute({ title, image });
+    execute({ title, image, orgId: targetOrgId });
   }
 
   return (

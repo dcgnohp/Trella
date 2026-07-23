@@ -340,10 +340,10 @@ export function AiSprintReport({
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <div style={{ borderTop: "1px solid #F1F5F9", paddingTop: 16 }}>
+    <div style={{ borderTop: "1px solid var(--trella-border-subtle, #F1F5F9)", paddingTop: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         {icon}
-        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#0F172A", textTransform: "uppercase", letterSpacing: 0.4 }}>
+        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "var(--trella-text, #0F172A)", textTransform: "uppercase", letterSpacing: 0.4 }}>
           {title}
         </h4>
       </div>
@@ -354,17 +354,17 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 
 function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone: string }) {
   return (
-    <div style={{ backgroundColor: "#F8FAFC", padding: 12, borderRadius: 10, border: "1px solid #E2E8F0" }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.3 }}>{label}</div>
+    <div style={{ backgroundColor: "var(--trella-surface-sunken, #F8FAFC)", padding: 12, borderRadius: 10, border: "1px solid var(--trella-border, #E2E8F0)" }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--trella-text-subtle, #64748B)", textTransform: "uppercase", letterSpacing: 0.3 }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 900, color: tone, margin: "2px 0" }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: "#94A3B8" }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: "var(--trella-text-subtlest, #94A3B8)" }}>{sub}</div>}
     </div>
   );
 }
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 14 }}>
+    <div style={{ backgroundColor: "var(--trella-surface, #F8FAFC)", border: "1px solid var(--trella-border, #E2E8F0)", borderRadius: 10, padding: 14 }}>
       {children}
     </div>
   );
@@ -378,21 +378,21 @@ function Badge({ bg, fg, children }: { bg: string; fg: string; children: React.R
   );
 }
 
-const paragraph: React.CSSProperties = { margin: 0, fontSize: 13.5, color: "#334155", lineHeight: 1.65 };
+const paragraph: React.CSSProperties = { margin: 0, fontSize: 13.5, color: "var(--trella-text, #334155)", lineHeight: 1.65 };
 const list: React.CSSProperties = { margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 };
-const listItem: React.CSSProperties = { fontSize: 13, color: "#334155", lineHeight: 1.5 };
+const listItem: React.CSSProperties = { fontSize: 13, color: "var(--trella-text, #334155)", lineHeight: 1.5 };
 const cardHead: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, flexWrap: "wrap" };
-const cardBody: React.CSSProperties = { margin: 0, fontSize: 12.5, color: "#475569", lineHeight: 1.55 };
-const subHead: React.CSSProperties = { fontSize: 11, fontWeight: 800, color: "#64748B", textTransform: "uppercase", marginBottom: 8, letterSpacing: 0.3 };
+const cardBody: React.CSSProperties = { margin: 0, fontSize: 12.5, color: "var(--trella-text-subtle, #475569)", lineHeight: 1.55 };
+const subHead: React.CSSProperties = { fontSize: 11, fontWeight: 800, color: "var(--trella-text-subtle, #64748B)", textTransform: "uppercase", marginBottom: 8, letterSpacing: 0.3 };
 const exportBtn: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
   padding: "7px 12px",
   borderRadius: 8,
-  backgroundColor: "#FFFFFF",
-  border: "1px solid #CBD5E1",
-  color: "#0F172A",
+  backgroundColor: "var(--trella-surface, #FFFFFF)",
+  border: "1px solid var(--trella-border, #CBD5E1)",
+  color: "var(--trella-text, #0F172A)",
   fontSize: 12,
   fontWeight: 700,
   cursor: "pointer",

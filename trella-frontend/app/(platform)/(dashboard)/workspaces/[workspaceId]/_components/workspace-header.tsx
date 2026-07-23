@@ -7,10 +7,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ShowMoreHorizontalIcon from '@atlaskit/icon/core/show-more-horizontal';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
+import type { BoardPublic } from '@/lib/client';
 import { BoardsService, WorkspacesService, WorkspaceMembersService } from '@/lib/client';
 import { queryKeys } from '@/lib/query-keys';
 import { useAuth } from '@/components/providers/auth-provider';
-import { ConfirmModal } from '@/components/ads/confirm-modal';
+import { ModeSwitchWizardModal } from '@/components/modals/mode-switch-wizard-modal';
 import { useWorkspaceMode } from '@/lib/workspace-mode/use-workspace-mode';
 import { parseLastVisited, getLastVisitedCookie } from '@/lib/last-visited';
 import { useContributeConversationContext } from '@/lib/ai/conversation-context';
@@ -31,12 +32,13 @@ const TABS_KANBAN = [
   { label: 'Board', segment: 'boards' },
   { label: 'Timeline', segment: 'timeline' },
   { label: 'Reports', segment: 'reports' },
-  { label: 'Velocity', segment: 'settings/velocity' },
 ];
 
 interface WorkspaceHeaderProps {
   workspaceId: string;
 }
+
+const EMPTY_BOARDS: BoardPublic[] = [];
 
 export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
   const pathname = usePathname();
@@ -83,6 +85,7 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBoards(workspaceId) });
       toast.success(nextMode === 'SCRUM' ? 'Switched to Scrum' : 'Switched to Kanban');
       router.refresh();
+      window.location.reload();
     },
     onError: () => toast.error('Failed to switch workspace mode'),
   });
@@ -91,7 +94,8 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
     queryKey: queryKeys.workspaceBoards(workspaceId),
     queryFn: () => BoardsService.Boards_boardsListBoards({ orgId: workspaceId }),
   });
-  const displayName = spaceName || boardsQuery.data?.[0]?.title || 'My Project';
+  const currentBoard = boardId ? boardsQuery.data?.find(b => b.id === boardId) : null;
+  const displayName = spaceName || currentBoard?.title || boardsQuery.data?.[0]?.title || 'My Project';
 
   // Baseline workspace context for the AI chat — reuses already-loaded name +
   // mode, no extra fetch. Must run before the plan-route early return below.
@@ -187,34 +191,15 @@ export function WorkspaceHeader({ workspaceId }: WorkspaceHeaderProps) {
         })}
       </div>
     </div>
-    <ConfirmModal
+    <ModeSwitchWizardModal
       isOpen={confirmOpen}
-      title={isScrum ? 'Switch to Kanban?' : 'Switch to Scrum?'}
-      body={
-        isScrum
-          ? (
-            <div>
-              <p style={{ margin: '0 0 10px' }}>
-                ⚠️ <strong>Một số tính năng sẽ không còn hiển thị:</strong>
-              </p>
-              <ul style={{ margin: '0 0 10px', paddingLeft: 20, lineHeight: 1.7 }}>
-                <li>Tab <strong>Backlog</strong> và <strong>Docs</strong> sẽ bị ẩn.</li>
-                <li>Kanban không có Backlog riêng: các task đang ở <strong>Backlog</strong> (chưa gán sprint) sẽ <strong>hiển thị trực tiếp trên board</strong> cùng các task khác.</li>
-                <li>Story point, assignee, priority của tất cả task <strong>được giữ nguyên</strong>.</li>
-              </ul>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--trella-text-subtle)' }}>
-                Chuyển lại về Scrum bất cứ lúc nào để truy cập lại Backlog.
-              </p>
-            </div>
-          )
-          : 'A default "Sprint 1" will be created and all tasks will move to the Backlog. Story points, assignees and priorities are kept as-is.'
-      }
-      confirmLabel="Switch"
-      onConfirm={() => {
-        setConfirmOpen(false);
-        switchModeMutation.mutate(isScrum ? 'KANBAN' : 'SCRUM');
-      }}
       onClose={() => setConfirmOpen(false)}
+      workspaceId={workspaceId}
+      currentMode={isScrum ? "SCRUM" : "KANBAN"}
+      boards={boardsQuery.data ?? EMPTY_BOARDS}
+      onSuccess={() => {
+        setConfirmOpen(false);
+      }}
     />
     </>
   );

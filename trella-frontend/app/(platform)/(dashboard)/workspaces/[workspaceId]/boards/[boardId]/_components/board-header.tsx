@@ -195,8 +195,12 @@ export const BoardHeader = ({
               boxShadow: "0 8px 24px rgba(9,30,66,0.15)", padding: "4px 0", minWidth: 180,
             }}>
               <MoreItem label="Start standup" onClick={() => { setMoreOpen(false); onStartStandup(); }} />
-              <MoreItem label="Manage workflow" onClick={() => { setMoreOpen(false); onManageWorkflow(); }} />
-              <MoreItem label="Edit sprint" onClick={() => { setMoreOpen(false); toast.info("Edit sprint coming soon"); }} />
+              {isScrum && (
+                <>
+                  <MoreItem label="Manage workflow" onClick={() => { setMoreOpen(false); onManageWorkflow(); }} />
+                  <MoreItem label="Edit sprint" onClick={() => { setMoreOpen(false); toast.info("Edit sprint coming soon"); }} />
+                </>
+              )}
               <MoreItem label="Configure board" onClick={() => { setMoreOpen(false); toast.info("Configure board coming soon"); }} />
             </div>
           </>
