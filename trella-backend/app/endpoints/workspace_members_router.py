@@ -12,6 +12,7 @@ from app.schemas.workspace_members_schema import (
     InvitationPublic,
     WorkspaceInvite,
     WorkspaceMemberPublic,
+    WorkspaceMemberUpdate,
 )
 from app.services.organization_members_service import OrganizationMemberService
 from app.services.workspace_members_service import WorkspaceMembersService
@@ -139,3 +140,20 @@ def remove_member(
     current_user: CurrentUser,
 ) -> None:
     _service.remove_member(session, workspace_id, user_id, current_user)
+
+
+@router.patch(
+    "/workspaces/{workspace_id}/members/{user_id}",
+    response_model=WorkspaceMemberPublic,
+)
+def update_member(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    user_id: uuid.UUID,
+    data: WorkspaceMemberUpdate,
+    current_user: CurrentUser,
+) -> WorkspaceMemberPublic:
+    membership = _service.update_member(
+        session, workspace_id, user_id, data.role, data.status, current_user
+    )
+    return _to_public(session, membership)

@@ -188,28 +188,50 @@ function parseDataSource(data: string): string | null {
  *  only non-sensitive metadata (id/title/workspace) — never chunks or scores.
  *  Extra optional fields (snippet, matched passages, rerank/semantic badges,
  *  graph refs) can be added later WITHOUT changing this contract. */
+export type CitationType = "document" | "task" | "sprint"
+
 export interface Citation {
   id: string
   title: string
   workspaceId: string
+  /** Entity kind — drives how the UI opens it. Defaults to "document" for
+   *  backward compatibility with older backends. */
+  type: CitationType
+  /** Task-only routing hints so a task citation can open its board + drawer. */
+  issueKey?: string
+  boardId?: string
 }
 
 /** Parse a `tool_result` frame's `citations` array into Citation[] (empty when
- *  absent/malformed). The backend sends snake_case `workspace_id`. */
+ *  absent/malformed). The backend sends snake_case fields. */
 function parseCitations(data: string): Citation[] {
   try {
     const p = JSON.parse(data) as {
       ok?: boolean
-      citations?: Array<{ id?: string; title?: string; workspace_id?: string }>
+      citations?: Array<{
+        id?: string
+        title?: string
+        workspace_id?: string
+        type?: string
+        issue_key?: string
+        board_id?: string
+      }>
     }
     if (p.ok === true && Array.isArray(p.citations)) {
       return p.citations
         .filter((c) => typeof c.id === "string" && typeof c.title === "string")
-        .map((c) => ({
-          id: c.id as string,
-          title: c.title as string,
-          workspaceId: typeof c.workspace_id === "string" ? c.workspace_id : "",
-        }))
+        .map((c) => {
+          const type: CitationType =
+            c.type === "task" || c.type === "sprint" ? c.type : "document"
+          return {
+            id: c.id as string,
+            title: c.title as string,
+            workspaceId: typeof c.workspace_id === "string" ? c.workspace_id : "",
+            type,
+            issueKey: typeof c.issue_key === "string" ? c.issue_key : undefined,
+            boardId: typeof c.board_id === "string" ? c.board_id : undefined,
+          }
+        })
     }
   } catch {
     /* ignore malformed tool_result frame */
@@ -217,13 +239,14 @@ function parseCitations(data: string): Citation[] {
   return []
 }
 
-/** Merge new citations into an existing list, de-duplicated by document id. */
+/** Merge new citations into an existing list, de-duplicated by (type, id). */
 function mergeCitations(existing: Citation[], incoming: Citation[]): Citation[] {
-  const seen = new Set(existing.map((c) => c.id))
+  const key = (c: Citation) => `${c.type}:${c.id}`
+  const seen = new Set(existing.map(key))
   const merged = [...existing]
   for (const c of incoming) {
-    if (!seen.has(c.id)) {
-      seen.add(c.id)
+    if (!seen.has(key(c))) {
+      seen.add(key(c))
       merged.push(c)
     }
   }

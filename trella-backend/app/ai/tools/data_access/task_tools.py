@@ -24,9 +24,27 @@ from app.services.sprints_service import SprintsService
 from app.services.tasks_service import TasksService
 
 
-def _task_dict(task: Task) -> dict[str, Any]:
-    """A trimmed, JSON-safe projection of a Task (no canonical status here)."""
+def _task_source(task: Task, workspace_id: UUID | None) -> dict[str, Any] | None:
+    """Non-sensitive citation source for a task, or None without a workspace.
+
+    Omitted entirely when ``workspace_id`` is None: the FE deep-link needs the
+    workspace, so a partial citation would be broken rather than useful.
+    """
+    if workspace_id is None:
+        return None
     return {
+        "type": "task",
+        "id": str(task.id),
+        "title": task.title,
+        "issue_key": task.issue_key,
+        "workspace_id": str(workspace_id),
+        "board_id": str(task.board_id),
+    }
+
+
+def _task_dict(task: Task, workspace_id: UUID | None = None) -> dict[str, Any]:
+    """A trimmed, JSON-safe projection of a Task (no canonical status here)."""
+    projection: dict[str, Any] = {
         "id": str(task.id),
         "project_id": str(task.project_id),
         "title": task.title,
@@ -42,16 +60,24 @@ def _task_dict(task: Task) -> dict[str, Any]:
         "issue_key": task.issue_key,
         "due_date": _iso(task.due_date),
     }
+    source = _task_source(task, workspace_id)
+    if source is not None:
+        projection["source"] = source
+    return projection
 
 
-def _task_brief(task: Task) -> dict[str, Any]:
+def _task_brief(task: Task, workspace_id: UUID | None = None) -> dict[str, Any]:
     """An even leaner projection for list results."""
-    return {
+    brief: dict[str, Any] = {
         "id": str(task.id),
         "title": task.title,
         "issue_key": task.issue_key,
         "priority": task.priority,
     }
+    source = _task_source(task, workspace_id)
+    if source is not None:
+        brief["source"] = source
+    return brief
 
 
 def _gather_project_tasks(
@@ -104,7 +130,9 @@ class TaskDetailTool(Tool):
         except _InvalidArgs:
             return _invalid_args()
         task = self._tasks.get_task(ctx.session, task_id, ctx.user)
-        return ToolResult(ok=True, content=_task_dict(task), source="task")
+        return ToolResult(
+            ok=True, content=_task_dict(task, ctx.workspace_id), source="task"
+        )
 
 
 class TaskLookupTool(Tool):
@@ -153,7 +181,11 @@ class TaskLookupTool(Tool):
             self._tasks, self._sprints, ctx.session, project_id, ctx.user
         ):
             if task.issue_key and task.issue_key.lower() == needle:
-                return ToolResult(ok=True, content=_task_dict(task), source="task")
+                return ToolResult(
+                    ok=True,
+                    content=_task_dict(task, ctx.workspace_id),
+                    source="task",
+                )
         return ToolResult(ok=True, content=None, source="task")
 
 
@@ -203,7 +235,7 @@ class TaskSearchTool(Tool):
         ):
             haystack = f"{task.title or ''} {task.description or ''}".lower()
             if needle in haystack:
-                matches.append(_task_brief(task))
+                matches.append(_task_brief(task, ctx.workspace_id))
                 if len(matches) >= MAX_ITEMS:
                     break
         return ToolResult(ok=True, content=matches, source="task")
@@ -275,14 +307,16 @@ class BlockedTasksTool(Tool):
                 canonical_by_status.get(status_id) if status_id is not None else None
             )
             if canonical == CanonicalStatus.PENDING.value:
-                blocked.append(
-                    {
-                        "id": str(task.id),
-                        "title": task.title,
-                        "issue_key": task.issue_key,
-                        "sprint_id": str(task.sprint_id) if task.sprint_id else None,
-                    }
-                )
+                item: dict[str, Any] = {
+                    "id": str(task.id),
+                    "title": task.title,
+                    "issue_key": task.issue_key,
+                    "sprint_id": str(task.sprint_id) if task.sprint_id else None,
+                }
+                source = _task_source(task, ctx.workspace_id)
+                if source is not None:
+                    item["source"] = source
+                blocked.append(item)
                 if len(blocked) >= MAX_ITEMS:
                     break
         return ToolResult(ok=True, content=blocked, source="task")

@@ -521,6 +521,43 @@ export function ManageWorkflowModal({
         </div>
         
         <div style={{ flex: 1 }} />
+
+        {/* Quick ANY Transition Selector */}
+        <select
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val) {
+              const s = customStatuses.find((cs) => cs.id === val);
+              const name = s ? `Cho phép tới ${s.name} từ ANY` : "Chuyển từ ANY";
+              createTransitionMutation.mutate({
+                fromStatusId: null,
+                toStatusId: val,
+                name,
+              });
+              e.target.value = "";
+            }
+          }}
+          style={{
+            height: 28,
+            borderRadius: 6,
+            border: "1px solid #BFDBFE",
+            fontSize: 12,
+            fontWeight: 700,
+            backgroundColor: "#EFF6FF",
+            color: "#2563EB",
+            cursor: "pointer",
+            padding: "0 8px",
+            outline: "none",
+            marginRight: 8,
+          }}
+        >
+          <option value="">⚡ + Thêm chuyển tiếp ANY (Từ bất kỳ trạng thái nào)</option>
+          {customStatuses.map((cs) => (
+            <option key={cs.id} value={cs.id}>
+              Cho phép chuyển tới &quot;{cs.name}&quot; từ ANY
+            </option>
+          ))}
+        </select>
         
         <div
           style={{

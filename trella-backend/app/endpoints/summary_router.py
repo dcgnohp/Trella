@@ -72,11 +72,20 @@ def get_stats(
         1 for t in all_tasks if t.due_date and now <= t.due_date <= week_ahead
     )
 
+    total_tasks = len(all_tasks)
+    done_tasks = sum(1 for t in all_tasks if t.column_id in done_col_ids)
+    blocked_tasks = sum(1 for t in all_tasks if getattr(t, "priority", "") == "URGENT")
+    done_rate = round(done_tasks / total_tasks * 100) if total_tasks > 0 else 0
+
     return {
         "completed_7d": completed_7d,
         "updated_7d": updated_7d,
         "created_7d": created_7d,
         "due_soon_7d": due_soon_7d,
+        "total_tasks": total_tasks,
+        "done_tasks": done_tasks,
+        "blocked_tasks": blocked_tasks,
+        "done_rate": done_rate,
     }
 
 
@@ -86,30 +95,53 @@ def get_status_overview(
     workspace_id: uuid.UUID,
     _current_user: CurrentUser,
 ) -> dict:
-    stmt = (
-        select(BoardColumn.status_key, func.count(Task.id).label("cnt"))
-        .join(Task, Task.column_id == BoardColumn.id)
+    from app.repositories.custom_statuses_repository import CustomStatusesRepository
+
+    base = (
+        select(Task, BoardColumn.status_key, BoardColumn.name)
+        .join(BoardColumn, Task.column_id == BoardColumn.id, isouter=True)
         .join(Board, Task.board_id == Board.id)
         .join(Project, Board.project_id == Project.id)
         .where(Project.workspace_id == workspace_id)
-        .group_by(BoardColumn.status_key)
     )
-    rows = session.exec(stmt).all()
+    results = session.exec(base).all()
 
-    STATUS_COLORS = {
-        "IN_PROGRESS": "hsl(var(--info))",
-        "TODO": "hsl(var(--warning))",
-        "DONE": "hsl(var(--success-foreground))",
-        "PENDING": "hsl(var(--warning))",
-    }
+    counts: dict[str, int] = {}
+    STATUS_COLORS: dict[str, str] = {}
+    cs_repo = CustomStatusesRepository()
+
+    for task, col_key, col_name in results:
+        status_label = None
+        if getattr(task, "custom_status_id", None):
+            cs = cs_repo.get(session, task.custom_status_id)
+            if cs:
+                status_label = cs.name
+
+        if not status_label:
+            status_label = col_name or col_key or "To do"
+
+        counts[status_label] = counts.get(status_label, 0) + 1
+
+        if status_label not in STATUS_COLORS:
+            upper = status_label.upper()
+            if "DONE" in upper or "COMPLETED" in upper or "FINISH" in upper:
+                STATUS_COLORS[status_label] = "#22C55E"
+            elif "PROGRESS" in upper or "DOING" in upper or "REVIEW" in upper:
+                STATUS_COLORS[status_label] = "#2563EB"
+            elif "PENDING" in upper or "HOLD" in upper or "BLOCKED" in upper:
+                STATUS_COLORS[status_label] = "#F97316"
+            elif "DEV" in upper or "TEST" in upper or "QA" in upper:
+                STATUS_COLORS[status_label] = "#8B5CF6"
+            else:
+                STATUS_COLORS[status_label] = "#64748B"
 
     by_status = [
         {
-            "status": row.status_key or "TODO",
-            "count": row.cnt,
-            "color": STATUS_COLORS.get(row.status_key or "TODO", "hsl(var(--muted))"),
+            "status": name,
+            "count": count,
+            "color": STATUS_COLORS.get(name, "#2563EB"),
         }
-        for row in rows
+        for name, count in counts.items()
     ]
     total = sum(r["count"] for r in by_status)
 

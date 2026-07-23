@@ -54,7 +54,9 @@ def test_created_event_indexes_doc(monkeypatch: Any) -> None:
         id=doc_id, workspace_id=ws, title="T", content="body", is_archived=False
     )
     _patch(monkeypatch, doc)
-    asyncio.run(sync_mod._handle_created(DocumentCreated(doc_id=doc_id, workspace_id=ws)))
+    asyncio.run(
+        sync_mod._handle_created(DocumentCreated(doc_id=doc_id, workspace_id=ws))
+    )
     assert _FakeIndexer.last["op"] == "index"
     assert _FakeIndexer.last["doc_id"] == doc_id
     assert _FakeIndexer.last["title"] == "T"
@@ -66,19 +68,25 @@ def test_updated_event_of_archived_doc_removes_index(monkeypatch: Any) -> None:
         id=doc_id, workspace_id=ws, title="T", content="body", is_archived=True
     )
     _patch(monkeypatch, doc)
-    asyncio.run(sync_mod._handle_updated(DocumentUpdated(doc_id=doc_id, workspace_id=ws)))
+    asyncio.run(
+        sync_mod._handle_updated(DocumentUpdated(doc_id=doc_id, workspace_id=ws))
+    )
     assert _FakeIndexer.last == {"op": "remove", "doc_id": doc_id}
 
 
 def test_updated_event_missing_doc_removes_index(monkeypatch: Any) -> None:
     doc_id, ws = uuid.uuid4(), uuid.uuid4()
     _patch(monkeypatch, None)  # doc gone between publish and handling
-    asyncio.run(sync_mod._handle_updated(DocumentUpdated(doc_id=doc_id, workspace_id=ws)))
+    asyncio.run(
+        sync_mod._handle_updated(DocumentUpdated(doc_id=doc_id, workspace_id=ws))
+    )
     assert _FakeIndexer.last == {"op": "remove", "doc_id": doc_id}
 
 
 def test_deleted_event_removes_index(monkeypatch: Any) -> None:
     doc_id, ws = uuid.uuid4(), uuid.uuid4()
     _patch(monkeypatch, None)
-    asyncio.run(sync_mod._handle_deleted(DocumentDeleted(doc_id=doc_id, workspace_id=ws)))
+    asyncio.run(
+        sync_mod._handle_deleted(DocumentDeleted(doc_id=doc_id, workspace_id=ws))
+    )
     assert _FakeIndexer.last == {"op": "remove", "doc_id": doc_id}

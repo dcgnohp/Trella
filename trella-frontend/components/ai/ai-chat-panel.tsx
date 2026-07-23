@@ -19,6 +19,7 @@ import Textarea from '@atlaskit/textarea';
 import { token } from '@atlaskit/tokens';
 
 import { StreamingRenderer } from '@/components/ai/streaming-renderer';
+import { citationRoute } from '@/lib/ai/citation-route';
 import { useConversationContext, useConversationScope } from '@/lib/ai/conversation-context';
 import { useChat, type Citation, type PendingPlan } from '@/lib/ai/use-chat';
 
@@ -53,13 +54,13 @@ export function AiChatPanel() {
   const conversationScope = useConversationScope();
   const router = useRouter();
 
-  // Open a cited document. Primary UX is the Knowledge Center preview drawer,
-  // but that drawer is page-local; from the global chat panel we fall back to
-  // the document page (per the approved UX). The global panel stays mounted
-  // across this in-workspace navigation, so the chat remains visible. Upgrade
-  // path: a global/URL-driven preview drawer — only this callback changes.
+  // Open a cited entity. Documents fall back to the doc page (the preview
+  // drawer is page-local); tasks route to their board (or backlog) with a
+  // ?task= deep link that opens the TaskDetailDrawer; sprints route to the
+  // workspace backlog. The global panel stays mounted across this in-workspace
+  // navigation, so the chat remains visible.
   const openSource = (c: Citation) => {
-    router.push(`/workspaces/${c.workspaceId}/docs/${c.id}`);
+    router.push(citationRoute(c));
   };
 
   const listEndRef = useRef<HTMLDivElement | null>(null);
@@ -204,10 +205,7 @@ export function AiChatPanel() {
                           {!streamingThis &&
                           index === lastAssistantIndex &&
                           citations.length > 0 ? (
-                            <SourcesSection
-                              citations={citations}
-                              onOpen={openSource}
-                            />
+                            <CitationSections citations={citations} onOpen={openSource} />
                           ) : null}
                         </Stack>
                       )}
@@ -329,6 +327,27 @@ function statusAppearance(status: string): 'success' | 'removed' | 'default' {
  * matched passages, rerank/semantic badges, graph refs) without changing the
  * Citation contract — add fields + render them here.
  */
+function CitationSections({
+  citations,
+  onOpen,
+}: {
+  citations: Citation[];
+  onOpen: (citation: Citation) => void;
+}) {
+  const documents = citations.filter((c) => c.type === 'document');
+  const related = citations.filter((c) => c.type === 'task' || c.type === 'sprint');
+  return (
+    <Stack space="space.150">
+      {documents.length > 0 ? <SourcesSection citations={documents} onOpen={onOpen} /> : null}
+      {related.length > 0 ? (
+        <RelatedTasksSection citations={related} onOpen={onOpen} />
+      ) : null}
+    </Stack>
+  );
+}
+
+/** "Sources": cited documents from semantic retrieval, rendered below the
+ *  answer. Clicking a source calls `onOpen` (SPA nav). */
 function SourcesSection({
   citations,
   onOpen,
@@ -345,13 +364,59 @@ function SourcesSection({
             <Inline key={citation.id} space="space.075" alignBlock="center">
               <PageIcon label="" color={token('color.icon.subtle')} />
               <Link
-                href={`/workspaces/${citation.workspaceId}/docs/${citation.id}`}
+                href={citationRoute(citation)}
                 onClick={(e: React.MouseEvent) => {
                   // Keep the SPA/preview flow; avoid a full page reload.
                   e.preventDefault();
                   onOpen(citation);
                 }}
                 testId={`ai-chat-source-${citation.id}`}
+              >
+                {citation.title}
+              </Link>
+            </Inline>
+          ))}
+        </Stack>
+      </Stack>
+    </Box>
+  );
+}
+
+/** "Related tasks": task (and subtask) + sprint citations. Shows the issueKey
+ *  as a Lozenge before the title when present. Clicking routes to the board +
+ *  ?task= drawer (tasks) or the backlog (sprints) via `onOpen`. */
+function RelatedTasksSection({
+  citations,
+  onOpen,
+}: {
+  citations: Citation[];
+  onOpen: (citation: Citation) => void;
+}) {
+  return (
+    <Box testId="ai-chat-related">
+      <Stack space="space.075">
+        <Box xcss={dataSourcesLabelStyles}>Related tasks</Box>
+        <Stack space="space.050">
+          {citations.map((citation) => (
+            <Inline
+              key={`${citation.type}:${citation.id}`}
+              space="space.075"
+              alignBlock="center"
+            >
+              {/* ponytail: reuse PageIcon (the task's approved fallback) rather
+                  than an unverified task/sprint core icon. Upgrade path: swap to
+                  a dedicated ADS icon once confirmed available. */}
+              <PageIcon label="" color={token('color.icon.subtle')} />
+              {citation.issueKey ? (
+                <Lozenge appearance="default">{citation.issueKey}</Lozenge>
+              ) : null}
+              <Link
+                href={citationRoute(citation)}
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault();
+                  onOpen(citation);
+                }}
+                testId={`ai-chat-related-${citation.id}`}
               >
                 {citation.title}
               </Link>
@@ -452,13 +517,12 @@ const fabWrapperStyle: React.CSSProperties = {
 };
 
 const panelWrapperStyle: React.CSSProperties = {
-  position: 'fixed',
-  right: 0,
-  top: 0,
-  bottom: 0,
   width: PANEL_WIDTH,
-  maxWidth: '100vw',
-  zIndex: 500,
+  height: '100%',
+  flexShrink: 0,
+  position: 'relative',
+  zIndex: 10,
+  borderLeft: '1px solid var(--trella-border, #e2e8f0)',
 };
 
 const panelStyles = xcss({

@@ -172,6 +172,37 @@ class WorkspaceMembersService:
         self.repo.set_status(session, membership, MemberStatus.REMOVED)
         session.commit()
 
+    def update_member(
+        self,
+        session: Session,
+        workspace_id: uuid.UUID,
+        target_user_id: uuid.UUID,
+        role: str | None,
+        status_val: str | None,
+        actor: User,
+    ) -> WorkspaceMember:
+        """Update role or status for target_user_id in workspace_id."""
+        self.rbac_service.check(
+            session,
+            Action.MANAGE_WORKSPACE_MEMBER,
+            user=actor,
+            workspace_id=workspace_id,
+        )
+        membership = self.repo.get(session, workspace_id, target_user_id)
+        if membership is None or membership.status == MemberStatus.REMOVED.value:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Membership not found",
+            )
+        if role is not None:
+            membership.role = role
+        if status_val is not None:
+            membership.status = status_val
+        updated = self.repo.update(session, membership)
+        session.commit()
+        session.refresh(updated)
+        return updated
+
     def list_invitations(
         self, session: Session, user: User, type: str = "all"
     ) -> list[WorkspaceMember]:

@@ -12,15 +12,18 @@ import { queryKeys } from '@/lib/query-keys';
 
 interface StartSprintModalProps {
   sprint: SprintWithTasks;
+  allSprints?: SprintWithTasks[];
   projectId: string;
   workspaceId: string;
   onClose: () => void;
 }
 
-export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: StartSprintModalProps) {
+export function StartSprintModal({ sprint, allSprints = [], projectId, workspaceId, onClose }: StartSprintModalProps) {
   const queryClient = useQueryClient();
   const today = new Date();
   const twoWeeks = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+  const activeSprint = allSprints.find(s => s.status === 'ACTIVE' && s.id !== sprint.id);
 
   const [name, setName] = useState(sprint.name);
   const [goal, setGoal] = useState(sprint.goal ?? '');
@@ -39,7 +42,10 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
       toast.success(`${name} started`);
       onClose();
     },
-    onError: () => toast.error('Failed to start sprint'),
+    onError: (err: any) => {
+      const detail = err?.response?.data?.detail || err?.body?.detail || err?.message || 'Failed to start sprint';
+      toast.error(detail);
+    },
   });
 
   return (
@@ -49,11 +55,27 @@ export function StartSprintModal({ sprint, projectId, workspaceId, onClose }: St
       width={560}
       confirmLabel="Start sprint"
       confirmLoading={startMutation.isPending}
-      confirmDisabled={!name || !startDate || !endDate}
+      confirmDisabled={!name || !startDate || !endDate || !!activeSprint}
       onConfirm={() => startMutation.mutate()}
       onClose={onClose}
       body={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {activeSprint && (
+            <div
+              style={{
+                padding: '12px 16px',
+                borderRadius: 6,
+                backgroundColor: '#FFFAE6',
+                border: '1px solid #FFE380',
+                color: '#172B4D',
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              ⚠️ <strong>Cannot start sprint:</strong> Sprint <strong>{activeSprint.name}</strong> is currently active.
+              Only one sprint can be active at a time. Please complete <strong>{activeSprint.name}</strong> before starting a new sprint.
+            </div>
+          )}
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--trella-text)', display: 'block', marginBottom: 4 }}>
               Sprint name *

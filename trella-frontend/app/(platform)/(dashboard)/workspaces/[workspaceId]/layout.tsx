@@ -55,9 +55,13 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
     <ConversationContextProvider>
       <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {!isPlanRoute && <WorkspaceHeader workspaceId={workspaceId} />}
-        <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
+        <div style={{ flex: 1, overflow: "hidden", minHeight: 0, display: "flex", flexDirection: "row" }}>
+          <div style={{ flex: 1, overflow: "auto", minWidth: 0, height: "100%" }}>
+            {children}
+          </div>
+          <AiChatPanel />
+        </div>
         <WorkspaceAiContext workspaceId={workspaceId} />
-        <AiChatPanel />
       </div>
     </ConversationContextProvider>
   );

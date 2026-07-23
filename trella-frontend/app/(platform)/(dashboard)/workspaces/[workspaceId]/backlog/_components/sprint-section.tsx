@@ -250,7 +250,7 @@ export function SprintSection({ sprint, allSprints, projectId, workspaceId, memb
 
       {/* Modals */}
       {showStartModal && (
-        <StartSprintModal sprint={sprint} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowStartModal(false)} />
+        <StartSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowStartModal(false)} />
       )}
       {showCompleteModal && (
         <CompleteSprintModal sprint={sprint} allSprints={allSprints} projectId={projectId} workspaceId={workspaceId} onClose={() => setShowCompleteModal(false)} />

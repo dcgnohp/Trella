@@ -25,6 +25,7 @@ dependencies = [
     "openai>=1.51.0,<2.0.0",
     "google-genai>=1.0.0,<2.0.0",
     "pgvector>=0.3.6,<0.5",
+    "mcp>=1.2,<2",
 ]
 
 [dependency-groups]

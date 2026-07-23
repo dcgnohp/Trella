@@ -49,6 +49,18 @@ class DocumentDeleted(DomainEvent):
     workspace_id: UUID
 
 
+@dataclass(frozen=True)
+class SprintCompleted(DomainEvent):
+    """A sprint was closed. ``completed_by`` is the actor who closed it — a
+    PROJECT_ADMIN (completing a sprint requires that role), so it can serve as
+    the permission context + approval recipient for any workflow automation."""
+
+    sprint_id: UUID
+    project_id: UUID
+    workspace_id: UUID
+    completed_by: UUID
+
+
 Handler = Callable[[DomainEvent], Awaitable[None]]
 
 

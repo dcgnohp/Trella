@@ -50,6 +50,7 @@ def _plan_to_public_with_boards(
         workspace_id=plan.workspace_id,
         name=plan.name,
         description=plan.description,
+        status=plan.status,
         created_by=plan.created_by,
         created_at=plan.created_at,
         updated_at=plan.updated_at,

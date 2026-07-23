@@ -1,0 +1,22 @@
+{
+  "//": "Phase 10.1 MCP allow-list EXAMPLE. Copy to a real path and point AI_MCP_CONFIG_PATH at it. Servers run only when AI_MCP_ENABLED=true. Phase 10.1 registers READ-ONLY tools only.",
+  "mcpServers": {
+    "fetch": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {},
+      "timeout": 30.0,
+      "enabled": true,
+      "capabilities": []
+    },
+    "example-http": {
+      "transport": "http",
+      "url": "https://mcp.example.com/mcp",
+      "auth": { "type": "bearer", "token": "REPLACE_WITH_TOKEN" },
+      "timeout": 30.0,
+      "enabled": false,
+      "capabilities": ["search", "get_document"]
+    }
+  }
+}

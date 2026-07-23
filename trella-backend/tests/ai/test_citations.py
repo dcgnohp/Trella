@@ -37,7 +37,9 @@ def test_extract_citations_none_for_non_list_or_no_sources() -> None:
 
 def test_sse_tool_result_includes_citations_when_present() -> None:
     cites = [_doc_source("Auth guide")]
-    frame = _reasoning_frame(ToolResultEvent("semantic_search_documents", True, "knowledge", cites))
+    frame = _reasoning_frame(
+        ToolResultEvent("semantic_search_documents", True, "knowledge", cites)
+    )
     # frame is "event: tool_result\ndata: {...}\n\n"
     payload = json.loads(frame.split("data: ", 1)[1].strip())
     assert payload["citations"] == cites
@@ -45,6 +47,8 @@ def test_sse_tool_result_includes_citations_when_present() -> None:
 
 
 def test_sse_tool_result_omits_citations_when_absent() -> None:
-    frame = _reasoning_frame(ToolResultEvent("search_documents", True, "knowledge", None))
+    frame = _reasoning_frame(
+        ToolResultEvent("search_documents", True, "knowledge", None)
+    )
     payload = json.loads(frame.split("data: ", 1)[1].strip())
     assert "citations" not in payload

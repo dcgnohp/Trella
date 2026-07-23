@@ -22,6 +22,11 @@ class WorkspaceInvite(CamelModel):
         return value
 
 
+class WorkspaceMemberUpdate(CamelModel):
+    role: str | None = None
+    status: str | None = None
+
+
 class WorkspaceMemberPublic(CamelModel):
     id: uuid.UUID
     workspace_id: uuid.UUID

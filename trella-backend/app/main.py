@@ -57,6 +57,36 @@ async def _init_semantic_search() -> None:
     register_document_indexing()
 
 
+@app.on_event("startup")
+async def _init_workflow_automation() -> None:
+    """Phase 10.4: subscribe the event-driven AI workflow-automation handlers
+    (e.g. Sprint completed → draft a sprint-summary PROPOSAL). No-op unless
+    ``AI_WORKFLOW_ENABLED``. Nothing executes automatically — proposals go
+    through the Phase 8 approve→execute path."""
+    if not settings.AI_WORKFLOW_ENABLED:
+        return
+    from app.ai.workflow.automation import register_workflow_automation
+
+    register_workflow_automation()
+
+
+@app.on_event("startup")
+async def _init_mcp() -> None:
+    """Phase 10.1: connect MCP servers + register read-only tools. No-op unless
+    ``AI_MCP_ENABLED``."""
+    from app.ai.mcp.bootstrap import start_mcp
+
+    await start_mcp()
+
+
+@app.on_event("shutdown")
+async def _shutdown_mcp() -> None:
+    """Close MCP sessions started at boot (best-effort)."""
+    from app.ai.mcp.bootstrap import stop_mcp
+
+    await stop_mcp()
+
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
@@ -66,6 +96,27 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    # If path parameter validation fails (e.g. invalid UUID format in board_id URL), return 404
+    for err in exc.errors():
+        loc = err.get("loc", [])
+        msg = str(err.get("msg", "")).lower()
+        if "path" in loc and ("uuid" in msg or "value is not a valid uuid" in msg):
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "Resource not found (invalid UUID)"},
+            )
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 # WebSocket routes are mounted at the root (no /api/v1 prefix) to match the

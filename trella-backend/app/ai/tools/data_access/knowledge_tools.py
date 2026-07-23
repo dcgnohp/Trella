@@ -25,13 +25,23 @@ from app.services.docs_service import DocsService
 _MIN_TOKEN_LEN = 3
 
 
-def _doc_summary(doc: Doc) -> dict[str, Any]:
+def _doc_summary(doc: Doc, workspace_id: UUID) -> dict[str, Any]:
     return {
         "id": str(doc.id),
         "title": doc.title,
         "category": doc.category,
         "linked_entity_label": doc.linked_entity_label,
         "source_type": doc.source_type,
+        # Document source citation (same shape as semantic_search_documents) so
+        # keyword doc results are ALSO surfaced as clickable citations in the UI
+        # (the router's _extract_citations picks up any item with this source).
+        # Uses ctx.workspace_id (like semantic_tools) — the tool already requires it.
+        "source": {
+            "type": "document",
+            "id": str(doc.id),
+            "title": doc.title,
+            "workspace_id": str(workspace_id),
+        },
     }
 
 
@@ -97,7 +107,9 @@ class DocumentLookupTool(Tool):
         for doc in self._docs.list_docs(ctx.session, ctx.workspace_id, ctx.user):
             if _matches(needle, _haystack(doc)):
                 return ToolResult(
-                    ok=True, content=_doc_summary(doc), source="knowledge"
+                    ok=True,
+                    content=_doc_summary(doc, ctx.workspace_id),
+                    source="knowledge",
                 )
         return ToolResult(ok=True, content=None, source="knowledge")
 
@@ -160,7 +172,7 @@ class DocumentSearchTool(Tool):
                 continue
             if needle is not None and not _matches(needle, _haystack(doc)):
                 continue
-            matches.append(_doc_summary(doc))
+            matches.append(_doc_summary(doc, ctx.workspace_id))
             if len(matches) >= MAX_ITEMS:
                 break
         return ToolResult(ok=True, content=matches, source="knowledge")
@@ -207,6 +219,12 @@ class DocumentDetailTool(Tool):
                 "author_name": doc.author_name,
                 "linked_entity_label": doc.linked_entity_label,
                 "source_type": doc.source_type,
+                "source": {
+                    "type": "document",
+                    "id": str(doc.id),
+                    "title": doc.title,
+                    "workspace_id": str(ctx.workspace_id),
+                },
             },
             source="knowledge",
         )

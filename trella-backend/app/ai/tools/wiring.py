@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from app.ai.reasoning.session_memory import SessionMemory
 from app.ai.tools.data_access import all_data_access_tools
+from app.ai.tools.data_access.pm_tools import all_pm_tools
 from app.ai.tools.data_access.semantic_tools import SemanticDocumentSearchTool
 from app.ai.tools.data_access.write_tools import all_write_tools
 from app.ai.tools.registry import ToolRegistry, get_tool_registry
@@ -26,13 +27,15 @@ def ensure_tools_registered(
     *,
     include_write: bool | None = None,
     include_semantic: bool | None = None,
+    include_pm: bool | None = None,
 ) -> ToolRegistry:
     """Register every data-access tool once; safe to call repeatedly.
 
     Read tools are always registered. WRITE tools (Phase 8) register only when
     ``AI_AGENT_WRITE_ENABLED``; the SEMANTIC search tool (Phase 9) registers
-    only when ``AI_SEMANTIC_SEARCH_ENABLED`` (or the explicit overrides). Skips
-    any already-registered name so a second call never raises the duplicate.
+    only when ``AI_SEMANTIC_SEARCH_ENABLED``; the PM analytics tools (Phase 10.2)
+    register only when ``AI_PM_ENABLED`` (or the explicit overrides). Skips any
+    already-registered name so a second call never raises the duplicate.
     """
     registry = registry or get_tool_registry()
     for tool in all_data_access_tools():
@@ -56,6 +59,12 @@ def ensure_tools_registered(
         semantic_tool = SemanticDocumentSearchTool()
         if not registry.has(semantic_tool.spec.name):
             registry.register(semantic_tool)
+
+    pm_on = settings.AI_PM_ENABLED if include_pm is None else include_pm
+    if pm_on:
+        for pm_tool in all_pm_tools():
+            if not registry.has(pm_tool.spec.name):
+                registry.register(pm_tool)
     return registry
 
 

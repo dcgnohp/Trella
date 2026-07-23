@@ -56,6 +56,9 @@ class PlansService:
                     workspace_id=workspace_id,
                     name=data.name,
                     description=getattr(data, "description", None),
+                    # ponytail: fall back to the model default ("PLANNING") when
+                    # the client omits status — the normal lifecycle entry point.
+                    status=getattr(data, "status", None) or "PLANNING",
                     created_by=user.id,
                 ),
             )

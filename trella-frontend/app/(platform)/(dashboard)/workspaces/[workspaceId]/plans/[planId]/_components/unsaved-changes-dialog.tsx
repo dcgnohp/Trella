@@ -27,6 +27,7 @@ const FIELD_LABELS: Record<keyof StagedFields, string> = {
   customStatusId: 'Status',
   assigneeId: 'Assignee',
   priority: 'Priority',
+  storyPoint: 'Story points',
 };
 
 export function UnsavedChangesDialog({
@@ -36,15 +37,17 @@ export function UnsavedChangesDialog({
 }: UnsavedChangesDialogProps) {
   const { changes, saveAll, discardChange, discardAll, isSaving } = usePlanStaging();
 
-  const fmt = (field: keyof StagedFields, value: string | null | undefined): string => {
+  const fmt = (field: keyof StagedFields, value: string | number | null | undefined): string => {
     if (value == null || value === '') return '—';
-    if (field === 'sprintId') return sprintNameById[value] ?? 'Backlog';
-    if (field === 'customStatusId') return statusNameById[value] ?? value;
+    const strVal = String(value);
+    if (field === 'storyPoint') return `${strVal} pts`;
+    if (field === 'sprintId') return sprintNameById[strVal] ?? 'Backlog';
+    if (field === 'customStatusId') return statusNameById[strVal] ?? strVal;
     if (field === 'startDate' || field === 'dueDate') {
-      const d = new Date(value);
-      return isNaN(d.getTime()) ? value : d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      const d = new Date(strVal);
+      return isNaN(d.getTime()) ? strVal : d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
     }
-    return value;
+    return strVal;
   };
 
   const handleSave = async () => {
@@ -123,7 +126,7 @@ function ChangeRow({
   onDiscard,
 }: {
   change: StagedChange;
-  fmt: (field: keyof StagedFields, value: string | null | undefined) => string;
+  fmt: (field: keyof StagedFields, value: string | number | null | undefined) => string;
   onDiscard: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);

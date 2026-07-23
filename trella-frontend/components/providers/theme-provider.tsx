@@ -3,6 +3,22 @@
 import * as React from 'react';
 import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes';
 import { setGlobalTheme } from '@atlaskit/tokens';
+import FeatureGates from '@atlaskit/feature-gate-js-client';
+
+// Initialize Atlaskit FeatureGates globally (both SSR and Client) so checkGate never throws
+try {
+  const fg = FeatureGates as any;
+  if (typeof fg.initializeFromValues === 'function') {
+    fg.initializeFromValues(
+      { sdkKey: 'trella-local', targetApp: 'trella' },
+      { atlassianAccountId: 'local' },
+      {},
+      { gates: { 'platform-dst-shape-theme-default': { value: true } } }
+    ).catch(() => {});
+  }
+} catch {
+  // Safe fallback
+}
 
 /**
  * Syncs `next-themes` (which drives Tailwind's `.dark` class + our

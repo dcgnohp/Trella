@@ -217,6 +217,32 @@ def test_update_plan_applies_partial_update(session: Session) -> None:
     assert updated.name == "New"
 
 
+def test_plan_status_lifecycle_persists(session: Session) -> None:
+    """Status defaults to PLANNING and round-trips through create/update/get.
+
+    Guards the serializer bug where the detail endpoint dropped ``status`` and
+    always reported PLANNING regardless of the stored value.
+    """
+    user = _seed_user(session)
+    org = _seed_workspace(session)
+    _add_member(session, org.id, user.id)
+    service = PlansService()
+
+    # Default lifecycle entry point.
+    plan = service.create_plan(session, org.id, PlanCreate(name="Lifecycle"), user)
+    assert plan.status == "PLANNING"
+
+    # Explicit status on create is honored (schema advertised it).
+    active = service.create_plan(
+        session, org.id, PlanCreate(name="Active", status="ACTIVE"), user
+    )
+    assert active.status == "ACTIVE"
+
+    # Transition persists and is readable back.
+    service.update_plan(session, plan.id, PlanUpdate(status="ON HOLD"), user)
+    assert service.get_plan(session, plan.id, user).status == "ON HOLD"
+
+
 def test_update_plan_missing_not_found(session: Session) -> None:
     user = _seed_user(session)
     service = PlansService()

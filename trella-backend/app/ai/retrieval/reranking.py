@@ -31,7 +31,9 @@ def rerank(query: str, candidates: list[dict[str, Any]]) -> list[dict[str, Any]]
     return candidates
 
 
-def rank_knowledge(query: str, candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:  # noqa: ARG001
+def rank_knowledge(
+    query: str, candidates: list[dict[str, Any]]
+) -> list[dict[str, Any]]:  # noqa: ARG001
     """Return ``candidates`` re-ordered by knowledge-trust signals.
 
     Placeholder: identity. The frozen signature lets a future implementation

@@ -133,22 +133,35 @@ def _summarize_observation(result: ToolResult) -> str:
     )
 
 
-def _extract_citations(content: Any) -> list[dict[str, Any]] | None:
-    """Collect NON-sensitive document source citations from a tool result.
+_CITATION_TYPES = frozenset({"document", "task", "sprint"})
 
-    Generic convention: a result whose content is a list of items each carrying
-    a ``source`` dict with ``type == "document"`` contributes those source dicts
-    (id/title/workspace_id) as citations. Any future retrieval tool that emits
-    the same shape gets citations for free. Returns None when there are none.
+
+def _extract_citations(content: Any) -> list[dict[str, Any]] | None:
+    """Collect NON-sensitive entity source citations from a tool result.
+
+    Generic convention: an item (dict, or any dict in a list) carrying a
+    ``source`` dict whose ``type`` is one of ``document`` / ``task`` / ``sprint``
+    contributes that source (non-sensitive: id/title/workspace_id + a type-scoped
+    routing hint like issue_key/board_id) as a citation the UI renders clickable.
+    Any tool emitting the same shape gets citations for free. None when empty.
+    De-duplicates by (type, id) so repeated tool calls don't double-list.
     """
-    if not isinstance(content, list):
-        return None
+    # Normalize: a tool may return a single dict (lookup/detail) or a list
+    # (search) — treat a lone dict as a one-item list so all tools cite.
+    items = content if isinstance(content, list) else [content]
     citations: list[dict[str, Any]] = []
-    for item in content:
-        if isinstance(item, dict):
-            src = item.get("source")
-            if isinstance(src, dict) and src.get("type") == "document":
-                citations.append(src)
+    seen: set[tuple[str, str]] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        src = item.get("source")
+        if not (isinstance(src, dict) and src.get("type") in _CITATION_TYPES):
+            continue
+        key = (str(src.get("type")), str(src.get("id")))
+        if key in seen:
+            continue
+        seen.add(key)
+        citations.append(src)
     return citations or None
 
 

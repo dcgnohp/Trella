@@ -750,9 +750,12 @@ export type ParentUpdate = {
     parentId: (string | null);
 };
 
+export type PlanStatus = 'PLANNING' | 'ACTIVE' | 'IN PROGRESS' | 'ON HOLD' | 'COMPLETED';
+
 export type PlanCreate = {
     name: string;
     description?: (string | null);
+    status?: (PlanStatus | null);
     boardIds?: Array<(string)>;
 };
 
@@ -761,6 +764,7 @@ export type PlanPublic = {
     workspaceId: string;
     name: string;
     description: (string | null);
+    status: PlanStatus;
     createdBy: string;
     createdAt: string;
     updatedAt: string;
@@ -769,6 +773,7 @@ export type PlanPublic = {
 export type PlanUpdate = {
     name?: (string | null);
     description?: (string | null);
+    status?: (PlanStatus | null);
 };
 
 export type PlanWithBoardsPublic = {
@@ -776,6 +781,7 @@ export type PlanWithBoardsPublic = {
     workspaceId: string;
     name: string;
     description: (string | null);
+    status: PlanStatus;
     createdBy: string;
     createdAt: string;
     updatedAt: string;
@@ -2278,6 +2284,19 @@ export type WorkspaceMembersRemoveMemberData = {
 };
 
 export type WorkspaceMembersRemoveMemberResponse = (void);
+
+export type WorkspaceMemberUpdate = {
+    role?: (string | null);
+    status?: (string | null);
+};
+
+export type WorkspaceMembersUpdateMemberData = {
+    requestBody: WorkspaceMemberUpdate;
+    userId: string;
+    workspaceId: string;
+};
+
+export type WorkspaceMembersUpdateMemberResponse = (WorkspaceMemberPublic);
 
 export type WorkspacesSwitchWorkspaceModeData = {
     requestBody: WorkspaceModeUpdate;

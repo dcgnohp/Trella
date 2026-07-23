@@ -13,8 +13,8 @@ from app.repositories.sprints_repository import SprintsRepository
 from app.services.sprints_service import SprintsService
 
 
-def _sprint_dict(sprint: Sprint) -> dict[str, Any]:
-    return {
+def _sprint_dict(sprint: Sprint, workspace_id: UUID | None = None) -> dict[str, Any]:
+    projection: dict[str, Any] = {
         "id": str(sprint.id),
         "name": sprint.name,
         "goal": sprint.goal,
@@ -22,6 +22,15 @@ def _sprint_dict(sprint: Sprint) -> dict[str, Any]:
         "start_date": _iso(sprint.start_date),
         "end_date": _iso(sprint.end_date),
     }
+    # Omit the citation entirely without a workspace: the FE deep-link needs it.
+    if workspace_id is not None:
+        projection["source"] = {
+            "type": "sprint",
+            "id": str(sprint.id),
+            "title": sprint.name,
+            "workspace_id": str(workspace_id),
+        }
+    return projection
 
 
 class CurrentSprintTool(Tool):
@@ -61,7 +70,9 @@ class CurrentSprintTool(Tool):
         sprint = self._repo.get_active_sprint(ctx.session, project_id)
         if sprint is None:
             return ToolResult(ok=True, content=None, source="sprint")
-        return ToolResult(ok=True, content=_sprint_dict(sprint), source="sprint")
+        return ToolResult(
+            ok=True, content=_sprint_dict(sprint, ctx.workspace_id), source="sprint"
+        )
 
 
 class SprintDetailTool(Tool):
@@ -90,7 +101,9 @@ class SprintDetailTool(Tool):
         except _InvalidArgs:
             return _invalid_args()
         sprint = self._sprints.get_sprint(ctx.session, sprint_id, ctx.user)
-        return ToolResult(ok=True, content=_sprint_dict(sprint), source="sprint")
+        return ToolResult(
+            ok=True, content=_sprint_dict(sprint, ctx.workspace_id), source="sprint"
+        )
 
 
 class SprintMetricsTool(Tool):

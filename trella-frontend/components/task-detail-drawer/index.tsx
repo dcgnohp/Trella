@@ -239,10 +239,10 @@ function StatusDropdown({ task, workspaceId, onClose, columns = [], onTaskUpdate
   const columnNames = new Set(columns.map((c) => c.name.toLowerCase()));
   const filteredStatuses = columnStatusKeys.size > 0
     ? statuses.filter(
-        (s) =>
-          (s.canonicalStatus && columnStatusKeys.has(s.canonicalStatus.toUpperCase())) ||
-          columnNames.has(s.name.toLowerCase()),
-      )
+      (s) =>
+        (s.canonicalStatus && columnStatusKeys.has(s.canonicalStatus.toUpperCase())) ||
+        columnNames.has(s.name.toLowerCase()),
+    )
     : statuses;
 
   const mutation = useMutation({
@@ -680,23 +680,23 @@ export function LeftPanel({ task, open, workspaceId, actorNames, onSubtaskClick,
       {workspaceId && (
         <div style={{ marginBottom: 24 }}>
           <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "var(--trella-text)" }}>Linked Documents</p>
-          
+
           {linkedDocs.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
               {linkedDocs.map(doc => (
-                <div 
-                  key={doc.id} 
+                <div
+                  key={doc.id}
                   style={{
-                    display: "flex", 
-                    alignItems: "center", 
+                    display: "flex",
+                    alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "6px 10px", 
-                    borderRadius: 4, 
+                    padding: "6px 10px",
+                    borderRadius: 4,
                     border: "1px solid var(--trella-border)",
                     backgroundColor: "var(--trella-surface)",
                   }}
                 >
-                  <a 
+                  <a
                     href={`/workspaces/${workspaceId}/docs?docId=${doc.id}`}
                     style={{ fontSize: 13, color: "#0052CC", textDecoration: "none", fontWeight: 500 }}
                     onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
@@ -1042,7 +1042,19 @@ export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdat
             type="date"
             autoFocus
             defaultValue={task.dueDate ? task.dueDate.slice(0, 10) : ""}
-            onBlur={e => { patchMutation.mutate({ dueDate: e.target.value || null }); setEditingDueDate(false); }}
+            onBlur={e => {
+              const newDue = e.target.value || null;
+              const patch: { dueDate?: string | null; storyPoint?: number | null } = { dueDate: newDue };
+              if (newDue && (task.startDate || task.createdAt)) {
+                const s = new Date(task.startDate || task.createdAt);
+                const d = new Date(newDue);
+                const ms = Math.max(0, d.getTime() - s.getTime());
+                const days = Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)) + 1);
+                patch.storyPoint = days * 2;
+              }
+              patchMutation.mutate(patch);
+              setEditingDueDate(false);
+            }}
             onKeyDown={e => { if (e.key === "Escape") setEditingDueDate(false); }}
             style={{ fontSize: 13, border: "1px solid #0052CC", borderRadius: 4, padding: "2px 6px", outline: "none" }}
           />
@@ -1057,43 +1069,43 @@ export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdat
       <DetailRow label="Team" tooltip="Team responsible for this task"><span style={{ fontSize: 13, color: "var(--trella-text-subtlest)" }}>None</span></DetailRow>
       <DetailRow label="Start date" tooltip="Date this task was created and work can begin">
         <span style={{ fontSize: 13, color: "var(--trella-text)" }}>
-          {new Date(task.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          {task.startDate ? new Date(task.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : (task.createdAt ? new Date(task.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "None")}
         </span>
       </DetailRow>
       {isScrum && (
-      <DetailRow label="Sprint" tooltip="Sprint this task is assigned to">
-        <div style={{ position: "relative" }} ref={sprintRef}>
-          <span
-            onClick={() => setSprintDrop((p) => !p)}
-            style={{ fontSize: 13, color: currentSprint ? "var(--trella-text)" : "var(--trella-text-subtlest)", cursor: "pointer" }}
-          >
-            {currentSprint ? currentSprint.name : "None"}
-          </span>
-          {sprintDrop && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6, boxShadow: "var(--trella-shadow-overlay)", minWidth: 180, overflow: "hidden" }}>
-              <button
-                onClick={() => { patchMutation.mutate({ sprintId: null }); setSprintDrop(false); }}
-                style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text-subtlest)", textAlign: "left" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                None
-              </button>
-              {sprints.map((s) => (
+        <DetailRow label="Sprint" tooltip="Sprint this task is assigned to">
+          <div style={{ position: "relative" }} ref={sprintRef}>
+            <span
+              onClick={() => setSprintDrop((p) => !p)}
+              style={{ fontSize: 13, color: currentSprint ? "var(--trella-text)" : "var(--trella-text-subtlest)", cursor: "pointer" }}
+            >
+              {currentSprint ? currentSprint.name : "None"}
+            </span>
+            {sprintDrop && (
+              <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 400, backgroundColor: "var(--trella-surface)", border: "1px solid var(--trella-border)", borderRadius: 6, boxShadow: "var(--trella-shadow-overlay)", minWidth: 180, overflow: "hidden" }}>
                 <button
-                  key={s.id}
-                  onClick={() => { patchMutation.mutate({ sprintId: s.id }); setSprintDrop(false); }}
-                  style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)", textAlign: "left", fontWeight: s.id === task.sprintId ? 700 : 400 }}
+                  onClick={() => { patchMutation.mutate({ sprintId: null }); setSprintDrop(false); }}
+                  style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text-subtlest)", textAlign: "left" }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  {s.name}
+                  None
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </DetailRow>
+                {sprints.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => { patchMutation.mutate({ sprintId: s.id }); setSprintDrop(false); }}
+                    style={{ display: "flex", width: "100%", padding: "7px 12px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--trella-text)", textAlign: "left", fontWeight: s.id === task.sprintId ? 700 : 400 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--trella-surface-sunken)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DetailRow>
       )}
 
       <DetailRow label="Story points" tooltip="Effort estimate — only Fibonacci values allowed (1,2,3,5,8,13,21)">
@@ -1103,39 +1115,51 @@ export function RightPanel({ task, projectMembers = [], workspaceId, onTaskUpdat
             placeholder="None"
             options={fibOptions}
             value={task.storyPoint != null ? { label: String(task.storyPoint), value: task.storyPoint } : null}
-          isValidNewOption={(input) => {
-            const n = parseInt(input, 10);
-            return FIBONACCI.includes(n);
-          }}
-          getNewOptionData={(input) => ({ label: input, value: parseInt(input, 10) })}
-          onChange={(opt) => {
-            const n = opt ? opt.value : null;
-            if (n !== task.storyPoint) patchMutation.mutate({ storyPoint: n });
-          }}
-          styles={{
-            control: (base) => ({ ...base, minHeight: 28, fontSize: 13, border: "1px solid var(--trella-border)", boxShadow: "none", cursor: "pointer" }),
-            valueContainer: (base) => ({ ...base, padding: "0 6px" }),
-            indicatorsContainer: (base) => ({ ...base, height: 28 }),
-            menu: (base) => ({ ...base, fontSize: 13, zIndex: 500 }),
-          }}
-        />
-        {task.storyPoint != null && (
-          <span style={{ fontSize: 11, color: "var(--trella-text-subtle)", marginTop: 4, display: "block" }}>
-            {(task.storyPoint * hoursPerPoint / 8) < 1
-              ? `${(task.storyPoint * hoursPerPoint).toFixed(1)}h`
-              : `${(task.storyPoint * hoursPerPoint / 8).toFixed(1)} days`}
-          </span>
-        )}
-        <div style={{ marginTop: 8 }}>
-          <AiStoryPointCard
-            title={task.title}
-            description={task.description}
-            priority={task.priority}
-            onApply={(points) => {
-              patchMutation.mutate({ storyPoint: points });
+            isValidNewOption={(input) => {
+              const n = parseInt(input, 10);
+              return FIBONACCI.includes(n);
+            }}
+            getNewOptionData={(input) => ({ label: input, value: parseInt(input, 10) })}
+            onChange={(opt) => {
+              const n = opt ? opt.value : null;
+              if (n !== task.storyPoint) {
+                const patch: { storyPoint?: number | null; dueDate?: string | null } = { storyPoint: n };
+                if (n != null && n > 0) {
+                  const days = Math.max(1, Math.round(n / 2));
+                  const s = new Date(task.startDate || task.createdAt || '2026-07-01');
+                  s.setDate(s.getDate() + (days - 1));
+                  patch.dueDate = s.toISOString().slice(0, 10);
+                }
+                patchMutation.mutate(patch);
+              }
+            }}
+            styles={{
+              control: (base) => ({ ...base, minHeight: 28, fontSize: 13, border: "1px solid var(--trella-border)", boxShadow: "none", cursor: "pointer" }),
+              valueContainer: (base) => ({ ...base, padding: "0 6px" }),
+              indicatorsContainer: (base) => ({ ...base, height: 28 }),
+              menu: (base) => ({ ...base, fontSize: 13, zIndex: 500 }),
             }}
           />
-        </div>
+          {task.storyPoint != null && (
+            <span style={{ fontSize: 11, color: "var(--trella-text-subtle)", marginTop: 4, display: "block" }}>
+              {(task.storyPoint * hoursPerPoint / 8) < 1
+                ? `${(task.storyPoint * hoursPerPoint).toFixed(1)}h`
+                : `${(task.storyPoint * hoursPerPoint / 8).toFixed(1)} days`}
+            </span>
+          )}
+          <div style={{ marginTop: 8 }}>
+            <AiStoryPointCard
+              title={task.title}
+              description={task.description}
+              priority={task.priority}
+              onApply={(points) => {
+                const days = Math.max(1, Math.round(points / 2));
+                const s = new Date(task.startDate || task.createdAt || '2026-07-01');
+                s.setDate(s.getDate() + (days - 1));
+                patchMutation.mutate({ storyPoint: points, dueDate: s.toISOString().slice(0, 10) });
+              }}
+            />
+          </div>
         </div>
       </DetailRow>
 

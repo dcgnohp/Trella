@@ -1,5 +1,4 @@
 import { AuthProvider } from "@/components/providers/auth-provider";
-import { Footer } from "./_components/footer";
 import { Navbar } from "./_components/navbar";
 
 const MarketingLayout = ({
@@ -9,12 +8,11 @@ const MarketingLayout = ({
 }) => {
   return (
     <AuthProvider>
-      <div className="h-full bg-slate-100">
+      <div className="min-h-screen bg-[#F8FAFC]">
         <Navbar />
-        <main className="pt-40 pb-20 bg-slate-100">
+        <main className="bg-[#F8FAFC] min-h-screen">
           {children}
         </main>
-        <Footer />
       </div>
     </AuthProvider>
   );

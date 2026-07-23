@@ -9,12 +9,8 @@ import SearchIcon from '@atlaskit/icon/core/search';
 import AddIcon from '@atlaskit/icon/core/add';
 import PersonAvatarIcon from '@atlaskit/icon/core/person-avatar';
 import ScreenIcon from '@atlaskit/icon/core/screen';
-import AppsIcon from '@atlaskit/icon/core/apps';
 import GlobeIcon from '@atlaskit/icon/core/globe';
-import WorkItemsIcon from '@atlaskit/icon/core/work-items';
-import StoreIcon from '@atlaskit/icon/core/app-switcher';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
-import CreditCardIcon from '@atlaskit/icon/core/credit-card';
 
 import { ThemeToggle, ThemeMenu } from '@/components/theme-toggle';
 import { CreateTaskModal } from '@/components/create-task-modal';
@@ -24,25 +20,21 @@ const SETTINGS_SECTIONS = [
   {
     heading: 'Personal settings',
     items: [
-      { icon: <PersonAvatarIcon label="" size="small" />, label: 'General settings', sub: 'Manage language, time zone, and other personal preferences', href: null },
-      { icon: <NotificationIcon label="" size="small" />, label: 'Notification settings', sub: 'Manage email and in-app notifications', href: null },
+      { icon: <PersonAvatarIcon label="" size="small" />, label: 'General settings', sub: 'Manage language, time zone, and other personal preferences', href: 'general' },
+      { icon: <NotificationIcon label="" size="small" />, label: 'Notification settings', sub: 'Manage email and in-app notifications', href: 'notifications' },
     ],
   },
   {
     heading: 'Admin settings',
     items: [
-      { icon: <ScreenIcon label="" size="small" />, label: 'System', sub: 'Manage general configuration, security, automation, user interface, and more', href: null },
-      { icon: <AppsIcon label="" size="small" />, label: 'Apps', sub: 'Manage access, settings, and integrations', href: null },
-      { icon: <GlobeIcon label="" size="small" />, label: 'Spaces', sub: 'Manage space settings, categories, and more', href: null },
-      { icon: <WorkItemsIcon label="" size="small" />, label: 'Work items', sub: 'Configure work types, workflows, screens, fields, and more', href: null },
-      { icon: <StoreIcon label="" size="small" />, label: 'Marketplace apps', sub: 'Add and manage Marketplace apps and integrations', href: null },
+      { icon: <ScreenIcon label="" size="small" />, label: 'System', sub: 'Manage general configuration, security, automation, user interface, and more', href: 'system' },
+      { icon: <GlobeIcon label="" size="small" />, label: 'Spaces', sub: 'Manage space settings, categories, and more', href: 'spaces' },
     ],
   },
   {
     heading: 'Organization settings',
     items: [
       { icon: <PeopleGroupIcon label="" size="small" />, label: 'User management', sub: 'Create and manage users, groups, and access requests', href: 'members' },
-      { icon: <CreditCardIcon label="" size="small" />, label: 'Billing', sub: 'Update your billing details, manage subscriptions, and more', href: null },
     ],
   },
 ];

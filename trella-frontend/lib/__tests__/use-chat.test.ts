@@ -102,8 +102,22 @@ describe("aggregateTurn (reasoning path)", () => {
     const { citations } = aggregateTurn(events)
 
     expect(citations).toEqual([
-      { id: "d1", title: "Auth Guide", workspaceId: "w1" },
-      { id: "d2", title: "Deploy", workspaceId: "w1" },
+      {
+        id: "d1",
+        title: "Auth Guide",
+        workspaceId: "w1",
+        type: "document",
+        issueKey: undefined,
+        boardId: undefined,
+      },
+      {
+        id: "d2",
+        title: "Deploy",
+        workspaceId: "w1",
+        type: "document",
+        issueKey: undefined,
+        boardId: undefined,
+      },
     ])
   })
 

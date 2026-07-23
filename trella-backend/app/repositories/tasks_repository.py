@@ -86,6 +86,15 @@ class TasksRepository:
         )
         return list(session.exec(statement).all())
 
+    def list_by_project(self, session: Session, project_id: uuid.UUID) -> list[Task]:
+        """Return ALL tasks for a project (both backlog and sprint tasks)."""
+        statement = (
+            select(Task)
+            .where(Task.project_id == project_id)
+            .order_by(col(Task.created_at))
+        )
+        return list(session.exec(statement).all())
+
     def list_subtasks(self, session: Session, parent_id: uuid.UUID) -> list[Task]:
         """Return all direct children (subtasks) of a task, ordered by position."""
         statement = (

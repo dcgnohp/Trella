@@ -33,6 +33,7 @@ _UPDATABLE_FIELDS = frozenset(
         "description",
         "priority",
         "due_date",
+        "start_date",
         "custom_status_id",
         "column_id",
         # Jira-mode fields

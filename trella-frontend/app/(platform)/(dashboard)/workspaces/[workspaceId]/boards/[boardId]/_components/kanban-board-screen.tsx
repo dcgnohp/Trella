@@ -18,6 +18,7 @@ import { isTaskVisibleOnScrumBoard } from "@/lib/board/scrum-board-filter";
 import { useContributeConversationContext } from "@/lib/ai/conversation-context";
 import { useAuth } from "@/components/providers/auth-provider";
 import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { BoardHeader } from "./board-header";
 import { StandupPanel } from "./standup-panel";
@@ -50,6 +51,29 @@ export const KanbanBoardScreen = ({
   const [standupActive, setStandupActive] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
   const { user } = useAuth();
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const taskParam = searchParams.get("task");
+
+  // Deep link: open the task drawer when ?task= is present (on mount + when the
+  // param changes). Unknown id → selectedTask resolves null → drawer shows
+  // nothing, no crash.
+  useEffect(() => {
+    if (taskParam) setSelectedTaskId(taskParam);
+  }, [taskParam]);
+
+  // Closing the drawer strips ?task= so it doesn't re-open on the next render.
+  const closeTaskDrawer = React.useCallback(() => {
+    setSelectedTaskId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.has("task")) {
+      params.delete("task");
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }
+  }, [searchParams, pathname, router]);
 
   const boardQuery = useQuery({
     queryKey: queryKeys.board(boardId),
@@ -299,7 +323,7 @@ export const KanbanBoardScreen = ({
 
       <TaskDetailDrawer
         open={!!selectedTaskId}
-        onClose={() => setSelectedTaskId(null)}
+        onClose={closeTaskDrawer}
         task={selectedTask}
         actorNames={actorNames}
         workspaceId={workspaceId}

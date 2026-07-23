@@ -127,6 +127,33 @@ class Settings(BaseSettings):
     # Default number of nearest chunks returned by semantic_search_documents.
     AI_SEMANTIC_SEARCH_TOP_K: int = 5
 
+    # --- Enterprise AI / MCP Integration (Phase 10.1) ---
+    # Master switch for consuming external MCP servers as READ-ONLY tools.
+    # Default OFF so behavior is unchanged; servers come ONLY from the allow-list
+    # config file (never hardcoded), and only when this flag is on.
+    AI_MCP_ENABLED: bool = False
+    # Path to the MCP allow-list config file (mcp.json-style). None → no servers.
+    AI_MCP_CONFIG_PATH: str | None = None
+    # Outer per-call timeout (seconds) for an MCP tool invocation; a server's own
+    # ``timeout`` may be smaller (the smaller wins).
+    AI_MCP_TOOL_TIMEOUT_S: float = 15.0
+
+    # --- AI Project Manager (Phase 10.2) ---
+    # Master switch for the deterministic project-analytics tools (sprint /
+    # workload / risk) that let the AI Chat behave like a project manager.
+    # Default OFF so Phase 1-10.1 behavior/tests are unchanged. The analytics
+    # are AI-free reads; recommendations/reports emerge from the chat's own
+    # reasoning over these tools (Phase 7 invariant preserved).
+    AI_PM_ENABLED: bool = False
+
+    # --- Workflow Automation (Phase 10.4) ---
+    # Master switch for event-driven AI proposals (e.g. Sprint completed → AI
+    # drafts a sprint-summary document proposal → admin approves → execute).
+    # Default OFF so behavior/tests are unchanged. NOTHING is ever executed
+    # automatically: proposals go through the Phase 8 propose→approve→execute
+    # path (Human-in-the-loop preserved). Gated on Phase 8 + Phase 9 COMPLETED.
+    AI_WORKFLOW_ENABLED: bool = False
+
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []

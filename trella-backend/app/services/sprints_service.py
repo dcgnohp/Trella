@@ -83,14 +83,23 @@ class SprintsService:
             )
 
     def _is_task_done(self, session: Session, task: Task) -> bool:
-        """Return True if the task's custom_status maps to DONE canonical status."""
+        """Return True if the task's custom_status or column maps to DONE canonical status."""
+        from app.models.enums import CanonicalStatus
+
         if task.custom_status_id is not None:
             from app.models.custom_statuses_model import CustomStatus
-            from app.models.enums import CanonicalStatus
 
             cs = session.get(CustomStatus, task.custom_status_id)
             if cs and cs.canonical_status == CanonicalStatus.DONE.value:
                 return True
+
+        if task.column_id is not None:
+            from app.models.board_columns_model import BoardColumn
+
+            col = session.get(BoardColumn, task.column_id)
+            if col and col.canonical_status == CanonicalStatus.DONE.value:
+                return True
+
         return False
 
     # ------------------------------------------------------------------ #
@@ -435,6 +444,19 @@ class SprintsService:
             raise
         session.refresh(sprint)
         self._push_sprint_event(sprint, "sprint.completed")
+        # Publish a generic domain event (non-blocking, best-effort). The AI
+        # Workflow Automation subscriber (Phase 10.4) may draft a sprint-summary
+        # PROPOSAL from it; the business layer knows nothing about that consumer.
+        from app.core.events import SprintCompleted, get_event_dispatcher
+
+        get_event_dispatcher().publish(
+            SprintCompleted(
+                sprint_id=sprint.id,
+                project_id=sprint.project_id,
+                workspace_id=workspace_id,
+                completed_by=user.id,
+            )
+        )
         return sprint
 
     # ------------------------------------------------------------------ #

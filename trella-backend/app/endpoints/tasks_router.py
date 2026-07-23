@@ -181,3 +181,18 @@ def get_workspace_backlog(
     project_id = _resolve_project_from_workspace(session, workspace_id)
     tasks = _service.list_backlog(session, project_id, current_user)
     return [_to_public(session, t) for t in tasks]
+
+
+@backlog_router.get(
+    "/workspaces/{workspace_id}/tasks", response_model=list[TaskPublic]
+)
+def get_workspace_all_tasks(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> list[TaskPublic]:
+    """Return ALL tasks (backlog + active/completed sprint tasks) for the primary project of a workspace."""
+    from app.repositories.tasks_repository import TasksRepository
+    project_id = _resolve_project_from_workspace(session, workspace_id)
+    tasks = TasksRepository().list_by_project(session, project_id)
+    return [_to_public(session, t) for t in tasks]

@@ -19,7 +19,7 @@ export function WorkspaceAiContext({ workspaceId }: { workspaceId: string }) {
   // Include backlog so "how many tasks in the backlog" is answerable too.
   const tasks = [
     ...activeTasks.map((t) => ({ title: t.title, status: t.customStatus?.name ?? null })),
-    ...backlog.map((t) => ({ title: t.title, status: t.customStatus?.name ?? 'Backlog' })),
+    ...backlog.map((t: any) => ({ title: t.title, status: t.customStatus?.name ?? 'Backlog' })),
   ];
   useContributeConversationContext({
     ids: { workspaceId, projectId, sprintId: active?.id },

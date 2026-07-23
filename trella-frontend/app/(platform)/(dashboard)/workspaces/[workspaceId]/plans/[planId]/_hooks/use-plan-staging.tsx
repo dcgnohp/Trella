@@ -17,7 +17,7 @@ import { queryKeys } from '@/lib/query-keys';
 
 export type StagedFields = Pick<
   TaskUpdate,
-  'sprintId' | 'startDate' | 'dueDate' | 'customStatusId' | 'assigneeId' | 'priority'
+  'sprintId' | 'startDate' | 'dueDate' | 'customStatusId' | 'assigneeId' | 'priority' | 'storyPoint'
 >;
 
 export interface StagedChange {
@@ -67,10 +67,24 @@ export function PlanStagingProvider({
 
   const stageChange = useCallback((task: TaskPublic, fields: StagedFields) => {
     setMap(prev => {
-      const changedKeys = Object.keys(fields) as (keyof StagedFields)[];
+      const formattedFields: StagedFields = { ...fields };
+      if (formattedFields.startDate) {
+        try {
+          const d = new Date(formattedFields.startDate);
+          if (!isNaN(d.getTime())) formattedFields.startDate = d.toISOString();
+        } catch {}
+      }
+      if (formattedFields.dueDate) {
+        try {
+          const d = new Date(formattedFields.dueDate);
+          if (!isNaN(d.getTime())) formattedFields.dueDate = d.toISOString();
+        } catch {}
+      }
+
+      const changedKeys = Object.keys(formattedFields) as (keyof StagedFields)[];
       const existing = prev[task.id];
       const before = existing?.before ?? pickFields(task, changedKeys);
-      const mergedFields = { ...(existing?.fields ?? {}), ...fields };
+      const mergedFields = { ...(existing?.fields ?? {}), ...formattedFields };
 
       // Drop fields that now equal their original value — nothing to save.
       const meaningful: Record<string, unknown> = {};
@@ -127,9 +141,11 @@ export function PlanStagingProvider({
       // Refresh the plan view and every surface that shows the same tasks so
       // the workspace board / backlog reflect the committed changes.
       queryClient.invalidateQueries({ queryKey: queryKeys.planEpics(planId) });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['board-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
-      queryClient.invalidateQueries({ queryKey: ['workspace-sprints', workspaceId] });
       setMap({});
       toast.success(
         `Saved ${changes.length} change${changes.length !== 1 ? 's' : ''} to your workspace`
@@ -143,16 +159,19 @@ export function PlanStagingProvider({
 
   const getEffectiveTask = useCallback(
     <T extends TaskPublic>(task: T): T => {
-      const staged = map[task.id];
-      if (!staged) return task;
-      return { ...task, ...staged.fields } as T;
+      const change = map[task.id];
+      if (!change) return task;
+      return {
+        ...task,
+        ...change.fields,
+      };
     },
     [map]
   );
 
   const isStaged = useCallback((taskId: string) => Boolean(map[taskId]), [map]);
 
-  const value = useMemo<PlanStagingContextValue>(
+  const value = useMemo(
     () => ({
       stagedCount: Object.keys(map).length,
       changes: Object.values(map),
@@ -170,7 +189,7 @@ export function PlanStagingProvider({
   return <PlanStagingContext.Provider value={value}>{children}</PlanStagingContext.Provider>;
 }
 
-export function usePlanStaging(): PlanStagingContextValue {
+export function usePlanStaging() {
   const ctx = useContext(PlanStagingContext);
   if (!ctx) {
     throw new Error('usePlanStaging must be used within a PlanStagingProvider');
