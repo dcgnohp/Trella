@@ -427,7 +427,7 @@ class WorkflowsService:
             transition = session.exec(
                 select(WorkflowTransition).where(
                     WorkflowTransition.workflow_id == workflow_id,
-                    WorkflowTransition.from_status_id is None,
+                    WorkflowTransition.from_status_id.is_(None),
                     WorkflowTransition.to_status_id == to_status_id,
                 )
             ).first()

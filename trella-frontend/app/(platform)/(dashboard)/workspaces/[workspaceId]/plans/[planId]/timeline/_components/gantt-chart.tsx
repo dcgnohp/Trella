@@ -61,7 +61,10 @@ const ROW_HEIGHT = 44;
 
 export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask }: GanttChartProps) {
   const [zoomLevel, setZoomLevel] = useState<'Week' | 'Month' | 'Quarter'>('Month');
-  const [baseDate, setBaseDate] = useState<Date>(new Date('2026-07-01'));
+  const [baseDate, setBaseDate] = useState<Date>(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [isGroupExpanded, setIsGroupExpanded] = useState(true);
   const [contextMenuTask, setContextMenuTask] = useState<{ task: GanttEpic; x: number; y: number } | null>(null);
@@ -105,8 +108,14 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
     if (zoomLevel === 'Week') {
       const cols = [];
       const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      // Compute Monday of the week containing baseDate
+      const startOfWeek = new Date(baseDate);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfWeek.setDate(diff);
+
       for (let i = 0; i < 7; i++) {
-        const cur = new Date(baseDate);
+        const cur = new Date(startOfWeek);
         cur.setDate(cur.getDate() + i);
         cols.push({
           id: `day-${i}`,
@@ -155,7 +164,7 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
 
   // Date Range Title Text
   const dateRangeTitle = useMemo(() => {
-    if (columns.length === 0) return 'Jul 1 – Aug 2, 2026';
+    if (columns.length === 0) return 'Timeline';
     const first = columns[0].startDate;
     const last = columns[columns.length - 1].endDate;
     return `${formatDateShort(first)} – ${formatDateShort(last)}, ${first.getFullYear()}`;
@@ -180,23 +189,30 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
     return Math.max(0, Math.min(totalWidth, daysFromStart * pxPerDay));
   };
 
-  const todayX = dateToX(new Date('2026-07-20'));
+  const todayX = dateToX(new Date());
 
   // Filter epics by search query
   const filteredEpics = useMemo(() => {
     return epics.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [epics, searchQuery]);
 
-  // Auto scroll to today on mount
-  const scrollToToday = () => {
+  // Jump to today when user clicks 'Today' button
+  const handleJumpToToday = () => {
+    const now = new Date();
+    setBaseDate(now);
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = Math.max(0, dateToX(now) - 200);
+      }
+    }, 50);
+  };
+
+  // Scroll to today initial mount
+  useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollLeft = Math.max(0, todayX - 200);
     }
-  };
-
-  useEffect(() => {
-    scrollToToday();
-  }, [todayX]);
+  }, []);
 
   // Keyboard Navigation
   useEffect(() => {
@@ -311,7 +327,7 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
           </button>
 
           <button
-            onClick={scrollToToday}
+            onClick={handleJumpToToday}
             style={{ padding: '6px 12px', border: '1px solid var(--trella-border, #E2E8F0)', borderRadius: 6, backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--trella-text, #334155)' }}
           >
             Today
@@ -458,49 +474,72 @@ export function GanttChart({ epics, onEpicDateChange, onSelectTask, onDeleteTask
           
           {/* Gantt Header Columns */}
           <div style={{ display: 'flex', height: ROW_HEIGHT, borderBottom: '1px solid var(--trella-border, #E2E8F0)', backgroundColor: 'var(--trella-surface-sunken, #F8FAFC)', position: 'sticky', top: 0, zIndex: 5, width: totalWidth }}>
-            {columns.map(col => (
-              <div key={col.id} style={{ width: colWidth, flexShrink: 0, borderRight: '1px solid var(--trella-border, #E2E8F0)', padding: '6px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--trella-text, #334155)' }}>{col.label}</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--trella-text-subtlest, #94A3B8)' }}>{col.sublabel}</span>
-              </div>
-            ))}
+            {columns.map(col => {
+              const now = new Date();
+              const isTodayCol = now >= col.startDate && now <= col.endDate;
+
+              return (
+                <div
+                  key={col.id}
+                  style={{
+                    width: colWidth,
+                    flexShrink: 0,
+                    borderRight: '1px solid var(--trella-border, #E2E8F0)',
+                    padding: '6px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    backgroundColor: isTodayCol ? 'rgba(37,99,235,0.06)' : 'transparent',
+                  }}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 700, color: isTodayCol ? '#2563EB' : 'var(--trella-text, #334155)' }}>
+                    {col.label}
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: isTodayCol ? '#2563EB' : 'var(--trella-text-subtlest, #94A3B8)' }}>
+                    {col.sublabel}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Today Indicator Line */}
-          {todayX >= 0 && todayX <= totalWidth && (
-            <div
-              style={{
-                position: 'absolute',
-                left: todayX,
-                top: ROW_HEIGHT,
-                bottom: 0,
-                width: 2,
-                borderLeft: '2px dashed #2563EB',
-                zIndex: 6,
-                pointerEvents: 'none',
-              }}
-            >
+          {/* Gantt Bars Rows (Container for all rows and full-height Today line) */}
+          <div style={{ position: 'relative', width: totalWidth, minHeight: 'calc(100% - 44px)' }}>
+            {/* Today Indicator Line — placed inside rows container so top:0, bottom:0 extends 100% down through ALL task rows */}
+            {todayX >= 0 && todayX <= totalWidth && (
               <div
                 style={{
                   position: 'absolute',
-                  top: 4,
-                  left: -18,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  backgroundColor: '#2563EB',
-                  padding: '2px 8px',
-                  borderRadius: 12,
-                  boxShadow: '0 2px 4px rgba(37,99,235,0.3)',
+                  left: todayX,
+                  top: 0,
+                  bottom: 0,
+                  width: 2,
+                  borderLeft: '2px dashed #2563EB',
+                  zIndex: 6,
+                  pointerEvents: 'none',
                 }}
               >
-                Today
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    left: Math.max(-todayX + 4, -16),
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    backgroundColor: '#2563EB',
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    boxShadow: '0 2px 6px rgba(37,99,235,0.35)',
+                    whiteSpace: 'nowrap',
+                    zIndex: 10,
+                  }}
+                >
+                  Today
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Gantt Bars Rows */}
-          <div style={{ position: 'relative', width: totalWidth }}>
             {/* Blank Group Row Space */}
             <div style={{ height: ROW_HEIGHT, borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }} />
 
@@ -746,8 +785,10 @@ function GanttInteractiveBarRow({
   // Read DB story points (support both storyPoint and storyPoints properties)
   const dbStoryPoints = epic.storyPoint ?? epic.storyPoints ?? null;
 
-  // Parse exact startDate from task DB record
-  const barStart = epic.startDate ? epic.startDate.slice(0, 10) : '2026-07-01';
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // Parse exact startDate from task DB record (fallback to today if unspecified)
+  const barStart = epic.startDate ? epic.startDate.slice(0, 10) : todayStr;
 
   // Calculate end date based on story points velocity: 1 working day (8h) = 2 points.
   // 8 points -> 4 working days!
@@ -758,7 +799,10 @@ function GanttInteractiveBarRow({
       s.setDate(s.getDate() + (days - 1));
       return s.toISOString().slice(0, 10);
     }
-    return epic.dueDate ? epic.dueDate.slice(0, 10) : '2026-07-05';
+    if (epic.dueDate) return epic.dueDate.slice(0, 10);
+    const s = new Date(barStart);
+    s.setDate(s.getDate() + 5);
+    return s.toISOString().slice(0, 10);
   }, [dbStoryPoints, barStart, epic.dueDate]);
 
   const barEnd = overrideDates?.end || calculatedEndFromPoints;

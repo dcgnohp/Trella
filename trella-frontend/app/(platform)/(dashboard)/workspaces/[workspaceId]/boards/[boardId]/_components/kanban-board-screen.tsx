@@ -304,6 +304,7 @@ export const KanbanBoardScreen = ({
           currentUserId={user?.id ?? null}
           onStartStandup={() => setStandupActive(true)}
           onManageWorkflow={() => setWorkflowOpen(true)}
+          isScrum={isScrum}
         />
         <main style={{ flex: 1, overflowX: "auto", padding: "16px 20px" }}>
           <KanbanBoard
@@ -317,6 +318,7 @@ export const KanbanBoardScreen = ({
             onTaskClick={(task) => setSelectedTaskId(task.id)}
             isScrum={isScrum}
             boardIsEmpty={boardIsEmpty}
+            onManageWorkflow={() => setWorkflowOpen(true)}
           />
         </main>
       </div>

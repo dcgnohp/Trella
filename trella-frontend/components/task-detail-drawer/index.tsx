@@ -15,9 +15,10 @@ import PersonAvatarIcon from "@atlaskit/icon/core/person-avatar";
 import EditIcon from "@atlaskit/icon/core/edit";
 import InformationCircleIcon from "@atlaskit/icon/core/information-circle";
 import ArrowLeftIcon from "@atlaskit/icon/core/arrow-left";
+import DeleteIcon from "@atlaskit/icon/core/delete";
 
 import type { TaskPublic, ProjectMemberPublic, ColumnPublic, SprintPublic } from "@/lib/client";
-import { TasksService, CustomStatusesService, ColumnsService, VelocityConfigService, SprintsService, WorkflowsService, ApiError } from "@/lib/client";
+import { TasksService, CustomStatusesService, ColumnsService, VelocityConfigService, SprintsService, WorkflowsService, CardsService, ApiError } from "@/lib/client";
 import CreatableSelect from "@atlaskit/select/creatable-select";
 import { useTaskRealtime } from "@/lib/realtime/use-realtime";
 import { queryKeys } from "@/lib/query-keys";
@@ -1472,9 +1473,27 @@ export function TaskDetailDrawer({
   columns = [],
   onManageWorkflow,
 }: TaskDetailDrawerProps) {
+  const qc = useQueryClient();
   const [statusDropOpen, setStatusDropOpen] = React.useState(false);
   const [workflowDiagramOpen, setWorkflowDiagramOpen] = React.useState(false);
   const statusDropRef = React.useRef<HTMLDivElement>(null);
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (targetTaskId: string) => CardsService.Cards_cardsDeleteCard({ cardId: targetTaskId }),
+    onSuccess: () => {
+      toast.success("Task deleted successfully");
+      if (task?.boardId) {
+        qc.invalidateQueries({ queryKey: queryKeys.boardTasks(task.boardId) });
+        qc.invalidateQueries({ queryKey: queryKeys.board(task.boardId) });
+      }
+      if (workspaceId) {
+        qc.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+        qc.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+      }
+      onClose();
+    },
+    onError: () => toast.error("Failed to delete task"),
+  });
 
   // Fetch custom statuses list for the workflow diagram
   const { data: statuses = [] } = useQuery({
@@ -1672,6 +1691,38 @@ export function TaskDetailDrawer({
             >
               {displayTask.priority}
             </span>
+          )}
+
+          {/* Small Delete Task Icon Button (ADS Design System) */}
+          {displayTask && (
+            <button
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to delete the task "${displayTask.title}"?`)) {
+                  deleteTaskMutation.mutate(displayTask.id);
+                }
+              }}
+              disabled={deleteTaskMutation.isPending}
+              title={`Delete task "${displayTask.title}"`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 28,
+                height: 28,
+                border: "1px solid rgba(222, 53, 11, 0.25)",
+                borderRadius: 4,
+                cursor: "pointer",
+                color: "#DE350B",
+                backgroundColor: "#FFEBE6",
+                transition: "all 0.15s ease",
+                padding: 0,
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#FFBDAD")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#FFEBE6")}
+            >
+              <DeleteIcon label="Delete task" size="small" />
+            </button>
           )}
 
           {/* Close */}

@@ -30,6 +30,7 @@ interface KanbanBoardProps {
   onTaskClick: (task: TaskPublic) => void;
   isScrum?: boolean;
   boardIsEmpty?: boolean;
+  onManageWorkflow?: () => void;
 }
 
 export const KanbanBoard = ({
@@ -43,6 +44,7 @@ export const KanbanBoard = ({
   onTaskClick,
   isScrum,
   boardIsEmpty,
+  onManageWorkflow,
 }: KanbanBoardProps) => {
   const queryClient = useQueryClient();
 
@@ -62,6 +64,18 @@ export const KanbanBoard = ({
     queryFn: () => WorkflowsService.Workflows_workflowsGetWorkflow({ workflowId: activeWorkflow!.id }),
     enabled: !!isScrum && !!activeWorkflow?.id,
   });
+
+  // True when Scrum is active but the workflow has no transitions yet → show setup banner
+  const workflowNotConfigured = useMemo(() => {
+    if (!isScrum) return false;
+    if (!workflowsQuery.isSuccess) return false;
+    // No workflows exist at all
+    if (!activeWorkflow) return true;
+    // Workflow exists but detail not loaded yet — wait quietly
+    if (!workflowDetailQuery.isSuccess) return false;
+    // Workflow exists but has zero transitions
+    return (workflowDetailQuery.data?.transitions?.length ?? 0) === 0;
+  }, [isScrum, workflowsQuery.isSuccess, activeWorkflow, workflowDetailQuery.isSuccess, workflowDetailQuery.data]);
 
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
 
@@ -138,6 +152,7 @@ export const KanbanBoard = ({
       columnId: string;
       customStatusId: string | undefined;
       transitionComment?: string;
+      _originalCustomStatusId?: string | null;
     }) =>
       TasksService.Tasks_tasksUpdateTask({
         taskId,
@@ -153,13 +168,15 @@ export const KanbanBoard = ({
       }
 
       const taskObj = tasks.find((t) => t.id === variables.taskId);
-      const currentStatus = customStatuses.find((s) => s.id === taskObj?.customStatusId)?.name || "Không rõ";
+      // Use the captured original status (before optimistic update) so currentStatus is accurate
+      const originalStatusId = variables._originalCustomStatusId ?? taskObj?.customStatusId;
+      const currentStatus = customStatuses.find((s) => s.id === originalStatusId)?.name || "Không rõ";
       const targetStatus = customStatuses.find((s) => s.id === variables.customStatusId)?.name || "Không rõ";
 
       if (msg === "Invalid workflow transition path" && taskObj) {
         const transitions = workflowDetailQuery.data?.transitions || [];
         const validDestIds = transitions
-          .filter((t) => t.fromStatusId === taskObj.customStatusId || t.fromStatusId === null)
+          .filter((t) => t.fromStatusId === originalStatusId || t.fromStatusId === null)
           .map((t) => t.toStatusId);
         const validStatuses = customStatuses
           .filter((s) => validDestIds.includes(s.id))
@@ -315,6 +332,8 @@ export const KanbanBoard = ({
       const customStatusId = matchingStatus?.id ?? undefined;
 
       const taskId = result.draggableId;
+      const taskObj = tasks.find((t) => t.id === taskId);
+      const originalCustomStatusId = taskObj?.customStatusId;
 
       // Optimistic update
       queryClient.setQueryData<TaskPublic[]>(
@@ -338,6 +357,7 @@ export const KanbanBoard = ({
         taskId,
         columnId: destination.droppableId,
         customStatusId,
+        _originalCustomStatusId: originalCustomStatusId,
       });
     },
     [columns, customStatuses, boardId, moveTask, reorderColumns, queryClient],
@@ -348,7 +368,46 @@ export const KanbanBoard = ({
   }, [boardId, queryClient]);
 
   return (
-    <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <>
+      {/* ── Workflow setup banner ────────────────────────────────────────── */}
+      {workflowNotConfigured && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '10px 20px',
+          backgroundColor: 'rgba(255, 171, 0, 0.1)',
+          border: '1px solid rgba(255, 171, 0, 0.4)',
+          borderRadius: 8,
+          marginBottom: 12,
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--trella-text)' }}>
+              Workflow chưa được cấu hình
+            </p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--trella-text-subtle)' }}>
+              Dự án Scrum này chưa có quy trình chuyển trạng thái nào. Bạn cần thiết lập Workflow để có thể di chuyển task giữa các cột.
+            </p>
+          </div>
+          {onManageWorkflow && (
+            <button
+              onClick={onManageWorkflow}
+              style={{
+                flexShrink: 0, padding: '6px 14px', borderRadius: 6,
+                border: '1px solid #FFAB00', backgroundColor: '#FFAB00',
+                color: '#172B4D', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              Thiết lập Workflow →
+            </button>
+          )}
+        </div>
+      )}
+
+      <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <Droppable droppableId="board" type="COLUMN" direction="horizontal">
         {(provided) => (
           <div
@@ -540,6 +599,7 @@ export const KanbanBoard = ({
         )}
       </Droppable>
     </DragDropContext>
+    </>
   );
 };
 

@@ -17,11 +17,13 @@ import {
   BoardsService,
   ColumnsService,
   WorkflowsService,
+  CardsService,
 } from '@/lib/client';
 import type { SprintWithTasks, TaskPublic } from '@/lib/client';
 import type { DropResult } from '@hello-pangea/dnd';
 import { queryKeys } from '@/lib/query-keys';
 import { toast } from 'sonner';
+import { ConfirmModal } from '@/components/ads/confirm-modal';
 
 // Heavy components — lazy loaded to cut ~250kB from initial bundle
 const TaskDetailDrawer = dynamic(
@@ -57,6 +59,9 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
   const [showInsights, setShowInsights] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const lastSelectedIdRef = React.useRef<string | null>(null);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [memberFilter, setMemberFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -159,8 +164,52 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     return true;
   }, [search, memberFilter, statusFilter, priorityFilter, typeFilter]);
 
+  const [sortBy, setSortBy] = useState<'MANUAL' | 'PRIORITY_DESC' | 'PRIORITY_ASC' | 'DUE_DATE' | 'TITLE' | 'STATUS'>('MANUAL');
+
+  const PRIORITY_RANK: Record<string, number> = {
+    URGENT: 4,
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1,
+  };
+
+  const sortTasks = useCallback((tasks: TaskPublic[]) => {
+    if (sortBy === 'MANUAL') return tasks;
+    return [...tasks].sort((a, b) => {
+      if (sortBy === 'PRIORITY_DESC') {
+        const pA = PRIORITY_RANK[(a.priority ?? 'MEDIUM').toUpperCase()] ?? 2;
+        const pB = PRIORITY_RANK[(b.priority ?? 'MEDIUM').toUpperCase()] ?? 2;
+        return pB - pA;
+      }
+      if (sortBy === 'PRIORITY_ASC') {
+        const pA = PRIORITY_RANK[(a.priority ?? 'MEDIUM').toUpperCase()] ?? 2;
+        const pB = PRIORITY_RANK[(b.priority ?? 'MEDIUM').toUpperCase()] ?? 2;
+        return pA - pB;
+      }
+      if (sortBy === 'DUE_DATE') {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (sortBy === 'TITLE') {
+        return a.title.localeCompare(b.title);
+      }
+      if (sortBy === 'STATUS') {
+        const sA = a.customStatus?.name ?? '';
+        const sB = b.customStatus?.name ?? '';
+        return sA.localeCompare(sB);
+      }
+      return 0;
+    });
+  }, [sortBy]);
+
   const activeOrPlannedSprints = useMemo(
     () => sprints.filter(s => s.status !== 'COMPLETED'),
+    [sprints]
+  );
+
+  const activeSprint = useMemo(
+    () => sprints.find(s => s.status === 'ACTIVE') || null,
     [sprints]
   );
 
@@ -174,6 +223,49 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     [activeOrPlannedSprints, filterTask]
   );
   const filteredBacklog = useMemo(() => backlogTasks.filter(filterTask), [backlogTasks, filterTask]);
+
+  const sortedSprints = useMemo(
+    () => filteredSprints.map(s => ({ ...s, tasks: sortTasks(s.tasks ?? []) })),
+    [filteredSprints, sortTasks]
+  );
+  const sortedBacklog = useMemo(() => sortTasks(filteredBacklog), [filteredBacklog, sortTasks]);
+
+  const allVisibleTasks = useMemo(() => {
+    const list: TaskPublic[] = [];
+    sortedSprints.forEach(s => list.push(...(s.tasks ?? [])));
+    list.push(...sortedBacklog);
+    return list;
+  }, [sortedSprints, sortedBacklog]);
+
+  const handleToggleSelectTask = useCallback((taskId: string, isShiftKey?: boolean) => {
+    setSelectedTaskIds(prev => {
+      const isSelected = prev.includes(taskId);
+      if (isShiftKey && lastSelectedIdRef.current && lastSelectedIdRef.current !== taskId) {
+        const idx1 = allVisibleTasks.findIndex(t => t.id === lastSelectedIdRef.current);
+        const idx2 = allVisibleTasks.findIndex(t => t.id === taskId);
+        if (idx1 !== -1 && idx2 !== -1) {
+          const start = Math.min(idx1, idx2);
+          const end = Math.max(idx1, idx2);
+          const rangeIds = allVisibleTasks.slice(start, end + 1).map(t => t.id);
+          const set = new Set([...prev, ...rangeIds]);
+          return Array.from(set);
+        }
+      }
+      lastSelectedIdRef.current = taskId;
+      return isSelected ? prev.filter(id => id !== taskId) : [...prev, taskId];
+    });
+  }, [allVisibleTasks]);
+
+  const handleToggleSectionTasks = useCallback((taskIds: string[], selectAll: boolean) => {
+    setSelectedTaskIds(prev => {
+      if (selectAll) {
+        const set = new Set([...prev, ...taskIds]);
+        return Array.from(set);
+      } else {
+        return prev.filter(id => !taskIds.includes(id));
+      }
+    });
+  }, []);
 
   const selectedTask = useMemo(() => {
     if (!selectedTaskId) return null;
@@ -207,13 +299,73 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
     },
   });
 
+  const bulkMoveMutation = useMutation({
+    mutationFn: async ({ taskIds, sprintId }: { taskIds: string[]; sprintId: string | null }) => {
+      for (const taskId of taskIds) {
+        await TasksService.Tasks_tasksUpdateTask({ taskId, requestBody: { sprintId } });
+      }
+    },
+    onSuccess: (_, { sprintId, taskIds }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+      setSelectedTaskIds([]);
+      const targetName = sprintId ? (sprints.find(s => s.id === sprintId)?.name || 'sprint') : 'backlog';
+      toast.success(`Đã chuyển ${taskIds.length} công việc sang ${targetName}`);
+    },
+    onError: () => {
+      toast.error('Không thể di chuyển các task đã chọn');
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (taskIds: string[]) => {
+      for (const cardId of taskIds) {
+        await CardsService.Cards_cardsDeleteCard({ cardId });
+      }
+    },
+    onSuccess: (_, taskIds) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+      setSelectedTaskIds([]);
+      setShowBulkDeleteConfirm(false);
+      toast.success(`Đã xóa thành công ${taskIds.length} công việc`);
+    },
+    onError: () => {
+      toast.error('Không thể xóa các task đã chọn');
+      setShowBulkDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceSprints(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBacklog(workspaceId) });
+    },
+  });
+
+  const [isDraggingMulti, setIsDraggingMulti] = useState(false);
+
+  const onDragStart = (start: any) => {
+    if (selectedTaskIds.length > 1 && selectedTaskIds.includes(start.draggableId)) {
+      setIsDraggingMulti(true);
+    }
+  };
+
   function onDragEnd(result: DropResult) {
+    setIsDraggingMulti(false);
     const { draggableId, destination, source } = result;
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
     const destId = destination.droppableId;
     const newSprintId = destId === 'backlog' ? null : destId.replace('sprint:', '');
+
+    // If multiple tasks are selected and user drags one of them, move ALL selected tasks!
+    const targetTaskIds = selectedTaskIds.includes(draggableId) && selectedTaskIds.length > 1
+      ? selectedTaskIds
+      : [draggableId];
+
+    if (targetTaskIds.length > 1) {
+      bulkMoveMutation.mutate({ taskIds: targetTaskIds, sprintId: newSprintId });
+      return;
+    }
 
     queryClient.setQueryData<SprintWithTasks[]>(queryKeys.workspaceSprints(workspaceId), old => {
       if (!old) return old;
@@ -477,6 +629,33 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
             )}
           </div>
 
+          {/* Sort By Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
+              style={{
+                height: 32,
+                padding: '0 10px',
+                borderRadius: 4,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: sortBy !== 'MANUAL' ? '1px solid #1D7AFC' : '1px solid var(--trella-border)',
+                backgroundColor: sortBy !== 'MANUAL' ? 'rgba(29,122,252,0.1)' : 'var(--trella-surface)',
+                color: sortBy !== 'MANUAL' ? '#1D7AFC' : 'var(--trella-text)',
+                outline: 'none',
+              }}
+            >
+              <option value="MANUAL">⇅ Sắp xếp: Mặc định (Kéo thả)</option>
+              <option value="PRIORITY_DESC">🔥 Sắp xếp: Độ ưu tiên (Cao → Thấp)</option>
+              <option value="PRIORITY_ASC">🧊 Sắp xếp: Độ ưu tiên (Thấp → Cao)</option>
+              <option value="DUE_DATE">📅 Sắp xếp: Hạn chót</option>
+              <option value="TITLE">🔤 Sắp xếp: Tên công việc (A - Z)</option>
+              <option value="STATUS">🏷️ Sắp xếp: Trạng thái</option>
+            </select>
+          </div>
+
           <div style={{ flex: 1 }} />
 
           <button
@@ -497,9 +676,9 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
         {isLoading ? (
           <div style={{ padding: 40, textAlign: 'center' }}><span style={{ fontSize: 13, color: 'var(--trella-text-subtlest)' }}>Loading...</span></div>
         ) : (
-          <DragDropContext onDragEnd={onDragEnd}>
+          <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-               {filteredSprints.map(sprint => (
+               {sortedSprints.map(sprint => (
                 <SprintSection
                   key={sprint.id}
                   sprint={sprint}
@@ -512,10 +691,22 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
                   boardId={firstBoardId ?? ''}
                   todoColumnId={todoColumnId}
                   transitions={workflowDetailQuery.data?.transitions || []}
+                  selectedTaskIds={selectedTaskIds}
+                  onToggleSelectTask={handleToggleSelectTask}
+                  onToggleSectionTasks={handleToggleSectionTasks}
+                  onMoveSelectedToBacklog={() => {
+                    const sprintTaskIds = (sprint.tasks ?? []).map(t => t.id).filter(id => selectedTaskIds.includes(id));
+                    const targetIds = sprintTaskIds.length > 0 ? sprintTaskIds : selectedTaskIds;
+                    bulkMoveMutation.mutate({ taskIds: targetIds, sprintId: null });
+                  }}
+                  onDeleteSelected={() => {
+                    setShowBulkDeleteConfirm(true);
+                  }}
+                  isDraggingMulti={isDraggingMulti}
                 />
               ))}
               <BacklogSection
-                tasks={filteredBacklog}
+                tasks={sortedBacklog}
                 projectId={resolvedProjectId}
                 workspaceId={workspaceId}
                 members={members}
@@ -525,11 +716,40 @@ export function BacklogPageClient({ workspaceId }: BacklogPageClientProps) {
                 boardId={firstBoardId ?? ''}
                 todoColumnId={todoColumnId}
                 transitions={workflowDetailQuery.data?.transitions || []}
+                selectedTaskIds={selectedTaskIds}
+                onToggleSelectTask={handleToggleSelectTask}
+                onToggleSectionTasks={handleToggleSectionTasks}
+                onMoveSelectedToActive={() => {
+                  if (!activeSprint) return;
+                  const backlogTaskIds = sortedBacklog.map(t => t.id).filter(id => selectedTaskIds.includes(id));
+                  const targetIds = backlogTaskIds.length > 0 ? backlogTaskIds : selectedTaskIds;
+                  bulkMoveMutation.mutate({ taskIds: targetIds, sprintId: activeSprint.id });
+                }}
+                onDeleteSelected={() => {
+                  setShowBulkDeleteConfirm(true);
+                }}
+                activeSprintName={activeSprint?.name}
+                isDraggingMulti={isDraggingMulti}
               />
             </div>
           </DragDropContext>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={showBulkDeleteConfirm}
+        title={`Xóa ${selectedTaskIds.length} công việc đã chọn`}
+        appearance="danger"
+        confirmLabel={`Xóa ${selectedTaskIds.length} công việc`}
+        confirmLoading={bulkDeleteMutation.isPending}
+        onConfirm={() => bulkDeleteMutation.mutate(selectedTaskIds)}
+        onClose={() => setShowBulkDeleteConfirm(false)}
+        body={
+          <p style={{ margin: 0, fontSize: 14 }}>
+            Bạn có chắc chắn muốn xóa <strong>{selectedTaskIds.length} công việc</strong> đã chọn không? Thao tác này không thể hoàn tác.
+          </p>
+        }
+      />
 
       {showInsights && resolvedProjectId && (
         <InsightsPanel projectId={resolvedProjectId} sprints={sprints} onClose={() => setShowInsights(false)} />
