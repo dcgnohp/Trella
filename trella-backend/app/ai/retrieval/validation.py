@@ -13,11 +13,15 @@ All three must equal ``AI_EMBEDDING_DIM``.
 
 from __future__ import annotations
 
+import logging
+
 from sqlmodel import Session, text
 
 from app.ai.providers import AIProvider, get_embedding_provider
 from app.core.config import Settings
 from app.core.config import settings as default_settings
+
+logger = logging.getLogger("app.ai")
 
 
 class EmbeddingConfigError(RuntimeError):
@@ -79,9 +83,24 @@ async def validate_embedding_setup(
         )
 
     prov = provider or get_embedding_provider(cfg)
-    vectors = await prov.embed(
-        ["dimension probe"], model=cfg.AI_EMBEDDING_MODEL, dimensions=expected
-    )
+    try:
+        vectors = await prov.embed(
+            ["dimension probe"], model=cfg.AI_EMBEDDING_MODEL, dimensions=expected
+        )
+    except Exception as exc:  # noqa: BLE001
+        # ponytail: a PROVIDER error (denied key/403, quota/429, network) is NOT
+        # a config bug — it must not brick startup. Log + skip the probe; the
+        # dimension config (DB vs AI_EMBEDDING_DIM) was already fail-fast-checked
+        # above. Semantic search will surface the provider error per-request
+        # until the key/provider is reachable. Ceiling: the probe (provider dim
+        # == config dim) is deferred to first real use in this degraded case.
+        logger.warning(
+            "Embedding probe skipped at startup: provider embed() failed (%s). "
+            "Semantic search will error per-request until the provider is "
+            "reachable; startup continues.",
+            exc,
+        )
+        return
     actual = len(vectors[0]) if vectors else 0
     if actual != expected:
         raise EmbeddingConfigError(
