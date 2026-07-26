@@ -119,6 +119,11 @@ export function ModeSwitchWizardModal({
           ? "Switched workspace to Scrum mode!"
           : "Switched workspace to Kanban mode!"
       );
+      // Sync localStorage so WorkspaceHeader renders the correct tab set on reload
+      window.localStorage.setItem(
+        `trella:projectType:${workspaceId}`,
+        targetMode === "SCRUM" ? "scrum" : "kanban"
+      );
       queryClient.invalidateQueries({ queryKey: ["workspace-mode", workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["workspace-boards", workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["workspace-backlog", workspaceId] });

@@ -44,6 +44,61 @@ from app.ai.utils.errors import (
 _TRANSIENT = (ProviderTimeout, RateLimited)
 _RATE_LIMIT_CODE = 429
 
+# Gemini function-declaration schema = a strict OpenAPI 3.0 subset. Only these
+# keywords are kept per node; everything else (default, title, $schema, $defs,
+# additionalProperties, exclusiveMinimum/Maximum, pattern, minLength, …) is
+# dropped, since Gemini 400s the whole request on an unsupported keyword.
+_ALLOWED_SCHEMA_KEYS = frozenset(
+    {
+        "type",
+        "description",
+        "nullable",
+        "enum",
+        "items",
+        "properties",
+        "required",
+        "minimum",
+        "maximum",
+        "minItems",
+        "maxItems",
+        "anyOf",
+        "oneOf",
+        "allOf",
+    }
+)
+# ``format`` is allowed only for these Gemini-supported values (e.g. "uri" is NOT).
+_ALLOWED_FORMATS = frozenset({"date-time", "date", "time", "enum", "int32", "int64"})
+
+
+def _sanitize_gemini_schema(schema: Any) -> Any:
+    """Recursively strip JSON-Schema keywords Gemini's function-calling rejects.
+
+    Keeps only the supported OpenAPI-subset keywords (see ``_ALLOWED_SCHEMA_KEYS``)
+    and drops an unsupported ``format`` (e.g. ``"uri"``). Non-dict inputs pass
+    through unchanged. This makes rich external schemas (MCP tools) safe to send
+    without failing the whole request. Provider-scoped: OpenAI accepts the raw
+    schema, so only Gemini sanitizes.
+    """
+    if isinstance(schema, list):
+        return [_sanitize_gemini_schema(item) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+    out: dict[str, Any] = {}
+    for key, value in schema.items():
+        if key == "format":
+            if isinstance(value, str) and value in _ALLOWED_FORMATS:
+                out[key] = value
+            continue
+        if key not in _ALLOWED_SCHEMA_KEYS:
+            continue
+        if key == "properties" and isinstance(value, dict):
+            out[key] = {k: _sanitize_gemini_schema(v) for k, v in value.items()}
+        elif key in ("items", "anyOf", "oneOf", "allOf"):
+            out[key] = _sanitize_gemini_schema(value)
+        else:
+            out[key] = value
+    return out
+
 
 class GeminiProvider(AIProvider):
     name = "gemini"
@@ -342,13 +397,18 @@ class GeminiProvider(AIProvider):
         system_parts = [m.content for m in messages if m.role == "system"]
         system_instruction = "\n".join(system_parts) or None
         contents = self._to_contents(messages)
-        # Map OpenAI-shape tool specs to Gemini function declarations. Gemini
-        # takes the JSON schema verbatim via ``parameters_json_schema``.
+        # Map OpenAI-shape tool specs to Gemini function declarations. Gemini's
+        # function-declaration schema is a STRICT OpenAPI subset — unlike OpenAI
+        # it rejects keywords like ``default``/``title``/``exclusiveMinimum``/
+        # ``format: "uri"`` (e.g. external MCP tool schemas carry these), failing
+        # the WHOLE request with 400 INVALID_ARGUMENT. Sanitize each schema first.
         declarations = [
             types.FunctionDeclaration(
                 name=spec["function"]["name"],
                 description=spec["function"].get("description"),
-                parameters_json_schema=spec["function"].get("parameters"),
+                parameters_json_schema=_sanitize_gemini_schema(
+                    spec["function"].get("parameters")
+                ),
             )
             for spec in tools
         ]
