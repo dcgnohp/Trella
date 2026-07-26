@@ -14,6 +14,7 @@ from typing import Any, cast
 import openai
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
+from pydantic import ValidationError
 from tenacity import (
     retry as tenacity_retry,
 )
@@ -54,12 +55,15 @@ class OpenAIProvider(AIProvider):
         default_model: str,
         timeout: float,
         max_retries: int = 3,
+        base_url: str | None = None,
         client: AsyncOpenAI | None = None,
     ) -> None:
         self._api_key = api_key
         self._default_model = default_model
         self._timeout = timeout
         self._max_retries = max(1, max_retries)
+        # Optional OpenAI-compatible gateway (e.g. OpenRouter). None = official API.
+        self._base_url = base_url
         # Client is created lazily so the app boots without a key (the health
         # endpoint reports unhealthy until one is set). ``client`` is
         # injectable for tests.
@@ -70,8 +74,12 @@ class OpenAIProvider(AIProvider):
             if not self._api_key:
                 raise ProviderUnavailable("OPENAI_API_KEY is not configured.")
             # max_retries=0: we own retries via tenacity for uniform behavior.
+            # base_url points the SDK at an OpenAI-compatible gateway when set.
             self._client = AsyncOpenAI(
-                api_key=self._api_key, timeout=self._timeout, max_retries=0
+                api_key=self._api_key,
+                timeout=self._timeout,
+                max_retries=0,
+                base_url=self._base_url,
             )
         return self._client
 
@@ -203,6 +211,14 @@ class OpenAIProvider(AIProvider):
         except openai.OpenAIError as exc:
             # Auth, connection, 5xx, bad request -> single unavailable class.
             raise ProviderUnavailable(str(exc))
+        except ValidationError as exc:
+            # The SDK parses the model's content against ``response_model``;
+            # models without true structured-output support (common on
+            # OpenAI-compatible gateways like OpenRouter) may emit prose or
+            # malformed JSON. Surface as a handled AIError, not a 500.
+            raise InvalidResponse(
+                f"Model output did not match the expected schema: {exc}"
+            )
 
         message = resp.choices[0].message
         parsed = message.parsed
@@ -234,7 +250,13 @@ class OpenAIProvider(AIProvider):
         target_model = model or self._default_model
         client = self._get_client()
         # Only pass ``dimensions`` when requested (older models reject it).
-        extra: dict[str, Any] = {"dimensions": dimensions} if dimensions else {}
+        # Force ``encoding_format="float"``: the SDK otherwise auto-requests
+        # base64 for efficiency, which OpenAI-compatible gateways (OpenRouter)
+        # may not honor — yielding an empty ``data`` ("No embedding data
+        # received"). ``float`` is valid on the official API too.
+        extra: dict[str, Any] = {"encoding_format": "float"}
+        if dimensions:
+            extra["dimensions"] = dimensions
 
         @tenacity_retry(
             retry=retry_if_exception_type(_TRANSIENT),

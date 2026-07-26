@@ -14,6 +14,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
+from markdown_it import MarkdownIt
+
 from app.ai.tools.base import ToolContext, ToolResult, ToolSpec, WriteTool
 from app.ai.tools.data_access import (
     _invalid_args,
@@ -25,6 +27,20 @@ from app.models.sprints_model import Sprint
 from app.repositories.board_columns_repository import BoardColumnsRepository
 from app.schemas.tasks_schema import TaskCreate, TaskUpdate
 from app.services.tasks_service import TasksService
+
+# The task description field round-trips HTML (the TipTap editor stores
+# ``editor.getHTML()``); the LLM authors the description in Markdown. Convert
+# once at persist time so the saved value renders as formatted rich text instead
+# of raw "## ..." / "- ..." source. ponytail: reuses the already-installed
+# markdown-it-py (CommonMark); no new capability beyond headings/lists/bold/etc.
+_MD = MarkdownIt()
+
+
+def _description_to_html(value: Any) -> Any:
+    """Render a Markdown description string to HTML; pass non-strings through."""
+    if isinstance(value, str) and value.strip():
+        return _MD.render(value).strip()
+    return value
 
 
 def _optional(args: dict[str, Any], *keys: str) -> dict[str, Any]:
@@ -165,11 +181,11 @@ class CreateTaskTool(WriteTool):
         column = self._resolve_column(ctx.session, board_id, args)
         if column is None:
             return ToolResult(ok=False, error="no_board_column", source="task")
+        optional = _optional(args, *self._OPTIONAL_FIELDS)
+        if "description" in optional:
+            optional["description"] = _description_to_html(optional["description"])
         data = TaskCreate.model_validate(
-            {
-                "title": _require_str(args, "title"),
-                **_optional(args, *self._OPTIONAL_FIELDS),
-            }
+            {"title": _require_str(args, "title"), **optional}
         )
         task = self._tasks.create_task(ctx.session, board_id, column.id, data, ctx.user)
         return ToolResult(
@@ -230,6 +246,8 @@ class UpdateTaskTool(WriteTool):
     async def apply(self, args: dict[str, Any], ctx: ToolContext) -> ToolResult:
         task_id = _require_uuid(args, "task_id")
         fields = _optional(args, *self._FIELDS)
+        if "description" in fields:
+            fields["description"] = _description_to_html(fields["description"])
         data = TaskUpdate.model_validate(fields)
         task = self._tasks.update_task(ctx.session, task_id, data, ctx.user)
         changed = ", ".join(sorted(fields))

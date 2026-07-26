@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     # reports "unhealthy" until the selected provider's key is set.
     OPENAI_API_KEY: str | None = None
     GEMINI_API_KEY: str | None = None
+    # Optional base URL override for the OpenAI-compatible provider. Set this to
+    # use an OpenAI-compatible gateway such as OpenRouter
+    # (https://openrouter.ai/api/v1) with OPENAI_API_KEY = the gateway key and
+    # AI_DEFAULT_MODEL = the gateway's model slug. None → the official OpenAI API.
+    OPENAI_BASE_URL: str | None = None
     # Default/mini model names. For AI_PROVIDER="gemini", set these to Gemini
     # model ids in .env (e.g. AI_DEFAULT_MODEL=gemini-2.0-flash).
     # Explicit AI middleware profile override. When None, the profile is

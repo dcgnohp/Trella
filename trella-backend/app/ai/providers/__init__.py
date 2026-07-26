@@ -39,6 +39,7 @@ def _build(name: Literal["openai", "gemini"], settings: Settings) -> AIProvider:
             api_key=settings.OPENAI_API_KEY,
             default_model=settings.AI_DEFAULT_MODEL,
             timeout=settings.AI_REQUEST_TIMEOUT,
+            base_url=getattr(settings, "OPENAI_BASE_URL", None),
         )
     if name == "gemini":
         return GeminiProvider(

@@ -31,13 +31,83 @@ import {
   CheckCircle2,
   AlertCircle,
   Database,
-  UserCheck,
   Calendar,
 } from "lucide-react";
 
 import { useSprintAnalysis } from "@/lib/ai/use-sprint-analysis";
+import { validateSprintPayload } from "@/lib/ai/analytics-payload";
+import { computeSprintMetrics, type SprintMetrics } from "@/lib/ai/analytics-metrics";
 import { useWorkspaceAnalyticsData } from "@/lib/ai/use-workspace-analytics-data";
+import type { SprintAnalysisRequest } from "@/lib/client";
 import { ReportsService, WorkspaceMembersService } from "@/lib/client";
+import { AiSprintReport } from "./ai-sprint-report";
+
+/**
+ * Context captured when a retro is generated so the rich renderer has the
+ * sprint metadata + metrics alongside the AI analysis response.
+ */
+interface RetroContext {
+  metrics: SprintMetrics;
+  sprintName: string | null;
+  goal: string | null;
+  startDate: string | null;
+  endDate: string | null;
+}
+
+/** Sum of completed story points for a sprint's tasks. */
+function completedPointsOfSprint(sprint: any, allTasks: any[]): number {
+  const sId = String(sprint?.id ?? "").toLowerCase();
+  return allTasks
+    .filter((t: any) => getSprintId(t) === sId && getTaskStatus(t) === "DONE")
+    .reduce((sum: number, t: any) => sum + getStoryPoint(t), 0);
+}
+
+/**
+ * Build a sprint-scoped analysis payload from the REAL workspace source
+ * (a single sprint + its tasks). Distinct from the project-wide Summary tab:
+ * this is a per-sprint retrospective. Velocity = avg completed points across
+ * all COMPLETED sprints.
+ */
+function buildSprintRetroPayload(
+  sprint: any,
+  sprintTasks: any[],
+  allSprints: any[],
+  allTasks: any[]
+): SprintAnalysisRequest {
+  const done = sprintTasks.filter((t: any) => getTaskStatus(t) === "DONE");
+  const inProgress = sprintTasks.filter((t: any) => getTaskStatus(t) === "IN_PROGRESS");
+  const blocked = sprintTasks.filter((t: any) => getTaskStatus(t) === "PENDING");
+  const todo = sprintTasks.filter((t: any) => getTaskStatus(t) === "TO_DO");
+
+  const plannedPoints = sprintTasks.reduce((s: number, t: any) => s + getStoryPoint(t), 0);
+  const completedPoints = done.reduce((s: number, t: any) => s + getStoryPoint(t), 0);
+
+  const completedSprints = allSprints.filter((s: any) => s.status === "COMPLETED");
+  const velocity =
+    completedSprints.length > 0
+      ? completedSprints.reduce(
+          (acc: number, s: any) => acc + completedPointsOfSprint(s, allTasks),
+          0
+        ) / completedSprints.length
+      : null;
+
+  return {
+    goal: sprint?.goal ?? sprint?.name ?? null,
+    status: sprint?.status ?? "ACTIVE",
+    startDate: sprint?.startDate ?? sprint?.start_date ?? null,
+    endDate: sprint?.endDate ?? sprint?.end_date ?? null,
+    plannedPoints,
+    completedPoints,
+    todoCount: todo.length + blocked.length,
+    inProgressCount: inProgress.length,
+    doneCount: done.length,
+    velocity,
+    blockedTasks: blocked
+      .map((t: any) => (t.title as string) ?? "Untitled")
+      .slice(0, 20),
+    carriedOverTasks: [],
+  };
+}
 
 interface ReportsPageClientProps {
   workspaceId: string;
@@ -103,10 +173,13 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
   const [selectedSprintId, setSelectedSprintId] = useState<string>('ALL');
   const [dateRange, setDateRange] = useState<string>('30d');
 
-  // AI Retro Modal State
+  // AI Retro Modal State — driven by the REAL sprint-analysis endpoint
+  // (/ai/sprint/analysis), a DIFFERENT, sprint-scoped model output from the
+  // project-wide Summary tab.
   const [showAiRetroModal, setShowAiRetroModal] = useState(false);
-  const [aiRetroText, setAiRetroText] = useState<string | null>(null);
-  const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
+  const [retroBlock, setRetroBlock] = useState<string | null>(null);
+  const [retroCtx, setRetroCtx] = useState<RetroContext | null>(null);
+  const retro = useSprintAnalysis();
 
   // 1. Fetch Real Database Workspace Analytics Data (Sprints + ALL Workspace Tasks)
   const { sprints: dbSprints, backlog: dbTasks, isLoading: isSourceLoading } = useWorkspaceAnalyticsData(workspaceId);
@@ -354,26 +427,52 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
     window.print();
   };
 
-  // Action: Run Real Database AI Retrospective
+  // Action: run the REAL, sprint-scoped AI retrospective via
+  // POST /ai/sprint/analysis. Targets the selected sprint (or the active /
+  // most-recent one when scope is "ALL") and renders the rich sprint report.
   const handleRunAiRetro = () => {
-    setIsAiAnalyzing(true);
     setShowAiRetroModal(true);
-    setAiRetroText(null);
+    setRetroCtx(null);
+    if (isSourceLoading) {
+      setRetroBlock("Still loading workspace data — please try again in a moment.");
+      return;
+    }
 
-    setTimeout(() => {
-      setIsAiAnalyzing(false);
-      setAiRetroText(
-        `📊 REAL DATABASE AI RETROSPECTIVE:\n\n` +
-        `• Workspace Tasks Scope: ${totalTasks} Database Items (${doneTasksCount} Completed)\n` +
-        `• Total Story Points Delivered: ${donePoints} / ${totalPoints} SP (${completionRate}% Completion Rate)\n` +
-        `• Active Workspace Members: ${teamWorkloadList.members.length} Members Tracked\n` +
-        `• Unassigned Backlog Tasks: ${teamWorkloadList.unassigned.count} Items Awaiting Assignee\n` +
-        `• Database Sprints: ${dbSprints.length} Sprints Tracked in PostgreSQL\n\n` +
-        `💡 AI Recommended Actions:\n` +
-        `1. Assign the ${teamWorkloadList.unassigned.count} unassigned backlog tasks to members with LIGHT workload capacity.\n` +
-        `2. Keep current sprint velocity on track to hit target release deadlines.`
-      );
-    }, 850);
+    // Resolve which sprint to retrospect on.
+    const targetSprint =
+      selectedSprintId !== "ALL"
+        ? dbSprints.find((s: any) => String(s.id) === String(selectedSprintId))
+        : dbSprints.find((s: any) => s.status === "ACTIVE") ??
+          dbSprints.find((s: any) => s.status !== "COMPLETED") ??
+          dbSprints[0];
+
+    if (!targetSprint) {
+      setRetroBlock("No sprint found to retrospect on. Create a sprint first.");
+      return;
+    }
+
+    const sId = String(targetSprint.id).toLowerCase();
+    const sprintTasks = dbTasks.filter((t: any) => getSprintId(t) === sId);
+
+    const payload = buildSprintRetroPayload(targetSprint, sprintTasks, dbSprints, dbTasks);
+
+    // Validate BEFORE calling so an empty/inconsistent sprint shows a clear
+    // message instead of a raw 400 from the endpoint's trust boundary.
+    const check = validateSprintPayload(payload);
+    if (!check.ok) {
+      setRetroBlock(check.message);
+      return;
+    }
+
+    setRetroBlock(null);
+    setRetroCtx({
+      metrics: computeSprintMetrics(payload),
+      sprintName: targetSprint.name ?? (targetSprint as any).sprint_name ?? "Sprint",
+      goal: payload.goal ?? null,
+      startDate: payload.startDate ?? null,
+      endDate: payload.endDate ?? null,
+    });
+    retro.generate(payload);
   };
 
   return (
@@ -866,8 +965,10 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
             style={{
               backgroundColor: "#FFFFFF",
               borderRadius: 16,
-              maxWidth: 640,
+              maxWidth: 880,
               width: "100%",
+              maxHeight: "88vh",
+              overflowY: "auto",
               boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
               border: "1px solid #E2E8F0",
               padding: 28,
@@ -877,43 +978,52 @@ export function ReportsPageClient({ workspaceId }: ReportsPageClientProps) {
           >
             <button
               onClick={() => setShowAiRetroModal(false)}
-              style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", cursor: "pointer", color: "#64748B" }}
+              style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", cursor: "pointer", color: "#64748B", zIndex: 1 }}
             >
               <X size={20} />
             </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
               <div style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: "#F3E8FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Sparkles size={22} color="#7C3AED" />
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#0F172A" }}>
-                  AI Retrospective (PostgreSQL Analytics)
+                  AI Sprint Retrospective
                 </h3>
-                <span style={{ fontSize: 12, color: "#6B21A8" }}>Real-time workspace statistics</span>
+                <span style={{ fontSize: 12, color: "#6B21A8" }}>
+                  {retroCtx?.sprintName
+                    ? `${retroCtx.sprintName} — generated by AI from live sprint data`
+                    : "Generated by AI from your live sprint data"}
+                </span>
               </div>
             </div>
 
-            <div style={{ backgroundColor: "#FAF5FF", borderRadius: 10, padding: 16, border: "1px solid #F3E8FF", fontSize: 13, color: "#3B0764", lineHeight: 1.6, whiteSpace: "pre-line" }}>
-              {isAiAnalyzing ? (
-                <div style={{ color: "#7C3AED", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                  <RefreshCw size={16} className="animate-spin" />
-                  <span>AI is querying PostgreSQL database records to compute retrospective insights...</span>
-                </div>
-              ) : (
-                aiRetroText || (
-                  `📊 REAL DATABASE AI RETROSPECTIVE:\n\n` +
-                  `• Workspace Tasks Scope: ${totalTasks} Database Items (${doneTasksCount} Completed)\n` +
-                  `• Total Story Points Delivered: ${donePoints} / ${totalPoints} SP (${completionRate}% Completion Rate)\n` +
-                  `• Active Workspace Members: ${teamWorkloadList.members.length} Members Tracked\n` +
-                  `• Unassigned Backlog Tasks: ${teamWorkloadList.unassigned.count} Items Awaiting Assignee\n` +
-                  `• Database Sprints: ${dbSprints.length} Sprints Tracked in PostgreSQL\n\n` +
-                  `💡 AI Recommended Actions:\n` +
-                  `1. Assign the ${teamWorkloadList.unassigned.count} unassigned backlog tasks to members with LIGHT workload capacity.\n` +
-                  `2. Keep current sprint velocity on track to hit target release deadlines.`
-                )
-              )}
-            </div>
+            {retroBlock ? (
+              <div style={{ backgroundColor: "#FFFBEB", borderRadius: 10, padding: 16, border: "1px solid #FDE68A", fontSize: 13, color: "#B45309", lineHeight: 1.6 }}>
+                {retroBlock}
+              </div>
+            ) : retro.isFetching ? (
+              <div style={{ backgroundColor: "#FAF5FF", borderRadius: 10, padding: 16, border: "1px solid #F3E8FF", color: "#7C3AED", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+                <RefreshCw size={16} className="animate-spin" />
+                <span>AI is analyzing this sprint to generate the retrospective…</span>
+              </div>
+            ) : retro.isError ? (
+              <div style={{ backgroundColor: "#FEF2F2", borderRadius: 10, padding: 16, border: "1px solid #FECACA", fontSize: 13, color: "#B91C1C", lineHeight: 1.6 }}>
+                Couldn&apos;t generate the retrospective: {retro.error?.message || "please try again."}
+              </div>
+            ) : retro.data && retroCtx ? (
+              <AiSprintReport
+                analysis={retro.data}
+                metrics={retroCtx.metrics}
+                sprintName={retroCtx.sprintName}
+                goal={retroCtx.goal}
+                startDate={retroCtx.startDate}
+                endDate={retroCtx.endDate}
+              />
+            ) : (
+              <div style={{ color: "#7C3AED", padding: 16 }}>Preparing analysis…</div>
+            )}
           </div>
         </div>
       )}

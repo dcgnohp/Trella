@@ -7,9 +7,15 @@ from typing import Any
 import httpx
 import openai
 import pytest
+from pydantic import BaseModel, ValidationError
 
 from app.ai.providers.openai_provider import OpenAIProvider
-from app.ai.utils.errors import ProviderTimeout, ProviderUnavailable, RateLimited
+from app.ai.utils.errors import (
+    InvalidResponse,
+    ProviderTimeout,
+    ProviderUnavailable,
+    RateLimited,
+)
 
 _REQ = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
 _RESP = httpx.Response(429, request=_REQ)
@@ -83,3 +89,43 @@ def test_other_sdk_error_maps_to_unavailable() -> None:
     with pytest.raises(ProviderUnavailable):
         asyncio.run(_provider(create, max_retries=1).generate(prompt="hello"))
     assert create.calls == 1
+
+
+class _Schema(BaseModel):
+    value: int
+
+
+def _validation_error() -> ValidationError:
+    """A real pydantic ValidationError, as the SDK raises when a model returns
+    prose/malformed JSON that doesn't conform to the response schema."""
+    try:
+        _Schema.model_validate_json("not json at all")
+    except ValidationError as exc:
+        return exc
+    raise AssertionError("expected a ValidationError")  # pragma: no cover
+
+
+def _parse_client(parse: _FakeCreate) -> Any:
+    return SimpleNamespace(
+        beta=SimpleNamespace(
+            chat=SimpleNamespace(completions=SimpleNamespace(parse=parse))
+        )
+    )
+
+
+def test_structured_validation_error_maps_to_invalid_and_not_retried() -> None:
+    # A non-structured-capable model (e.g. some free OpenRouter models) returns
+    # content that fails schema parsing -> InvalidResponse, handled not 500.
+    parse = _FakeCreate(exc=_validation_error())
+    provider = OpenAIProvider(
+        api_key="x",
+        default_model="gpt-4.1-mini",
+        timeout=5.0,
+        max_retries=3,
+        client=_parse_client(parse),
+    )
+    with pytest.raises(InvalidResponse):
+        asyncio.run(
+            provider.generate_structured(prompt="hi", response_model=_Schema)
+        )
+    assert parse.calls == 1  # not transient -> no retry

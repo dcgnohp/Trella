@@ -413,12 +413,22 @@ def test_create_task_passes_description() -> None:
 
     result = _apply(
         tool,
-        {"board_id": str(uuid.uuid4()), "title": "T", "description": "hello desc"},
+        {
+            "board_id": str(uuid.uuid4()),
+            "title": "T",
+            "description": "hello desc\n\n## Criteria\n- a\n- b",
+        },
         tool_ctx,
     )
 
     assert result.ok is True
-    assert captured["data"].description == "hello desc"
+    # The description field stores HTML (TipTap editor); the LLM authors Markdown,
+    # so it is converted to HTML at persist time (renders formatted, not raw).
+    html = captured["data"].description
+    assert "<p>hello desc</p>" in html
+    assert "<h2>Criteria</h2>" in html
+    assert "<li>a</li>" in html and "<li>b</li>" in html
+    assert "##" not in html and "- a" not in html
 
 
 def test_create_task_prefers_todo_column_and_reports_placement() -> None:
