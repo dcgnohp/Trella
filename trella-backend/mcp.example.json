@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "example-stdio": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["some-mcp-server@latest"],
+      "env": { "SOME_TOKEN": "..." },
+      "timeout": 30.0,
+      "enabled": false,
+      "capabilities": []
+    },
+    "example-http": {
+      "transport": "http",
+      "url": "https://mcp.example.com/mcp",
+      "auth": { "type": "bearer", "token": "..." },
+      "timeout": 30.0,
+      "enabled": false,
+      "capabilities": ["search", "fetch"]
+    }
+  }
+}

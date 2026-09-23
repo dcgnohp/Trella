@@ -1,0 +1,14 @@
+{
+  "//": "Phase 10.1 MCP allow-list (real). Servers run only when AI_MCP_ENABLED=true. READ-ONLY tools only. A server that fails to launch (missing uvx) is logged and skipped — it never crashes startup.",
+  "mcpServers": {
+    "fetch": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {},
+      "timeout": 30.0,
+      "enabled": true,
+      "capabilities": ["fetch"]
+    }
+  }
+}

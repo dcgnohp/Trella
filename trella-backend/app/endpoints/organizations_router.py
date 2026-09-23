@@ -1,0 +1,101 @@
+import uuid
+
+from fastapi import APIRouter, status
+
+from app.core.base import CamelModel
+from app.core.deps import CurrentUser, SessionDep
+from app.schemas.organizations_schema import OrganizationCreate, OrganizationPublic
+from app.services.organizations_service import OrganizationsService
+
+router = APIRouter(prefix="/organizations", tags=["organizations"])
+workspaces_router = APIRouter(prefix="/workspaces", tags=["workspaces"])
+
+_service = OrganizationsService()
+
+
+@router.post("", response_model=OrganizationPublic)
+def create_organization(
+    session: SessionDep,
+    data: OrganizationCreate,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Create an organization owned by the authenticated user."""
+    org = _service.create_org(session, data, current_user)
+    return OrganizationPublic.model_validate(org)
+
+
+@router.get("", response_model=list[OrganizationPublic])
+def list_organizations(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> list[OrganizationPublic]:
+    """List the organizations the authenticated user is a member of."""
+    orgs = _service.list_for_user(session, current_user.id)
+    return [OrganizationPublic.model_validate(org) for org in orgs]
+
+
+@router.get("/{org_id}", response_model=OrganizationPublic)
+def get_organization(
+    session: SessionDep,
+    org_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Return organization detail. Raises HTTP 403 if not a member, HTTP 404 if org does not exist."""
+    org = _service.get_for_member(session, org_id, current_user.id)
+    return OrganizationPublic.model_validate(org)
+
+
+@router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_organization(
+    session: SessionDep,
+    org_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> None:
+    """Delete an organization; raises HTTP 403 if user is not the owner, HTTP 404 if org does not exist."""
+    _service.delete_org(session, org_id, current_user)
+
+
+class TaskBoardMapItem(CamelModel):
+    task_id: uuid.UUID
+    board_id: uuid.UUID
+
+
+class WorkspaceModeUpdate(CamelModel):
+    mode: str
+    primary_board_id: uuid.UUID | None = None
+    delete_board_ids: list[uuid.UUID] | None = None
+    archive_board_ids: list[uuid.UUID] | None = None
+    new_boards: list[str] | None = None
+    task_board_mappings: list[TaskBoardMapItem] | None = None
+
+
+@workspaces_router.patch("/{workspace_id}/mode", response_model=OrganizationPublic)
+def switch_workspace_mode(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    data: WorkspaceModeUpdate,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Switch workspace mode between KANBAN and SCRUM. OWNER only."""
+    org = _service.switch_mode(
+        session,
+        workspace_id,
+        data.mode,
+        current_user,
+        delete_board_ids=data.delete_board_ids,
+        archive_board_ids=data.archive_board_ids,
+        task_board_mappings=data.task_board_mappings,
+        new_boards=data.new_boards,
+    )
+    return OrganizationPublic.model_validate(org)
+
+
+@workspaces_router.get("/{workspace_id}", response_model=OrganizationPublic)
+def get_workspace(
+    session: SessionDep,
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> OrganizationPublic:
+    """Return workspace detail by ID. Raises HTTP 403 if not a member, HTTP 404 if not found."""
+    org = _service.get_for_member(session, workspace_id, current_user.id)
+    return OrganizationPublic.model_validate(org)
